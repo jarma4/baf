@@ -1,0 +1,150 @@
+{
+   "time": "1/1 20:30",
+   "week": 17,
+   "games": [
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "NE",
+         "team2": "@MIA",
+         "spread": -9.5,
+         "over": 47,
+         "moneyline1": -420,
+         "moneyline2": 350
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "NO",
+         "team2": "@ATL",
+         "spread": 6,
+         "over": 53,
+         "moneyline1": 230,
+         "moneyline2": -270
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "WAS",
+         "team2": "@DAL",
+         "spread": 4,
+         "over": 39,
+         "moneyline1": 175,
+         "moneyline2": -200
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "NYJ",
+         "team2": "@BUF",
+         "spread": -2.5,
+         "over": 42,
+         "moneyline1": -135,
+         "moneyline2": 115
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "PHI",
+         "team2": "@NYG",
+         "spread": 3.5,
+         "over": 51,
+         "moneyline1": 155,
+         "moneyline2": -175
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "PIT",
+         "team2": "@CLE",
+         "spread": -10.5,
+         "over": 47,
+         "moneyline1": -550,
+         "moneyline2": 425
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "TEN",
+         "team2": "@IND",
+         "spread": 0,
+         "over": 0,
+         "moneyline1": 0,
+         "moneyline2": 0
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "BAL",
+         "team2": "@CIN",
+         "spread": 9.5,
+         "over": 41.5,
+         "moneyline1": 350,
+         "moneyline2": -420
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "DET",
+         "team2": "@CHI",
+         "spread": 0,
+         "over": 46,
+         "moneyline1": -110,
+         "moneyline2": -110
+      },
+      {
+         "date": "2015-01-03T18:00:00.000Z",
+         "team1": "JAC",
+         "team2": "@HOU",
+         "spread": 6.5,
+         "over": 45.5,
+         "moneyline1": 225,
+         "moneyline2": -265
+      },
+      {
+         "date": "2015-01-03T21:25:00.000Z",
+         "team1": "STL",
+         "team2": "@SF",
+         "spread": -3,
+         "over": 37.5,
+         "moneyline1": -165,
+         "moneyline2": 145
+      },
+      {
+         "date": "2015-01-03T21:25:00.000Z",
+         "team1": "SD",
+         "team2": "@DEN",
+         "spread": 9,
+         "over": 41.5,
+         "moneyline1": 330,
+         "moneyline2": -400
+      },
+      {
+         "date": "2015-01-03T21:25:00.000Z",
+         "team1": "OAK",
+         "team2": "@KC",
+         "spread": 7,
+         "over": 43.5,
+         "moneyline1": 280,
+         "moneyline2": -340
+      },
+      {
+         "date": "2015-01-03T21:25:00.000Z",
+         "team1": "SEA",
+         "team2": "@ARI",
+         "spread": 6,
+         "over": 47,
+         "moneyline1": 225,
+         "moneyline2": -265
+      },
+      {
+         "date": "2015-01-03T21:25:00.000Z",
+         "team1": "TB",
+         "team2": "@CAR",
+         "spread": 10.5,
+         "over": 46,
+         "moneyline1": 450,
+         "moneyline2": -600
+      },
+      {
+         "date": "2015-01-04T01:30:00.000Z",
+         "team1": "MIN",
+         "team2": "@GB",
+         "spread": 3.5,
+         "over": 45.5,
+         "moneyline1": 155,
+         "moneyline2": -175
+      }
+   ]
+}

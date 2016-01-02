@@ -1,0 +1,13 @@
+extends base
+
+block content
+   strong.lead &nbspNBA&nbsp
+   img(src="images/basketball.png")
+   #savedBets
+   #nbaOdds
+   em#nbaTimestamp
+
+block scripts
+   script(type='text/javascript') getOdds('nba')
+   script(type='text/javascript') getUsers()
+   script(type='text/javascript') getBets(-2,'savedBets',2);

@@ -1,0 +1,35 @@
+extends base 
+
+block content
+   strong.lead &nbspBets
+   .panel-group
+      .panel.panel-warning
+         .panel-heading Waiting on You
+         #waitingYou.panel-body
+      .panel.panel-info
+         .panel-heading Waiting on Them
+         #waitingThem.panel-body
+      .panel.panel-success
+         .panel-heading Accepted Bets
+         #acceptedBets.panel-body
+      .panel.panel-primary
+         .panel-heading Refused Bets
+         #refusedBets.panel-body
+block modals
+   #actionModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
+               h4 Act on Bet:
+            .modal-body
+               .form-group
+                  label(for='actionComment') Comment:
+                  input#actionComment.form-control(type='text')
+               button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
+               button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
+               input#actionId.nodisplay
+
+block scripts
+   script(type='text/javascript') showBets()
+            

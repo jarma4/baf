@@ -1,0 +1,13 @@
+extends base
+
+block content
+   strong.lead#nflWeek
+   img(src="images/football.png")
+   #savedBets
+   #nflOdds
+   em#nflTimestamp
+   
+block scripts
+   script(type='text/javascript') getOdds('nfl')
+   script(type='text/javascript') getUsers()   
+   script(type='text/javascript') getBets(-1,'savedBets',1);

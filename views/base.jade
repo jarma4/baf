@@ -1,0 +1,141 @@
+html
+	head
+		meta(charset='utf-8')
+		meta(http-equiv='X-UA-Compatible', content='IE=edge')
+		meta(name='viewport', content='width=device-width, initial-scale=1')
+		title B.A.F.
+		link(href='css/bootstrap.slate.min.css', rel='stylesheet')
+		//- link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css', rel='stylesheet')
+		link(href='css/main.css', rel='stylesheet')
+		//- link(href='images/favicon.jpg', rel='shortcut icon', type='image/jpg')
+	body
+		#wrapper
+			#sidebar-wrapper
+				ul.sidebar-nav
+					li.sidebar-brand
+						| B.A.F
+					li
+						a.toggleSidebar(href='/') #[img(src="images/football.png").icon] NFL
+					li
+						a.toggleSidebar(href='/nba') #[img(src="images/basketball.png").icon] NBA
+					li
+						a.toggleSidebar(href='/bets') #[span.iconspan.glyphicon.glyphicon-usd] Bets
+					li
+						a.toggleSidebar(href='/stats') #[span.glyphicon.glyphicon-stats] Stats
+					li
+						a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
+					li
+						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-list-alt] Scores
+					li
+						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
+					li
+						a.toggleSidebar(data-toggle='modal', data-target='#loginModal') #[span.iconspan.glyphicon.glyphicon-cog] Login
+			#page-content-wrapper
+				button.toggleSidebar.btn.btn-default.btn-lg
+					span.glyphicon.glyphicon-menu-hamburger
+				a.right(href='/bets')
+					span#iconbar.glyphicon
+				block content
+
+		#betModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						button.close(type='button', data-dismiss='modal') #[span &times;]
+						h4#betTitle
+					.modal-body
+						form
+							.form-group
+								label(for='userList') Send Bet To:
+								select#userList.form-control(autofocus)
+							.form-group
+								label(for='betAmount') Bet Amount:
+								.input-group
+									button.btn-increment.btn.btn-primary(value="0")
+										span.glyphicon.glyphicon-minus
+									input#betAmount.small-inputbox(value='2', min='1', type='number')
+									button.btn-increment.btn.btn-primary(value="1")
+										span.glyphicon.glyphicon-plus
+								.form-group#oddsMod
+									label(for='betChange') Odds Modifier:
+									.input-group
+										button.btn-increment.btn.btn-primary(value="0")
+											span.glyphicon.glyphicon-minus
+										input#betChange.small-inputbox(value='0', type='number')
+										button.btn-increment.btn.btn-primary(value="1")
+											span.glyphicon.glyphicon-plus
+								//- .checkbox
+								//- 	label
+								//- 	input#betSave(type='checkbox')
+								//- 	| Save for Later 
+								input#betUser2.nodisplay
+								input#betOdds.nodisplay
+								input#betType.nodisplay
+								input#betTeam1.nodisplay
+								input#betTeam2.nodisplay
+								input#betSport.nodisplay
+								input#betGametime.nodisplay
+					.modal-footer
+						button#betSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Bet
+						button#betSave.btn.btn-primary.btn-lg.btn-block(type='submit', data-dismiss='modal') Save for later							
+		#alertModal.modal.fade
+			.modal-dialog
+				.modal-content#alertBody
+					.modal-body
+						h4#alertText
+		#savedModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						h4#savedTitle
+					.modal-body
+						h4#oddsText
+						//- .form-group
+						//- 	.checkbox
+						//- 	label
+						//- 		input#savedCheckbox(type='checkbox', checked)
+						//- 		| &nbspUse current odds
+						button#savedSend.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='1', data-dismiss="modal") Send with current odds
+						button#savedDelete.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Delete
+						input#savedId.nodisplay
+						input#savedNewOdds.nodisplay
+		#loginModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						h4.modal-title Please login
+					.modal-body
+						form
+						label(for='loginUsername') Username
+						input#loginUsername.form-control(required, autofocus)
+						label(for='loginPassword') Password
+						input#loginPassword.form-control(type='password', required)
+					.modal-footer
+						button#loginSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Sign in
+						button#loginRegister.btn.btn-primary.btn-lg.btn-block(data-dismiss='modal', data-toggle='modal', data-target='#registerModal') Register
+		#registerModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						h4.modal-title Register
+					.modal-body
+						form
+						label(for='registerUsername') Username
+						input#registerUsername.form-control(autofocus, required)
+						label(for='registerSMS') SMS
+						input#registerSMS.form-control(required)
+						label(for='registerPassword') Password
+						input#registerPassword.form-control(type='password', required)
+					.modal-footer
+						button#registerSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Register
+		#wipModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-body
+						h2 Coming Soon ...
+		block modals
+
+		script(src='js/jquery-1.11.3.min.js')
+		script(src='js/bootstrap.min.js')
+		script(src='js/baf.js')
+		block scripts

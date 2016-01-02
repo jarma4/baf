@@ -1,0 +1,32 @@
+{
+  "name": "app",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jarma4/jarnigan.com.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jarma4/jarnigan.com/issues"
+  },
+  "homepage": "https://github.com/jarma4/jarnigan.com#readme",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "cheerio": "^0.19.0",
+    "client-sessions": "^0.7.0",
+    "express": "^4.13.1",
+    "express-session": "^1.12.1",
+    "jade": "^1.11.0",
+    "mongoose": "^4.1.11",
+    "node-crontab": "0.0.8",
+    "plivo": "^0.3.3",
+    "request": "^2.61.0",
+    "serve-static": "^1.10.0"
+  }
+}

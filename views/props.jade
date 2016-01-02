@@ -1,0 +1,36 @@
+extends base 
+
+block content
+   strong.lead &nbspProp props
+   .panel.panel-primary
+      .panel-body 
+         a.btn.btn-success(type='button', data-toggle='modal', data-target='#propModal') Add Proposition
+         #propList
+
+block modals
+   #propModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               h4 Prop Bet:
+            .modal-body
+               .form-group
+                  label(for='propUser2') w/ Whom:
+                  select#propUser2.form-control
+               .form-group
+                  label(for='propAmount') Bet Amount:
+                  .input-group
+                     button.btn-minus.btn.btn-primary
+                        span.glyphicon.glyphicon-minus
+                     input#propAmount.small-inputbox(value='2', min='1', type='number')
+                     button.btn-plus.btn.btn-primary
+                        span.glyphicon.glyphicon-plus
+               .form-group
+                  label(for='propProp') Proposition:
+                  input#propProp.form-control
+            .modal-footer
+                  button#propSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
+
+block scripts
+   script(type='text/javascript') getUsers()
+   script(type='text/javascript') showProps()
