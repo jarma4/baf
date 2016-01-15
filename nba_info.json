@@ -1,148 +1,139 @@
 {
-   "time": "1/1 20:30",
-   "week": 17,
+   "time": "1/14 22:00",
+   "week": 19,
    "games": [
       {
-         "date": "2015-01-02T00:00:00.000Z",
-         "team1": "ORL",
-         "team2": "@WAS",
-         "spread": 1.5,
-         "over": 203,
-         "moneyline1": 105,
-         "moneyline2": -125
+         "date": "2016-01-14T20:00:00.000Z",
+         "team1": "TOR",
+         "team2": "@ORL",
+         "spread": -4.5,
+         "over": 193.5,
+         "moneyline1": -190,
+         "moneyline2": 170
       },
       {
-         "date": "2015-01-02T00:30:00.000Z",
-         "team1": "DAL",
-         "team2": "@MIA",
-         "spread": 2.5,
-         "over": 196,
-         "moneyline1": 120,
-         "moneyline2": -140
+         "date": "2016-01-15T00:00:00.000Z",
+         "team1": "CHI",
+         "team2": "@PHI",
+         "spread": -9,
+         "over": 203.5,
+         "moneyline1": -450,
+         "moneyline2": 375
       },
       {
-         "date": "2015-01-02T00:30:00.000Z",
-         "team1": "CHR",
-         "team2": "@TOR",
+         "date": "2016-01-15T01:00:00.000Z",
+         "team1": "DET",
+         "team2": "@MEM",
+         "spread": -1,
+         "over": 192,
+         "moneyline1": -115,
+         "moneyline2": -105
+      },
+      {
+         "date": "2016-01-15T01:00:00.000Z",
+         "team1": "CLE",
+         "team2": "@SAN",
          "spread": 6,
-         "over": 196.5,
-         "moneyline1": 220,
-         "moneyline2": -260
+         "over": 195.5,
+         "moneyline1": 210,
+         "moneyline2": -250
       },
       {
-         "date": "2015-01-02T01:00:00.000Z",
-         "team1": "NY",
-         "team2": "@CHI",
-         "spread": 7,
-         "over": 199,
-         "moneyline1": 250,
-         "moneyline2": -300
-      },
-      {
-         "date": "2015-01-02T03:30:00.000Z",
-         "team1": "PHI",
-         "team2": "@LAL",
+         "date": "2016-01-15T02:00:00.000Z",
+         "team1": "SAC",
+         "team2": "@UTA",
          "spread": 2.5,
-         "over": 208.5,
+         "over": 200,
          "moneyline1": 125,
          "moneyline2": -145
       },
       {
-         "date": "2015-01-02T20:00:00.000Z",
-         "team1": "BKN",
-         "team2": "@BOS",
-         "spread": 9,
-         "over": 204.5,
-         "moneyline1": 0,
-         "moneyline2": 0
+         "date": "2016-01-15T03:30:00.000Z",
+         "team1": "LAL",
+         "team2": "@GS",
+         "spread": 18.5,
+         "over": 217,
+         "moneyline1": 2000,
+         "moneyline2": -9900
       },
       {
-         "date": "2015-01-02T22:00:00.000Z",
-         "team1": "PHO",
-         "team2": "@SAC",
+         "date": "2016-01-16T00:00:00.000Z",
+         "team1": "WAS",
+         "team2": "@IND",
          "spread": 0,
          "over": 0,
          "moneyline1": 0,
          "moneyline2": 0
       },
       {
-         "date": "2015-01-03T00:00:00.000Z",
-         "team1": "OKC",
-         "team2": "@CHR",
-         "spread": -6,
+         "date": "2016-01-16T00:00:00.000Z",
+         "team1": "MIN",
+         "team2": "@OKC",
+         "spread": 12.5,
          "over": 208.5,
          "moneyline1": 0,
          "moneyline2": 0
       },
       {
-         "date": "2015-01-03T00:00:00.000Z",
-         "team1": "DET",
-         "team2": "@IND",
-         "spread": 4.5,
-         "over": 201.5,
-         "moneyline1": 0,
-         "moneyline2": 0
-      },
-      {
-         "date": "2015-01-03T00:30:00.000Z",
-         "team1": "ORL",
-         "team2": "@CLE",
-         "spread": 8.5,
-         "over": 194.5,
-         "moneyline1": 0,
-         "moneyline2": 0
-      },
-      {
-         "date": "2015-01-03T01:00:00.000Z",
-         "team1": "MIL",
-         "team2": "@MIN",
-         "spread": 1,
-         "over": 200.5,
-         "moneyline1": 0,
-         "moneyline2": 0
-      },
-      {
-         "date": "2015-01-03T01:30:00.000Z",
-         "team1": "NOH",
-         "team2": "@DAL",
-         "spread": 2.5,
-         "over": 208,
-         "moneyline1": 0,
-         "moneyline2": 0
-      },
-      {
-         "date": "2015-01-03T01:30:00.000Z",
-         "team1": "HOU",
-         "team2": "@SAN",
+         "date": "2016-01-16T00:30:00.000Z",
+         "team1": "PHO",
+         "team2": "@BOS",
          "spread": 0,
          "over": 0,
          "moneyline1": 0,
          "moneyline2": 0
       },
       {
-         "date": "2015-01-03T02:00:00.000Z",
-         "team1": "MEM",
-         "team2": "@UTA",
+         "date": "2016-01-16T00:30:00.000Z",
+         "team1": "POR",
+         "team2": "@BKN",
+         "spread": -4.5,
+         "over": 202,
+         "moneyline1": 0,
+         "moneyline2": 0
+      },
+      {
+         "date": "2016-01-16T01:00:00.000Z",
+         "team1": "DAL",
+         "team2": "@CHI",
          "spread": 0,
          "over": 0,
          "moneyline1": 0,
          "moneyline2": 0
       },
       {
-         "date": "2015-01-03T03:30:00.000Z",
-         "team1": "DEN",
-         "team2": "@GS",
+         "date": "2016-01-16T01:00:00.000Z",
+         "team1": "CHR",
+         "team2": "@NOH",
          "spread": 0,
          "over": 0,
          "moneyline1": 0,
          "moneyline2": 0
       },
       {
-         "date": "2015-01-03T03:30:00.000Z",
-         "team1": "PHI",
-         "team2": "@LAC",
-         "spread": 12.5,
-         "over": 210,
+         "date": "2016-01-16T01:00:00.000Z",
+         "team1": "ATL",
+         "team2": "@MIL",
+         "spread": -2.5,
+         "over": 208.5,
+         "moneyline1": 0,
+         "moneyline2": 0
+      },
+      {
+         "date": "2016-01-16T02:00:00.000Z",
+         "team1": "MIA",
+         "team2": "@DEN",
+         "spread": -1,
+         "over": 193.5,
+         "moneyline1": 0,
+         "moneyline2": 0
+      },
+      {
+         "date": "2016-01-16T02:30:00.000Z",
+         "team1": "CLE",
+         "team2": "@HOU",
+         "spread": -2,
+         "over": 205,
          "moneyline1": 0,
          "moneyline2": 0
       }

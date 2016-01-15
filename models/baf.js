@@ -37,6 +37,12 @@ $('#betModal').on('show.bs.modal', function (event) {
       $('#betTitle').text('Bet is: '+((button.data('team')===1)?'Over ':'Under ')+odds);
 });
 
+// $('#nbaPage').on('click', function(){
+//    getOdds('nba');
+//    getUsers();
+//    getBets(-2,'savedBets',2);
+// });
+
 $('#betSubmit').on('click', function(){
    $.ajax({
 		type: 'POST',
@@ -157,7 +163,8 @@ function showBets () {
    $.ajax({
       type: 'POST',
       url: '/getbets',
-      data: {'status': 0},
+      data: {'status': 0,
+            'all': 0},
       success:function(retData){
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>Bet</th><th>Act</th></tr>';
@@ -179,7 +186,8 @@ function showBets () {
    $.ajax({
       type: 'POST',
       url: '/getbets',
-      data: {'status': 0},
+      data: {'status': 0,
+            'all':0},
       success:function(retData){
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>Bet</th></tr>';
@@ -198,6 +206,29 @@ function showBets () {
       }
    });
    getBets(2,'acceptedBets');
+   $('#acceptedBets').hide();
+   $.ajax({
+      type: 'POST',
+      url: '/getbets',
+      data: {"status": 2,
+            "all": 1},
+      success:function(retData){
+         if(retData.length){
+            var outp = '<table class="table table-condensed"><tr style="color:#ee5f5b">';
+            outp += '<th colspan=3>Others</th></tr>';
+            $.each(retData, function(i,rec){
+               outp += '<tr><td>'+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td class="center">'+((rec.type==='over')?'O':(rec.type==='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+            });
+            outp += '</table>';
+            document.getElementById("acceptedBets").innerHTML += outp;
+            $('[data-toggle="popover"]').popover();
+            $('#acceptedBets').show();
+         }
+      },
+      error: function(retData){
+         alert(retData.type,retData.message);
+      }
+   });
    getBets(3,'refusedBets');
 }
 
@@ -206,7 +237,8 @@ function getBets(status,target,custom) {
    $.ajax({
       type: 'POST',
       url: '/getbets',
-      data: {"status": status},
+      data: {"status": status,
+            "all": 0},
       success:function(retData){
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr>';
@@ -260,9 +292,9 @@ function weeklyStats() {
       data: {'week': getWeek(new Date())},
 		success:function(retData){
          if(retData.length){
-            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>Bet</th></tr>';
+            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">'):'<td>')+rec.team1+'</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">'):'<td>')+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>$'+rec.amount+'</td></tr>';
+               outp += '<tr>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">'):'<td>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">'):'<td>')+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>$'+rec.amount+'</td></tr>';
             });
             outp += '</table>';
             document.getElementById('weeklyStats').innerHTML = outp;
@@ -299,7 +331,7 @@ function overallStats(nfl,nba) {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,5)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl+rec.push_nfl*.5)/(rec.win_nfl+rec.loss_nfl+rec.push_nfl)).toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,5)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl*nfl+rec.push_nfl*nfl*0.5)/(rec.win_nfl*nfl+rec.loss_nfl*nfl+rec.push_nfl*nfl)).toPrecision(3).slice(1,5)+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
@@ -354,7 +386,7 @@ function showScores(sport, period) {
 		type: 'POST',
 		url: '/getscores',
       data: {'sport': sport,
-         'year': 2015,
+         'year': ((period>17)?2016:2015),
          'period': period},
 		success:function(retData){
          if (sport==='nfl')
@@ -378,7 +410,7 @@ $('.scoresInc').on('click', function(event){
    event.preventDefault();
    var tmp = $('#scoresPeriod').text().split(' ');
    if (tmp[0]==='Week') {
-      if (Number(tmp[1]) >= 1 && Number(tmp[1]) <= 17)
+      if (Number(tmp[1]) >= 1 && Number(tmp[1]) < 21)
          showScores('nfl', Number(tmp[1])+$(this).val()*1);
    } else {
       showScores('nba',new Date(Number(new Date($('#scoresDate').val()))+$(this).val()*(24*60*60*1000)));
@@ -567,12 +599,12 @@ function getWeek(date){
    var wk, dst=0;
    var seasonStart = new Date(2015,8,8);
    var nflWeeks = [];
-   for (var i=0;i<18;i++){
+   for (var i=0;i<21;i++){
       if (i > 7)
          dst = 3600000;
       nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
    }
-   for (i=0;i<17;i++){
+   for (i=0;i<21;i++){
       if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
          wk = i+1;
          break;

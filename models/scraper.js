@@ -6,18 +6,19 @@ Bets = require('./dbschema').Bets,
 Scores = require('./dbschema').Scores,
 mongoose = require('mongoose');
 
-var seasonStart = new Date(2015,8,8);
-var nflWeeks = [];
-var dst = 0;
-for (var i=0;i<18;i++){
+var seasonStart = new Date(2015,8,8),
+   nflWeeks = [],
+   numWeeks = 22,
+   daylight_savings_offset = 0;
+for (var i=0;i<numWeeks;i++){
    if (i > 7)
-      dst = 3600000;
-   nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
+      daylight_savings_offset = 3600000;
+   nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+daylight_savings_offset));
 }
 
 function getOdds(sport) {
    var url = 'http://www.oddsshark.com/'+sport+'/odds';
-   console.log('refeshing '+sport+' odds - '+new Date());
+   // console.log('refeshing '+sport+' odds - '+new Date());
    request(url, function (err, response, body) {
       if(!err && response.statusCode === 200) {
          var $ = cheerio.load(body);
@@ -35,7 +36,7 @@ function getOdds(sport) {
                else {
                   var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
                   var temptime = $(this).parent().prev().text().split(':');
-                  matchup.date = new Date(tempdate+' 2015 '+(Number(temptime[0])+Number((temptime[1].slice(-1) === 'p')?11:-1))+':'+temptime[1].slice(0,2));
+                  matchup.date = new Date(tempdate+' 2016 '+(Number(temptime[0])+Number((temptime[1].slice(-1) === 'p')?11:-1))+':'+temptime[1].slice(0,2));
                   matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
                }
             });
@@ -73,13 +74,13 @@ function updateBet(id,object){
 }
 
 function updateWinnerLoser(winner,loser,push){
-	Users.update({_id:winner},(push)?{$inc:{nfl_push:1}}:{$inc:{nfl_win:1}},function(err){
+	Users.update({_id:winner},(push)?{$inc:{push_nfl:1}}:{$inc:{win_nfl:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating - '+new Date());
 		else
 			console.log(winner+' is winner - '+new Date());
 	});
-   Users.update({_id:loser},(push)?{$inc:{nfl_push:1}}:{$inc:{nfl_loss:1}},function(err){
+   Users.update({_id:loser},(push)?{$inc:{push_nfl:1}}:{$inc:{loss_nfl:1}},function(err){
 		console.log('in update');
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
@@ -91,7 +92,7 @@ function updateWinnerLoser(winner,loser,push){
 module.exports = {
    getWeek: function(date){
       var wk=0;
-      for (i=0;i<17;i++){
+      for (i=0;i<numWeeks;i++){
          if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
             wk = i+1;
             break;
@@ -108,7 +109,7 @@ module.exports = {
       var url;
       if (sport==='nfl') {
          wk = module.exports.getWeek(new Date());
-         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+wk+'/2015';
+         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2015';
       } else {
          var today = new Date();
          url = 'http://www.oddsshark.com/nba/scores?date='+(today.getMonth()+1)+'/'+today.getDate()+'/'+today.getFullYear();
@@ -150,7 +151,7 @@ module.exports = {
          			if(err)
          				console.log(err);
          			else
-                     console.log(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date());
+                     console.log(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
    		      });
                Users.update({_id:single.user2},{$inc: {messages: -1}}, function(err){
                   if(err)

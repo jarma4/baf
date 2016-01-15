@@ -5,9 +5,12 @@ var usersSchema = new mongoose.Schema({
    password : String,
    sms : String,
    messages : Number,
-   win: Number,
-   loss: Number,
-   push: Number
+   win_nfl: Number,
+   win_nba: Number,
+   loss_nfl: Number,
+   loss_nba: Number,
+   push_nfl: Number,
+   push_nba: Number
 });
 
 var betsSchema = new mongoose.Schema({

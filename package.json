@@ -28,5 +28,9 @@
     "plivo": "^0.3.3",
     "request": "^2.61.0",
     "serve-static": "^1.10.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-uglify": "^1.5.1"
   }
 }

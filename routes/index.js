@@ -117,7 +117,7 @@ router.post('/makebet', requireLogin, function(req,res){
 
 router.post('/getbets', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{status:req.body.status},{$or:[{user1: ((req.body.all)?{}:req.session.user._id)},{user2: req.session.user._id}]}]},function(err,bets){
+   Bets.find({$and:[{status:req.body.status},(Number(req.body.all))?{$and:[{user1:{$ne: req.session.user._id}},{user2: {$ne: req.session.user._id}}]}:{$or:[{user1: req.session.user._id},{user2: req.session.user._id}]}]},function(err,bets){
       if(err){
          console.log(err);
       } else {
@@ -250,7 +250,7 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{week:req.body.week},{$and:[{status: {$in:[4,5,6]}},{$or:[{user1: req.session.user._id},{user2: req.session.user._id}]}]}]},function(err,complete){
+   Bets.find({$and:[{week:req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -364,11 +364,11 @@ router.get('/getprops', requireLogin, function(req,res){
 });
 
 router.get('/nflodds', function (req, res) {
-  res.sendFile('./nfl_info.json', {'root':'/home/common/jarnigan.com/baf/'});
+  res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
 });
 
 router.get('/nbaodds', function (req, res) {
-  res.sendFile('./nba_info.json', {'root':'/home/common/jarnigan.com/baf/'});
+  res.sendFile('./nba_info.json', {'root':'/home/common/baf/'});
 });
 
 // utility pages
