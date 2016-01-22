@@ -402,15 +402,11 @@ router.get('/doorbell',requireLogin, function(req,res){
 
 // Main page renderings
 router.get('/', function(req, res) {
+   res.render('nba', {pagename:'NBA'});  // pagename not used now
+});
+
+router.get('/nfl', function(req, res) {
    res.render('nfl', {pagename:'NFL'});  // pagename not used now
-});
-
-router.get('/nfl2', function(req, res) {
-   res.render('nfl2', {pagename:'NFL2'});  // pagename not used now
-});
-
-router.get('/nba', function(req, res) {
-   res.render('nba', {pagename:'NFL'});  // pagename not used now
 });
 
 router.get('/bets', function(req, res) {
@@ -513,7 +509,7 @@ function textUser(to, from, message){
 var seasonStart = new Date(2015,8,8);
 var nflWeeks = [];
 var dst = 0;
-for (var i=0;i<18;i++){
+for (var i=0;i<22;i++){
    if (i > 7)
       dst = 3600000;
    nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
@@ -521,7 +517,7 @@ for (var i=0;i<18;i++){
 
 function getWeek(date){
    var wk;
-   for (i=0;i<17;i++){
+   for (i=0;i<22;i++){
       if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
          wk = i+1;
          break;

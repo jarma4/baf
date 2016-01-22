@@ -37,12 +37,6 @@ $('#betModal').on('show.bs.modal', function (event) {
       $('#betTitle').text('Bet is: '+((button.data('team')===1)?'Over ':'Under ')+odds);
 });
 
-// $('#nbaPage').on('click', function(){
-//    getOdds('nba');
-//    getUsers();
-//    getBets(-2,'savedBets',2);
-// });
-
 $('#betSubmit').on('click', function(){
    $.ajax({
 		type: 'POST',
@@ -441,7 +435,7 @@ function showMessages() {
          var outp='';
 			$.each(retData, function(i,rec){
             date = new Date(rec.date);
-				outp += '<span class="msghdr">'+rec.user.slice(0,5)+'</span>: '+rec.message+'  <span class="msgdate">('+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+'-'+(date.getMonth()+1)+'/'+date.getDate()+')</span><br/>';
+				outp += '<span class="msghdr">'+rec.user.slice(0,5)+'</span>: '+rec.message+'  <span class="msgdate">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
 			});
 			document.getElementById("msgList").innerHTML = outp;
 		},
@@ -539,6 +533,59 @@ $('#whoami').on('click', function(){
    });
 });
 
+$('#page-content-wrapper').on('swipeleft', function(event){
+   switch (window.location.pathname) {
+      case '/nfl':
+      window.location.href = '/';
+         break;
+      case '/':
+         window.location.href = '/bets';
+         break;
+      case '/bets':
+         window.location.href = '/stats';
+         break;
+      case '/stats':
+         window.location.href = '/messageboard';
+         break;
+      case '/messageboard':
+         window.location.href = '/scores';
+         break;
+      case '/scores':
+         window.location.href = '/props';
+         break;
+      case '/props':
+         window.location.href = '/nfl';
+         break;
+
+   }
+});
+
+$('#page-content-wrapper').on('swiperight', function(event){
+   switch (window.location.pathname) {
+      case '/nfl':
+         window.location.href = '/props';
+         break;
+      case '/':
+         window.location.href = '/nfl';
+         break;
+      case '/bets':
+         window.location.href = '/nba';
+         break;
+      case '/stats':
+         window.location.href = '/bets';
+         break;
+      case '/messageboard':
+         window.location.href = '/stats';
+         break;
+      case '/scores':
+         window.location.href = '/messageboard';
+         break;
+      case '/props':
+         window.location.href = '/scores';
+         break;
+
+   }
+});
 // class used by sidebar page selection to close
 $('.toggleSidebar').on('click', function() {
    $('#wrapper').toggleClass('toggled');
@@ -614,6 +661,8 @@ function getWeek(date){
 }
 
 function getOdds (sport){
+   var months = ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 	$.ajax({
 		type: 'GET',
 		url: '/'+sport+'odds',
@@ -632,7 +681,7 @@ function getOdds (sport){
          }
          $.each(retData.games, function(i,rec){
             var date = new Date(rec.date);
-            outp += '<tr><td>'+rec.team1+'<br/><button class="btn btn-'+color+' btn-custom" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td align="center">'+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+'<br/><button class="btn btn-default btn-custom" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button class="btn btn-default btn-custom" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td>'+rec.team2+'<br/><button class="btn btn-'+color+'  btn-custom" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+months[date.getMonth()]+' '+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+'<br/><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
             i++;
          });
          outp += '</table>';

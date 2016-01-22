@@ -81,7 +81,6 @@ function updateWinnerLoser(winner,loser,push){
 			console.log(winner+' is winner - '+new Date());
 	});
    Users.update({_id:loser},(push)?{$inc:{push_nfl:1}}:{$inc:{loss_nfl:1}},function(err){
-		console.log('in update');
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
 		else

@@ -15,9 +15,9 @@ html
 					li.sidebar-brand
 						| B.A.F
 					li
-						a.toggleSidebar(href='/') #[img(src="images/football.png").icon] NFL
+						a.toggleSidebar(href='/nfl') #[img(src="images/football.png").icon] NFL
 					li
-						a#nbaPage.toggleSidebar(href='/nba') #[img(src="images/basketball.png").icon] NBA
+						a#nbaPage.toggleSidebar(href='/') #[img(src="images/basketball.png").icon] NBA
 					li
 						a.toggleSidebar(href='/bets') #[span.iconspan.glyphicon.glyphicon-usd] Bets
 					li
@@ -136,6 +136,7 @@ html
 		block modals
 
 		script(src='js/jquery-1.11.3.min.js')
+		script(src='js/jquery.mobile.custom.min.js')
 		script(src='js/bootstrap.min.js')
 		script(src='js/baf.js')
 		block scripts

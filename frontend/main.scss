@@ -1,0 +1,72 @@
+@import '_cyborg';
+@import '_sidebar';
+
+.nodisplay{
+	display: none;
+}
+
+.popover {
+	background-color: $theme-danger;
+}
+
+.icon {
+	height: 20px;
+	/*margin-left: 10px;*/
+}
+.center{
+	text-align: center;
+	float: none;
+}
+.right{
+	float: right;
+	margin-top:-5px;
+}
+.btn-scootlft{
+	margin-right: 30px;
+}
+.small-inputbox{
+	width: 3em;
+	text-align: center;
+}
+
+.msghdr{
+	color: $theme-info;
+	font-style: italic;
+}
+.msgdate{
+	font-size: 85%;
+	color: $theme-primary;
+}
+
+td.td-odds {
+	text-align: center;
+	button {
+		width: 100%;
+	}
+	&.td-middle {
+		// background-color: red;
+		width: 45%;
+		padding-left: 0px;
+		padding-right: 0px;
+		button {
+			width: 50%;
+		}
+	}
+}
+
+
+// below defines modal classes
+@each $color in (
+	default $theme-default,
+	primary $theme-primary,
+	success $theme-success,
+	info $theme-info,
+	warning $theme-warning,
+	danger $theme-danger
+)
+ {
+	.modal-#{nth($color,1)} {
+		color: white;
+		background-color: #{nth($color,2)};
+	}
+}
