@@ -4,11 +4,11 @@ block content
    strong.lead &nbspStats
    .panel-group
       .panel.panel-primary
-         .panel-heading Weekly
+         .panel-heading Last 5 Days
          #weeklyStats.panel-body
       .panel.panel-success
          .panel-heading Overall
-            button#statsType.btn.btn-sm.btn-primary.right ALL
+            button#statsType.btn.btn-sm.btn-primary.right NBA
          #overallStats.panel-body
          
 block modals
@@ -21,5 +21,5 @@ block modals
                #statsHistory
 block scripts
    script(type='text/javascript') weeklyStats()
-   script(type='text/javascript') overallStats(1,1)
+   script(type='text/javascript') overallStats(0,1)
             

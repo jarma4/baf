@@ -129,7 +129,11 @@ module.exports = {
                   else
                      wnr = 2;
                   // var period = ((sport==='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]});
-      				Scores.update({$and:[{sport:sport},{team1:tm1},{team2:tm2},{winner:0}, ((sport==='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:wnr},function(err, resp) {
+      				Scores.update({$and:[{sport:sport},
+                                       {team1:tm1},
+                                       {team2:tm2},
+                                       {winner:0},
+                                       ((sport==='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:wnr},function(err, resp) {
       					if (err)
       						console.log('error');
       					if (resp.n)
@@ -172,35 +176,41 @@ module.exports = {
    },
 
    tallyBets: function(){
-      wk = module.exports.getWeek(new Date());
-      Bets.find({$and:[{week:wk},{status:2}]}, function(err, bets){  //find accepted bets
-      	bets.forEach(function(single){				//go through each bet
-      		Scores.find({$and:[{week: wk}, {winner:{$ne: 0}},{$or:[{team1: single.team1.replace('@','')}, {team2: single.team1.replace('@','')}]}]}, function(err, matches){
-      			matches.forEach(function(game) {  //go through each game match
+      Bets.find({$and:[{status:2}, {sport:'nba'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
+         acceptedBets.forEach(function(singleBet){				//go through each bet
+            Scores.find({$and:[{sport: singleBet.sport}, //look for game bet is for
+                              {winner:{$ne: 0}},
+                              {$or:[{$and:[{team1: singleBet.team1.replace('@','')},
+                                          {team2: singleBet.team2.replace('@','')}]},
+                                    {$and:[{team1: singleBet.team2.replace('@','')},
+                                          {team2: singleBet.team1.replace('@','')}]}]},
+                              {date:{$gt: singleBet.gametime.setHours(0,0)}},
+                              {date:{$lt: singleBet.gametime.setHours(23,59)}}]}, function(err, matches){
+               matches.forEach(function(game) {  //go through each game match
       				if(err)
       					console.log(err);
       				else {
-      					if (game.team1 === single.team1.replace('@','')) {		//did user1 have first team in game
-      						if (game.score1+single.odds > game.score2) {
-      							updateBet(single,{status:4});
-      							updateWinnerLoser(single.user1,single.user2,0);
-      						} else if (game.score1+single.odds < game.score2) {
-      							updateBet(single.id,{status:5});
-                           updateWinnerLoser(single.user2,single.user1,0);
+      					if (game.team1 === singleBet.team1.replace('@','')) {		//did user1 have first team in game
+      						if (game.score1+singleBet.odds > game.score2) {
+      							updateBet(singleBet.id,{status:4});
+      							updateWinnerLoser(singleBet.user1,single.user2,0);
+      						} else if (game.score1+singleBet.odds < game.score2) {
+      							updateBet(singleBet.id,{status:5});
+                           updateWinnerLoser(singleBet.user2,singleBet.user1,0);
       						} else {
-      							updateBet(single.id,{status:6});
-                           updateWinnerLoser(single.user1,single.user2,1);
+      							updateBet(singleBet.id,{status:6});
+                           updateWinnerLoser(singleBet.user1,singleBet.user2,1);
       						}
       					} else {			//user1 must have had second team in game
-      						if (game.score2+single.odds > game.score1) {
-      							updateBet(single.id,{status:4});
-                           updateWinnerLoser(single.user1,single.user2);
-      						} else if (game.score2+single.odds < game.score1) {
-      							updateBet(single.id,{status:5});
-                           updateWinnerLoser(single.user2,single.user1);
+      						if (game.score2+singleBet.odds > game.score1) {
+      							updateBet(singleBet.id,{status:4});
+                           updateWinnerLoser(singleBet.user1,single.user2);
+      						} else if (game.score2+singleBet.odds < game.score1) {
+      							updateBet(singleBet.id,{status:5});
+                           updateWinnerLoser(singleBet.user2,singleBet.user1);
       						} else {
-      							updateBet(single.id,{status:6});
-                           updateWinnerLoser(single.user1,single.user2,1);
+      							updateBet(singleBet.id,{status:6});
+                           updateWinnerLoser(singleBet.user1,singleBet.user2,1);
       						}
       					}
       				}

@@ -4,16 +4,16 @@ block content
    strong.lead &nbspBets
    .panel-group
       .panel.panel-warning
-         .panel-heading Waiting on You
+         .panel-heading #[span.glyphicon.glyphicon-hand-left] Waiting on You
          #waitingYou.panel-body
       .panel.panel-info
-         .panel-heading Waiting on Them
+         .panel-heading #[span.glyphicon.glyphicon-hand-right] Waiting on Them
          #waitingThem.panel-body
       .panel.panel-success
-         .panel-heading Accepted Bets
+         .panel-heading #[span.glyphicon.glyphicon-ok] Accepted Bets
          #acceptedBets.panel-body
       .panel.panel-primary
-         .panel-heading Refused Bets
+         .panel-heading #[span.glyphicon.glyphicon-remove] Refused Bets
          #refusedBets.panel-body
 block modals
    #actionModal.modal.fade

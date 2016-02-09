@@ -75,7 +75,7 @@ router.post('/makebet', requireLogin, function(req,res){
                   console.log('Trouble adding bet');
                   res.send({'type':'danger', 'message':'Trouble adding bet'});
                } else {
-                  console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount);
+                  console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount+((req.body.user2 === 'EVERYONE2')?'(fta)':''));
                }
             });
             if (!req.body.later) {
@@ -135,12 +135,16 @@ router.post('/getbets', requireLogin, function(req,res){
                   single.odds = Math.abs(single.odds);
                else if (single.type === 'spread')
                   single.odds = -Math.abs(single.odds);
+               if (single.type === 'over')
+                  single.type = 'under';
+               else if (single.type === 'under')
+                  single.type = 'over';
             }
             sortedBets.push(single);
          });
          res.json(sortedBets);
       }
-   });
+   }).sort({date:-1});
 });
 
 router.post('/changebet', requireLogin, function(req,res){
@@ -156,20 +160,20 @@ router.post('/changebet', requireLogin, function(req,res){
          });
          break;
       case '2':
-         Bets.findByIdAndUpdate(req.body.id,{status: req.body.status, comment:req.body.comment}, function(err, bet){
-            if(bet){
-               console.log('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
+         Bets.findByIdAndUpdate(req.body.id,{status: req.body.status, comment:req.body.comment}, function(err, acceptedBet){
+            if(acceptedBet){
+               console.log('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
                res.send({'type':'success', 'message':'Reply Sent'});
                changeMessages(req.session.user._id,-1);
             }
-            if (bet.fta) {
-               Bets.find({fta: bet.fta}, function(err, bets) {
-                  bets.forEach(function(bet) {
-                     changeMessages (bet.user2, -1);
-                     console.log('1st to bet acted by '+req.session.user._id+', bet '+bet._id+' changed for '+bet.user2);
+            if (acceptedBet.fta) {
+               Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
+                  otherBets.forEach(function(otherBet) {
+                     changeMessages (otherBet.user2, -1);
+                     console.log('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
                   });
                });
-               Bets.update({fta: bet.fta},{status: 3, fta: 0}, {multi: true}, function(err) {
+               Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
                   if (err)
                      console.log(err);
                });
@@ -250,7 +254,7 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{week:req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}},{status: {$in:[4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -276,7 +280,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
          });
          res.json(sortedBets);
       }
-   });
+   }).sort({date: -1});
 });
 
 router.get('/overallstats', requireLogin, function(req,res){
@@ -294,7 +298,7 @@ router.post('/userstats', requireLogin, function(req,res){
          console.log(err);
       else
          res.json(bets);
-   }).sort({week:-1});
+   }).sort({date:-1});
 });
 
 router.post('/postmessage', requireLogin, function(req,res){

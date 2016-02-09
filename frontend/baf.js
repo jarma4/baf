@@ -161,10 +161,10 @@ function showBets () {
             'all': 0},
       success:function(retData){
          if(retData.length){
-            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>Bet</th><th>Act</th></tr>';
+            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th><th>Act</th></tr>';
             $.each(retData, function(i,rec){
                if (rec.status === 1) {
-                  outp += '<tr><td>'+rec.team1+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+'</td><td>'+((rec.type==='over')?'U':(rec.type==='under')?'O':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>$'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-usd"></span></button></td></tr>';
+                  outp += '<tr><td>'+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type==='over')?'U':(rec.type==='under')?'O':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-usd"></span></button></td></tr>';
                $('#waitingYou').show();
                }
             });
@@ -184,10 +184,10 @@ function showBets () {
             'all':0},
       success:function(retData){
          if(retData.length){
-            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>Bet</th></tr>';
+            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
                if (rec.status === 0) {
-                  outp += '<tr><td>'+rec.team1+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+'</td><td>'+((rec.type==='over')?'O':(rec.type==='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>$'+rec.amount+'</td></tr>';
+                  outp += '<tr><td>'+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type==='over')?'O':(rec.type==='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>'+rec.amount+'</td></tr>';
                $('#waitingThem').show();
                }
             });
@@ -226,7 +226,7 @@ function showBets () {
    getBets(3,'refusedBets');
 }
 
-function getBets(status,target,custom) {
+function getBets(status, target, custom) {
    $('#'+target).hide();
    $.ajax({
       type: 'POST',
@@ -238,12 +238,12 @@ function getBets(status,target,custom) {
             var outp = '<table class="table table-condensed"><tr>';
             if (status < 0)
                outp += '<th>Send</th>';
-            outp += '<th>You</th><th>Odds</th><th>Them</th><th>Bet</th></tr>';
+            outp += '<th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
                outp +='<tr>';
                if ((custom === 1 && rec.sport === 'nfl') || (custom === 2 && rec.sport === 'nba'))
                   outp += '<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#savedModal" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-send"></span></button></td>';
-               outp += '<td>'+rec.team1+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+'</td><td class="center">'+((rec.type==='over')?'O':(rec.type==='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td>$'+rec.amount+'</td></tr>';
+               outp += '<td>'+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type==='over')?'O':(rec.type==='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td></tr>';
             });
             outp += '</table>';
             document.getElementById(target).innerHTML = outp;
@@ -280,6 +280,7 @@ $('.actionAction').on('click', function(){
 
 function weeklyStats() {
    $('#weeklyStats').hide();
+   console.log(getWeek(new Date()));
    $.ajax({
 		type: 'POST',
 		url: '/weeklystats',
@@ -288,7 +289,7 @@ function weeklyStats() {
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">'):'<td>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">'):'<td>')+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>$'+rec.amount+'</td></tr>';
+               outp += '<tr>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">'):'<td>')+((rec.sport==='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status === 4)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">'):'<td>')+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>'+rec.amount+'</td></tr>';
             });
             outp += '</table>';
             document.getElementById('weeklyStats').innerHTML = outp;
@@ -325,7 +326,7 @@ function overallStats(nfl,nba) {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,5)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl*nfl+rec.push_nfl*nfl*0.5)/(rec.win_nfl*nfl+rec.loss_nfl*nfl+rec.push_nfl*nfl)).toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,5)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl*nfl+rec.push_nfl*nfl*0.5+rec.win_nba*nba+rec.push_nba*nba*0.5)/(rec.win_nfl*nfl+rec.loss_nfl*nfl+rec.push_nfl*nfl+rec.win_nba*nba+rec.loss_nba*nba+rec.push_nba*nba)).toPrecision(3).slice(1,5)+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
@@ -344,9 +345,10 @@ $('#statsModal').on('show.bs.modal', function (event) {
 		url: '/userstats',
       data: {'user': button.data('user')},
 		success:function(retData){
-			var outp = '<table class="table"><tr><th>Wk</th><th>Me</th><th>Them</th><th>W/L/P</th></tr>';
+			var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L/P</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td>'+rec.week+'</a></td><td>';
+            var date=new Date(rec.date);
+				outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
             if (rec.user1 === button.data('user'))
                outp += ((rec.sport==='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+')</td><td>'+((rec.status===4)?'W':((rec.status===5)?'L':'P'));
             else
@@ -536,7 +538,7 @@ $('#whoami').on('click', function(){
 $('#page-content-wrapper').on('swipeleft', function(event){
    switch (window.location.pathname) {
       case '/nfl':
-      window.location.href = '/';
+         window.location.href = '/';
          break;
       case '/':
          window.location.href = '/bets';
@@ -554,7 +556,7 @@ $('#page-content-wrapper').on('swipeleft', function(event){
          window.location.href = '/props';
          break;
       case '/props':
-         window.location.href = '/nfl';
+         window.location.href = '/';
          break;
 
    }
@@ -566,10 +568,10 @@ $('#page-content-wrapper').on('swiperight', function(event){
          window.location.href = '/props';
          break;
       case '/':
-         window.location.href = '/nfl';
+         window.location.href = '/props';
          break;
       case '/bets':
-         window.location.href = '/nba';
+         window.location.href = '/';
          break;
       case '/stats':
          window.location.href = '/bets';
@@ -628,6 +630,7 @@ function doorBell(){
 		type: 'GET',
 		url: '/doorbell',
 		success:function(retData){
+         console.log('ring doorbell');
          if(retData.type === 'command'){
             eval(retData.message);
          } else if (retData.type === 'messages'){  // bets waiting; too lazy to clean up css
@@ -640,13 +643,14 @@ function doorBell(){
 	});
 }
 
-var monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+   dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getWeek(date){
    var wk, dst=0;
    var seasonStart = new Date(2015,8,8);
    var nflWeeks = [];
-   for (var i=0;i<21;i++){
+   for (var i=0;i<23;i++){
       if (i > 7)
          dst = 3600000;
       nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
@@ -661,7 +665,7 @@ function getWeek(date){
 }
 
 function getOdds (sport){
-   var months = ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+   // var months = ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 	$.ajax({
 		type: 'GET',
@@ -681,8 +685,10 @@ function getOdds (sport){
          }
          $.each(retData.games, function(i,rec){
             var date = new Date(rec.date);
-            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+months[date.getMonth()]+' '+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+'<br/><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
-            i++;
+            if (date > new Date()) {
+               outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+' - '+(date.getHours()-12)+':'+('0'+date.getMinutes()).slice(-2)+'<br/><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button class="btn btn-default" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button class="btn btn-'+color+'" data-toggle="modal" data-target="#betModal" data-game="'+i+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+               i++;
+            }
          });
          outp += '</table>';
          document.getElementById(sport+'Odds').innerHTML = outp;

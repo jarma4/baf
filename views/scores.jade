@@ -10,9 +10,9 @@ block content
                span.glyphicon.glyphicon-chevron-right
             button.scoresInc.btn.btn-default.right(value=-1)
                span.glyphicon.glyphicon-chevron-left
-            button#scoresSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
+            button#scoresSport.btn.btn-sm.btn-info.btn-scootlft.right NBA
             input#scoresDate.nodisplay
          #scoresArea.panel-body
 block scripts
-   script(type='text/javascript') showScores('nfl', getWeek(new Date()))
+   script(type='text/javascript') showScores('nba', new Date(new Date()-1000*60*60*24))
             

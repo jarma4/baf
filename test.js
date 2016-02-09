@@ -3,42 +3,56 @@ fs = require('fs'),
 exec = require('child_process').exec,
 cheerio = require('cheerio'),
 // Users = require('./models/dbschema').Users,
-// Bets = require('./models/dbschema').Bets,
+Bets = require('./models/dbschema').Bets,
 Scores = require('./models/dbschema').Scores,
 mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/baf');
 
-var url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/d/2016';
-request(url, function (err, response, body) {
-   if(!err && response.statusCode === 200) {
-      var $ = cheerio.load(body);
-
-      var keep, pingpong=0;
-      $('.scores-data.last').each(function(){
-         if (pingpong++ % 2) {
-            matchup.team2 = $(this).prev().prev().prev().text();
-            matchup.score2 = $(this).text();
-            matchup.week = 18;
-            matchup.year = 2016;
-            matchup.sport = 'nfl';
-            if (Number(matchup.score1) > Number(matchup.score2)) {
-               matchup.winner = 1;
-            } else {
-               matchup.winner = 2;
-            }
-            console.log(matchup);
-            matchup.save(function(err) {
-               if(err) {
-                  console.log('Trouble');
-               } else {
-                  console.log('Added game score');
+Bets.find({$and:[{status:2}, {sport:'nba'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
+   acceptedBets.forEach(function(singleBet){				//go through each bet
+      Scores.find({$and:[{sport: singleBet.sport}, //look for game bet is for
+                        {winner:{$ne: 0}},
+                        {$or:[{$and:[{team1: singleBet.team1.replace('@','')},
+                                    {team2: singleBet.team2.replace('@','')}]},
+                              {$and:[{team1: singleBet.team2.replace('@','')},
+                                    {team2: singleBet.team1.replace('@','')}]}]},
+                        {date:{$gt: singleBet.gametime.setHours(0,0)}},
+                        {date:{$lt: singleBet.gametime.setHours(23,59)}}]}, function(err, matches){
+         matches.forEach(function(game) {  //go through each game match
+            if(err)
+               console.log(err);
+            else {
+               if (game.team1 === singleBet.team1.replace('@','')) {		//did user1 have first team in game
+                  if (game.score1+singleBet.odds > game.score2) {
+                     console.log(singleBet.user1+' won '+singleBet.user2+' lost');
+                     // updateBet(single,{status:4});
+                     // updateWinnerLoser(single.user1,single.user2,0);
+                  } else if (game.score1+singleBet.odds < game.score2) {
+                     console.log(singleBet.user1+' lost'+singleBet.user2+' won');
+                     // updateBet(single.id,{status:5});
+                     // updateWinnerLoser(single.user2,single.user1,0);
+                  } else {
+                     console.log(singleBet.user1+' push*');
+                     // updateBet(single.id,{status:6});
+                     // updateWinnerLoser(single.user1,single.user2,1);
+                  }
+               } else {			//user1 must have had second team in game
+                  if (game.score2+singleBet.odds > game.score1) {
+                     console.log(singleBet.user1+' won '+singleBet.user2+' lost');
+                     // updateBet(single.id,{status:4});
+                     // updateWinnerLoser(single.user1,single.user2);
+                  } else if (game.score2+singleBet.odds < game.score1) {
+                     console.log(singleBet.user1+' lost '+singleBet.user2+' won');
+                     // updateBet(single.id,{status:5});
+                     // updateWinnerLoser(single.user2,single.user1);
+                  } else {
+                     console.log(singleBet.user1+' push**');
+                     // updateBet(single.id,{status:6});
+                     // updateWinnerLoser(single.user1,single.user2,1);
+                  }
                }
-            });
-         } else {
-            matchup = new Scores();
-            matchup.team1 = $(this).prev().prev().prev().prev().text();
-            matchup.score1 = $(this).text();
-         }
+            }
+         });
       });
-   }
+   });
 });

@@ -1,24 +1,5 @@
 {
-   "time": "1/21 22:00",
-   "week": 20,
-   "games": [
-      {
-         "date": "2016-01-24T20:05:00.000Z",
-         "team1": "NE",
-         "team2": "@DEN",
-         "spread": -3,
-         "over": 44.5,
-         "moneyline1": -170,
-         "moneyline2": 150
-      },
-      {
-         "date": "2016-01-24T23:40:00.000Z",
-         "team1": "ARI",
-         "team2": "@CAR",
-         "spread": 3,
-         "over": 48,
-         "moneyline1": 145,
-         "moneyline2": -165
-      }
-   ]
+   "time": "2/8 21:10",
+   "week": 0,
+   "games": []
 }
