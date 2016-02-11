@@ -6,8 +6,9 @@ Users = require('../models/dbschema').Users,
 Bets = require('../models/dbschema').Bets,
 Scores = require('../models/dbschema').Scores,
 Messages = require('../models/dbschema').Messages,
-Props = require('../models/dbschema').Props,
 plivo = require('plivo'),
+Props = require('../models/dbschema').Props,
+Standings = require('../models/dbschema').Standings,
 mongoose = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1/baf');
 
@@ -320,7 +321,7 @@ router.post('/postmessage', requireLogin, function(req,res){
 router.get('/msgboard', requireLogin, function(req,res){
    Messages.find(function(err,message){
       res.json(message);
-   }).sort({date: -1}).limit(50);
+   }).limit(50).sort({date: -1});
 });
 
 router.post('/getscores', requireLogin, function(req,res){
@@ -366,6 +367,16 @@ router.get('/getprops', requireLogin, function(req,res){
       res.json(message);
    }).sort({date: -1}).limit(50);
 });
+
+router.get('/getstandings', requireLogin, function(req,res){
+   Standings.find({}, function(err,standings){
+      if (err)
+         console.log(err);
+      else
+         res.json(standings);
+   }).sort({team:1});
+});
+
 
 router.get('/nflodds', function (req, res) {
   res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
@@ -431,6 +442,10 @@ router.get('/scores', function(req, res) {
 
 router.get('/props', function(req, res) {
    res.render('props', {pagename:'Prop Bets'});
+});
+
+router.get('/standings', function(req, res) {
+   res.render('standings', {pagename:''});
 });
 
 router.post('/login', function(req,res){

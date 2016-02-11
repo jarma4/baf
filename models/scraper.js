@@ -4,6 +4,7 @@ cheerio = require('cheerio'),
 Users = require('./dbschema').Users,
 Bets = require('./dbschema').Bets,
 Scores = require('./dbschema').Scores,
+Standings = require('./dbschema').Standings,
 mongoose = require('mongoose');
 
 var seasonStart = new Date(2015,8,8),
@@ -74,13 +75,13 @@ function updateBet(id,object){
 }
 
 function updateWinnerLoser(winner,loser,push){
-	Users.update({_id:winner},(push)?{$inc:{push_nfl:1}}:{$inc:{win_nfl:1}},function(err){
+	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating - '+new Date());
 		else
 			console.log(winner+' is winner - '+new Date());
 	});
-   Users.update({_id:loser},(push)?{$inc:{push_nfl:1}}:{$inc:{loss_nfl:1}},function(err){
+   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
 		else
@@ -100,7 +101,7 @@ module.exports = {
       return wk;
    },
    refreshOddsInfo: function() {
-      getOdds('nfl');
+//      getOdds('nfl');
       getOdds('nba');
    },
 
@@ -167,7 +168,7 @@ module.exports = {
 
    clearRefusedBets: function(){
       // below search for unacted bets and marks refused after game starts
-      Bets.remove({status:3}, function(err){
+      Bets.remove({$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]}, function(err){
 			if(err)
 				console.log(err);
 			else
@@ -193,7 +194,7 @@ module.exports = {
       					if (game.team1 === singleBet.team1.replace('@','')) {		//did user1 have first team in game
       						if (game.score1+singleBet.odds > game.score2) {
       							updateBet(singleBet.id,{status:4});
-      							updateWinnerLoser(singleBet.user1,single.user2,0);
+      							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
       						} else if (game.score1+singleBet.odds < game.score2) {
       							updateBet(singleBet.id,{status:5});
                            updateWinnerLoser(singleBet.user2,singleBet.user1,0);
@@ -217,6 +218,29 @@ module.exports = {
       			});
       		});
       	});
+      });
+   },
+
+   updateStandings: function(){
+      var url = 'http://www.oddsshark.com/nba/ats-standings';
+      request(url, function (err, response, body) {
+         if(!err && response.statusCode === 200) {
+            var $ = cheerio.load(body);
+
+            var teams = ['Golden State','LA Clippers','San Antonio','Oklahoma City','Cleveland','Houston','Memphis','Atlanta','Chicago','New Orleans','Miami','Washington','Toronto','Milwaukee','Boston','Utah','Indiana','Phoenix','Detroit','Dallas','Sacramento','Orlando','Charlotte','New York','LA Lakers','Minnesota','Brooklyn','Portland','Denver','Philadelphia'];
+
+            teams.forEach(function(name){
+               var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
+               var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*82;
+               Standings.findOne({team: name}, function(err, rec) {
+                  Standings.update({team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
+                     if (err)
+                        console.log('error');
+                  });
+               });
+            });
+            console.log('updated standings - '+new Date());
+         }
       });
    },
 

@@ -55,16 +55,31 @@ var propsSchema = new mongoose.Schema({
    prop: String
 });
 
+var standingsSchema = new mongoose.Schema({
+   team : String,
+   win : Number,
+   loss : Number,
+   projection: Number,
+   line : Number,
+   status: String,
+   john : String,
+   eric: String,
+   russell: String,
+   aaron: String,
+});
+
 var Users = mongoose.model('Users', usersSchema);
 var Bets = mongoose.model('Bets', betsSchema);
 var Scores = mongoose.model('Scores', scoresSchema);
 var Messages = mongoose.model('Messages', msgSchema);
 var Props = mongoose.model('Props', propsSchema);
+var Standings = mongoose.model('Standings', standingsSchema);
 
 module.exports = {
    Users: Users,
    Bets: Bets,
    Scores: Scores,
    Messages: Messages,
-   Props: Props
+   Props: Props,
+   Standings: Standings
 };

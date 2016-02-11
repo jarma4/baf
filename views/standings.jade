@@ -1,0 +1,14 @@
+extends base 
+
+block content
+   strong.lead &nbspStandings
+   .panel-group
+      .panel.panel-success
+         .panel-heading Over Under Picks
+         #ouPicks.panel-body
+      .panel.panel-primary
+         .panel-heading Standings
+         #standingsArea.panel-body
+block scripts
+   script(type='text/javascript') showStandings()
+            

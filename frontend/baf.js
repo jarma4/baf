@@ -483,6 +483,37 @@ function showProps() {
 	});
 }
 
+function showStandings() {
+   $.ajax({
+		type: 'GET',
+		url: '/getstandings',
+		success:function(retData){
+         var eric = 0,
+         john = 0,
+         russell = 0,
+         aaron = 0;
+         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th></tr>';
+
+			$.each(retData, function(i,rec){
+				outp += '<tr><td>'+rec.team.slice(0,3)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td style="color:#ee5f5b">':'<td>')+((rec.status === 'Over')?'O':'U')+'</td></tr>';
+
+            eric += (rec.eric.slice(0,1) === rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
+            john += (rec.john.slice(0,1) === rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
+            russell += (rec.russell.slice(0,1) === rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
+            aaron += (rec.aaron.slice(0,1) === rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
+			});
+			outp += '</table>';
+			document.getElementById("standingsArea").innerHTML = outp;
+         outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th><th>Aaron</th></tr>';
+         outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td><td>'+aaron+'</td></tr></table>';
+         document.getElementById("ouPicks").innerHTML = outp;
+		},
+		error: function(retData){
+			alert(retData.type,retData.message);
+		}
+	});
+}
+
 // Global stuff
 $('#loginSubmit').on('click', function(){
    $.ajax({
@@ -553,6 +584,9 @@ $('#page-content-wrapper').on('swipeleft', function(event){
          window.location.href = '/scores';
          break;
       case '/scores':
+         window.location.href = '/standings';
+         break;
+      case '/standings':
          window.location.href = '/props';
          break;
       case '/props':
@@ -582,8 +616,11 @@ $('#page-content-wrapper').on('swiperight', function(event){
       case '/scores':
          window.location.href = '/messageboard';
          break;
-      case '/props':
+      case '/scores':
          window.location.href = '/scores';
+         break;
+      case '/props':
+         window.location.href = '/standings';
          break;
 
    }
@@ -665,8 +702,6 @@ function getWeek(date){
 }
 
 function getOdds (sport){
-   // var months = ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 	$.ajax({
 		type: 'GET',
 		url: '/'+sport+'odds',

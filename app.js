@@ -16,7 +16,8 @@ var clearUnactedId = crontab.scheduleJob("*/10 17-22 * * *", scraper.clearUnacte
 // var checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']);
 var checkNbaScoresId = crontab.scheduleJob("*/15 19-23 * * *", scraper.checkScores,['nba']);
 var tallyBetsId = crontab.scheduleJob("*/15 19-23 * * *", scraper.tallyBets);
-var clearRefusedId = crontab.scheduleJob("30 9 * * 2", scraper.clearRefusedBets);
+var clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
+var updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
 
 var backupId = crontab.scheduleJob('0 3 * * 3', function () {
    now = new Date();
