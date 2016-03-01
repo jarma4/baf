@@ -1,4 +1,4 @@
-@import '_cyborg';
+@import '_slate';
 @import '_sidebar';
 
 .panel-heading {
@@ -9,6 +9,9 @@
 	display: none;
 }
 
+.strikethrough {
+	text-decoration: line-through;
+}
 .popover {
 	background-color: $theme-danger;
 }

@@ -448,6 +448,10 @@ router.get('/standings', function(req, res) {
    res.render('standings', {pagename:''});
 });
 
+router.get('/tools', function(req, res) {
+   res.render('tools', {pagename:''});
+});
+
 router.post('/login', function(req,res){
    Users.findOne({'_id':req.body.username}, function(err, user){
       if(!user){

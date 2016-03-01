@@ -21,7 +21,7 @@ function getOdds(sport) {
    var url = 'http://www.oddsshark.com/'+sport+'/odds';
    // console.log('refeshing '+sport+' odds - '+new Date());
    request(url, function (err, response, body) {
-      if(!err && response.statusCode === 200) {
+      if(!err && response.statusCode == 200) {
          var $ = cheerio.load(body);
 
          // get matchup w/ team names & date
@@ -37,7 +37,7 @@ function getOdds(sport) {
                else {
                   var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
                   var temptime = $(this).parent().prev().text().split(':');
-                  matchup.date = new Date(tempdate+' 2016 '+(Number(temptime[0])+Number((temptime[1].slice(-1) === 'p')?11:-1))+':'+temptime[1].slice(0,2));
+                  matchup.date = new Date(tempdate+' 2016 '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
                   matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
                }
             });
@@ -78,14 +78,18 @@ function updateWinnerLoser(winner,loser,push){
 	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating - '+new Date());
-		else
+		else if (!push)
 			console.log(winner+' is winner - '+new Date());
+      else
+         console.log('push - '+new Date());
 	});
    Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
-		else
+		else if (!push)
 			console.log(loser+' is loser - '+new Date());
+      else
+         console.log('push - '+new Date());
 	});
 }
 
@@ -107,7 +111,7 @@ module.exports = {
 
    checkScores: function(sport) {
       var url;
-      if (sport==='nfl') {
+      if (sport=='nfl') {
          wk = module.exports.getWeek(new Date());
          url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2015';
       } else {
@@ -115,7 +119,7 @@ module.exports = {
          url = 'http://www.oddsshark.com/nba/scores?date='+(today.getMonth()+1)+'/'+today.getDate()+'/'+today.getFullYear();
       }
       request(url, function (err, response, body) {
-      	if(!err && response.statusCode === 200) {
+      	if(!err && response.statusCode == 200) {
       		var $ = cheerio.load(body);
 
       		var keep, pingpong=0;
@@ -129,12 +133,12 @@ module.exports = {
                      wnr = 1;
                   else
                      wnr = 2;
-                  // var period = ((sport==='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]});
+                  // var period = ((sport=='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]});
       				Scores.update({$and:[{sport:sport},
                                        {team1:tm1},
                                        {team2:tm2},
                                        {winner:0},
-                                       ((sport==='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:wnr},function(err, resp) {
+                                       ((sport=='nfl')?{week:wk}:{$and:[{date:{$gt:new Date().setHours(0,0)}}, {date:{$lt:new Date().setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:wnr},function(err, resp) {
       					if (err)
       						console.log('error');
       					if (resp.n)
@@ -179,43 +183,45 @@ module.exports = {
    tallyBets: function(){
       Bets.find({$and:[{status:2}, {sport:'nba'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
-            Scores.find({$and:[{sport: singleBet.sport}, //look for game bet is for
+            Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
                               {winner:{$ne: 0}},
                               {$or:[{$and:[{team1: singleBet.team1.replace('@','')},
                                           {team2: singleBet.team2.replace('@','')}]},
                                     {$and:[{team1: singleBet.team2.replace('@','')},
                                           {team2: singleBet.team1.replace('@','')}]}]},
                               {date:{$gt: singleBet.gametime.setHours(0,0)}},
-                              {date:{$lt: singleBet.gametime.setHours(23,59)}}]}, function(err, matches){
-               matches.forEach(function(game) {  //go through each game match
-      				if(err)
-      					console.log(err);
-      				else {
-      					if (game.team1 === singleBet.team1.replace('@','')) {		//did user1 have first team in game
-      						if (game.score1+singleBet.odds > game.score2) {
-      							updateBet(singleBet.id,{status:4});
-      							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
-      						} else if (game.score1+singleBet.odds < game.score2) {
-      							updateBet(singleBet.id,{status:5});
-                           updateWinnerLoser(singleBet.user2,singleBet.user1,0);
-      						} else {
-      							updateBet(singleBet.id,{status:6});
-                           updateWinnerLoser(singleBet.user1,singleBet.user2,1);
-      						}
-      					} else {			//user1 must have had second team in game
-      						if (game.score2+singleBet.odds > game.score1) {
-      							updateBet(singleBet.id,{status:4});
-                           updateWinnerLoser(singleBet.user1,single.user2);
-      						} else if (game.score2+singleBet.odds < game.score1) {
-      							updateBet(singleBet.id,{status:5});
-                           updateWinnerLoser(singleBet.user2,singleBet.user1);
-      						} else {
-      							updateBet(singleBet.id,{status:6});
-                           updateWinnerLoser(singleBet.user1,singleBet.user2,1);
-      						}
-      					}
-      				}
-      			});
+                              {date:{$lt: singleBet.gametime.setHours(23,59)}}]}, function(err, game){
+   				if(err)
+   					console.log(err);
+   				else if (game) {
+                  if (singleBet.type == 'spread') {
+   						if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
+   						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
+   							updateBet(singleBet.id,{status:4});
+   							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
+   						} else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
+   						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
+   							updateBet(singleBet.id,{status:5});
+                        updateWinnerLoser(singleBet.user2,singleBet.user1,0);
+   						} else {
+   							updateBet(singleBet.id,{status:6});
+                        updateWinnerLoser(singleBet.user1,singleBet.user2,1);
+   						}
+                  } else {
+                     if ((singleBet.type == 'over' && game.score1+game.score2 > singleBet.odds) ||
+                        (singleBet.type == 'under' && game.score1+game.score2 < singleBet.odds)) {
+   							updateBet(singleBet.id,{status:4});
+   							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
+                     } else if ((singleBet.type == 'under' && game.score1+game.score2 > singleBet.odds) ||
+                        (singleBet.type == 'over' && game.score1+game.score2 < singleBet.odds)) {
+                        updateBet(singleBet.id,{status:5});
+   							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
+                     } else {
+                        updateBet(singleBet.id,{status:6});
+                        updateWinnerLoser(singleBet.user1,singleBet.user2,1);
+                     }
+                  }
+   				}
       		});
       	});
       });
@@ -224,7 +230,7 @@ module.exports = {
    updateStandings: function(){
       var url = 'http://www.oddsshark.com/nba/ats-standings';
       request(url, function (err, response, body) {
-         if(!err && response.statusCode === 200) {
+         if(!err && response.statusCode == 200) {
             var $ = cheerio.load(body);
 
             var teams = ['Golden State','LA Clippers','San Antonio','Oklahoma City','Cleveland','Houston','Memphis','Atlanta','Chicago','New Orleans','Miami','Washington','Toronto','Milwaukee','Boston','Utah','Indiana','Phoenix','Detroit','Dallas','Sacramento','Orlando','Charlotte','New York','LA Lakers','Minnesota','Brooklyn','Portland','Denver','Philadelphia'];
@@ -247,7 +253,7 @@ module.exports = {
    getScores: function(wk) {
       var url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+wk+'/2015';
       request(url, function (err, response, body) {
-       	if(!err && response.statusCode === 200) {
+       	if(!err && response.statusCode == 200) {
       		var $ = cheerio.load(body);
 
             Scores.remove({week:wk}, function(err, cnt){

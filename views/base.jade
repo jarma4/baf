@@ -4,8 +4,8 @@ html
 		meta(http-equiv='X-UA-Compatible', content='IE=edge')
 		meta(name='viewport', content='width=device-width, initial-scale=1')
 		title B.A.F.
-		link(href='css/bootstrap.slate.min.css', rel='stylesheet')
 		//- link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css', rel='stylesheet')
+		link(href='css/bootstrap.slate.min.css', rel='stylesheet')
 		link(href='css/main.css', rel='stylesheet')
 		//- link(href='images/favicon.jpg', rel='shortcut icon', type='image/jpg')
 	body
@@ -23,13 +23,13 @@ html
 					li
 						a.toggleSidebar(href='/stats') #[span.glyphicon.glyphicon-stats] Stats
 					li
-						a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
-					li
 						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-large] Scores
 					li
 						a.toggleSidebar(href='/standings') #[span.glyphicon.glyphicon-list-alt] Standings
 					li
 						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
+					li
+						a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
 					li
 						a.toggleSidebar(data-toggle='modal', data-target='#loginModal') #[span.iconspan.glyphicon.glyphicon-cog] Login
 			#page-content-wrapper
@@ -69,7 +69,7 @@ html
 								//- .checkbox
 								//- 	label
 								//- 	input#betSave(type='checkbox')
-								//- 	| Save for Later 
+								//- 	| Save for Later
 								input#betUser2.nodisplay
 								input#betOdds.nodisplay
 								input#betType.nodisplay
@@ -79,7 +79,7 @@ html
 								input#betGametime.nodisplay
 					.modal-footer
 						button#betSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Bet
-						button#betSave.btn.btn-primary.btn-lg.btn-block(type='submit', data-dismiss='modal') Save for later							
+						button#betSave.btn.btn-primary.btn-lg.btn-block(type='submit', data-dismiss='modal') Save for later
 		#alertModal.modal.fade
 			.modal-dialog
 				.modal-content#alertBody
