@@ -6,16 +6,20 @@ Users = require('../models/dbschema').Users,
 Bets = require('../models/dbschema').Bets,
 Scores = require('../models/dbschema').Scores,
 Messages = require('../models/dbschema').Messages,
-plivo = require('plivo'),
+
+// plivo = require('plivo'),
+sinchAuth = require('../models/sinch-auth'),
+sinchSms = require('../models/sinch-messaging'),
 Props = require('../models/dbschema').Props,
 Standings = require('../models/dbschema').Standings,
 mongoose = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1/baf');
 
-var sms = plivo.RestAPI({
-  authId: 'MANJRMMDLJYME1MMYYOG',
-  authToken: 'ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw'
-});
+// var sms = plivo.RestAPI({
+//   authId: 'MANJRMMDLJYME1MMYYOG',
+//   authToken: 'ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw'
+// });
+var auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', 'nhnHg5UWKECMfk59XBSIjw==');
 
 router = express.Router();
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -23,8 +27,9 @@ router.use(session({
   cookieName: 'session',
   secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
   duration: 5 * 24 * 60 * 60 * 1000,
-  activeDuration: 5 * 60 * 1000
+  activeDuration: 5 * 60 * 1000,
 }));
+
 // router.use(session({
 //   name: 'session',
 //   secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
@@ -32,15 +37,16 @@ router.use(session({
 //   resave: true,
 // }));
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
   if (req.session && req.session.user) {
-    Users.findOne({ _id: req.session.user._id }, function(err, user) {
+    Users.findOne({ _id: req.session.user._id }, function (err, user) {
       if (user) {
         req.user = user;
         delete req.user.password;
         req.session.user = user;
         res.locals.user = user;
       }
+
       next();
     });
   } else {
@@ -52,10 +58,10 @@ function makeBet() {
 
 }
 
-router.post('/makebet', requireLogin, function(req,res){
+router.post('/makebet', requireLogin, function (req, res) {
    fta_id = Math.random();
    if ((req.body.user2 === 'EVERYONE' || req.body.user2 === 'EVERYONE2') && !req.body.later) {
-      Users.find({_id: {$nin:[req.session.user._id,'testuser']}}, {_id: 1}, function(err, users){
+      Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
          users.forEach(function(single) {
             new Bets({
                date: new Date(),
@@ -198,7 +204,7 @@ router.post('/changebet', requireLogin, function(req,res){
                console.log(err);
             else {
                if (bet.user2 === 'EVERYONE') {
-                  Users.find({_id: {$nin:[req.session.user._id,'testuser']}}, {_id: 1}, function(err, users){
+                  Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
                      users.forEach(function(single) {
                         new Bets({
                            date: new Date(),
@@ -377,23 +383,33 @@ router.get('/getstandings', requireLogin, function(req,res){
    }).sort({team:1});
 });
 
+router.post('/setprefs', requireLogin, function(req,res){
+   console.log(req.body);
+   Users.update({_id:req.session.user},req.body, function(err){
+      if(err){
+         console.log(err);
+      } else {
+         console.log('Preferences changed for '+req.session.user._id+' - '+new Date());
+         res.send({'type':'success', 'message':'Preferences changed'});
+      }
+   });
+});
+
+router.get('/getprefs',function(req,res){
+   Users.findOne({_id: req.session.user}, {_id:1,  pref_include_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1}, function(err,user){
+      res.json(user);
+   });
+});
 
 router.get('/nflodds', function (req, res) {
-  res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
+   res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
 });
 
 router.get('/nbaodds', function (req, res) {
-  res.sendFile('./nba_info.json', {'root':'/home/common/baf/'});
+   res.sendFile('./nba_info.json', {'root':'/home/common/baf/'});
 });
 
 // utility pages
-router.get('/whoami',function(req,res){
-   if (req.session && req.session.user)
-      res.send({'type':'success', 'message':'User = '+req.session.user._id});
-   else
-      res.send({'type':'danger', 'message':'Not logged in'});
-});
-
 router.get('/logout', function(req, res) {
   req.session.reset();
   res.redirect('/');
@@ -448,8 +464,8 @@ router.get('/standings', function(req, res) {
    res.render('standings', {pagename:''});
 });
 
-router.get('/tools', function(req, res) {
-   res.render('tools', {pagename:''});
+router.get('/options', function(req, res) {
+   res.render('options', {pagename:''});
 });
 
 router.post('/login', function(req,res){
@@ -518,14 +534,15 @@ function textUser(to, from, message){
       if (err)
          console.log(err);
       else
-         // console.log('texted '+to);
-         sms.send_message({
-            src: '+16622193664',
-            dst: '+1'+user.sms,
-            text: 'B.A.F. - ' + message + from + ' - http://jarnigan.net:8083/bets'
-         }, function (status, response) {
-            console.log('API Response:\n', response);
-         });
+         if(user.pref_text_receive)
+            sinchSms.sendMessage('+1'+user.sms, 'B.A.F. - ' + message + from + ' - http://jarnigan.net:8083/bets');
+         // sms.send_message({
+         //    src: '+16622193664',
+         //    dst: '+1'+user.sms,
+         //    text: 'B.A.F. - ' + message + from + ' - http://jarnigan.net:8083/bets'
+         // }, function (status, response) {
+         //    console.log('API Response:\n', response);
+         // });
    });
 }
 

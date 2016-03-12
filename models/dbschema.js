@@ -10,7 +10,10 @@ var usersSchema = new mongoose.Schema({
    loss_nfl: Number,
    loss_nba: Number,
    push_nfl: Number,
-   push_nba: Number
+   push_nba: Number,
+   pref_include_everyone: Boolean,
+   pref_text_receive: Boolean,
+   pref_text_accept: Boolean
 });
 
 var betsSchema = new mongoose.Schema({
