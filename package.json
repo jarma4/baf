@@ -27,6 +27,7 @@
     "mongoose": "^4.1.11",
     "node-crontab": "0.0.8",
     "plivo": "^0.3.3",
+    "promise": "^7.1.1",
     "request": "^2.61.0",
     "serve-static": "^1.10.0"
   },

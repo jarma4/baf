@@ -22,7 +22,8 @@ gulp.task('styles', function(){
 });
 
 gulp.task('watch', function(){
-   gulp.watch('./frontend/*', ['scripts','styles']);
+   gulp.watch('./frontend/*.js', ['scripts']);
+   gulp.watch('./frontend/*.scss', ['styles']);
 });
 
 gulp.task('default', ['watch']);

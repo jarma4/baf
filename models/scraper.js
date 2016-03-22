@@ -75,7 +75,7 @@ function updateBet(id,object){
 }
 
 function updateWinnerLoser(winner,loser,push){
-	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1}},function(err){
+	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1, debts:2}}, function(err){
 		if (err)
 			console.log(_id+' had trouble updating - '+new Date());
 		else if (!push)
@@ -83,7 +83,7 @@ function updateWinnerLoser(winner,loser,push){
       else
          console.log('push - '+new Date());
 	});
-   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1}},function(err){
+   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1, debts:-1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
 		else if (!push)
@@ -151,8 +151,8 @@ module.exports = {
    },
 
    clearUnactedBets: function(){
-      // below search for unacted bets and marks refused after game starts
-      Bets.find({status:0}, function(err, bets){
+      // below search for unacted bets and marks refused after game starts; '-2' are saved
+      Bets.find({status:{$in:[0,-2]}}, function(err, bets){
       	bets.forEach(function(single){
             if (single.gametime < new Date()) {
                Bets.update({_id:single._id},{status:3}, function(err){
@@ -161,7 +161,7 @@ module.exports = {
          			else
                      console.log(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
    		      });
-               Users.update({_id:single.user2},{$inc: {messages: -1}}, function(err){
+               Users.update({_id:single.user2},{$inc: {bets: -1}}, function(err){
                   if(err)
                      console.log(err);
                });

@@ -10,10 +10,8 @@ $sidebar-background: #3a3f44;
 
 #wrapper {
    padding-left: 0;
+   // margin-left: 360px;
    @include transition;
-   // .toggled {
-   //    padding-left: $sidebar-width;
-   // }
 }
 
 #wrapper.toggled {
@@ -26,12 +24,12 @@ $sidebar-background: #3a3f44;
 }
 
 #wrapper.toggled #page-content-wrapper {
-    position: absolute;
-    margin-right: -250px;
+   //  position: absolute;
+   //  margin-right: -250px;
 }
 
 #sidebar-wrapper {
-    z-index: 1000;
+   //  z-index: 1000;
     position: fixed;
     left: $sidebar-width;
     width: 0;

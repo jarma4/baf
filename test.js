@@ -1,41 +1,38 @@
-var urls = [
-   '/',
-   '/bets',
-   '/stats',
-   '/scores',
-   '/standings',
-   '/props',
-   '/messageboard',
-   '/options'
-];
-
-var current = '/options';
-
-console.log('before is '+urls[(getUrl(current)-1 < 0)?urls.length-1:getUrl(current)-1]);
-console.log('next is '+urls[(getUrl(current)+1)%urls.length]);
-
-function getUrl(url){
-   var position;
-   for (i=0; i<urls.length; i++){
-      if (url == urls[i]) {
-         position = i;
-         break;
-      }
-   }
-   return position;
-}
 // var request = require('request'),
 // fs = require('fs'),
 // exec = require('child_process').exec,
 // cheerio = require('cheerio'),
-// // Users = require('./models/dbschema').Users,
-// // Bets = require('./models/dbschema').Bets,
-// // Scores = require('./models/dbschema').Scores,
+var Users = require('./models/dbschema').Users,
+Bets = require('./models/dbschema').Bets,
+Messages = require('./models/dbschema').Messages,
+Promise = require('promise'),
 // OUGame = require('./models/dbschema').OUGame,
-// mongoose = require('mongoose');
-// mongoose.connect('mongodb://localhost/baf');
-//
-//
+// // Scores = require('./models/dbschema').Scores,
+mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/baf');
+
+Bets.findByIdAndUpdate({_id: '56edbc685279d25312866da3'}, {paid:true}, function(err,singleBet){
+   console.log(singleBet);
+   if (err)
+      console.log('ERROR: '+err);
+   // Users.findOne({_id: singleBet.user1}, function(err,user){
+   //    console.log('user='+user);
+   //    if (err)
+   //       console.log(err);
+   //    console.log('user debts='+user.debts);
+   // });
+});
+
+//    var today = new Date();
+//    Messages.findOne({date: {$gte: today.setDate(today.getDate()-3)}}, function(err, messages) {
+//       if (messages){
+//          answer.type = 'message';
+//          answer.msgboard = true;
+//       }
+//       res.send(answer);
+//    });
+// });
+
 // var url = 'http://www.oddsshark.com/nba/ats-standings';
 // request(url, function (err, response, body) {
 //    if(!err && response.statusCode === 200) {

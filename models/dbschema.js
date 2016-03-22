@@ -4,7 +4,8 @@ var usersSchema = new mongoose.Schema({
    _id : String,  //really username
    password : String,
    sms : String,
-   messages : Number,
+   bets : Number,
+   debts : Number,
    win_nfl: Number,
    win_nba: Number,
    loss_nfl: Number,
@@ -30,7 +31,8 @@ var betsSchema = new mongoose.Schema({
    week: Number,
    gametime: Date,
    sport: String,
-   comment: String
+   comment: String,
+   paid: Boolean
 });
 
 var msgSchema = new mongoose.Schema({

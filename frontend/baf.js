@@ -276,7 +276,7 @@ function getBets(status, target, custom) {
                outp +='<tr>';
                if ((custom == 1 && rec.sport == 'nfl') || (custom == 2 && rec.sport == 'nba'))
                   outp += '<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#savedModal" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-send"></span></button></td>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td></tr>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td></tr>';
             });
             outp += '</table>';
             document.getElementById(target).innerHTML = outp;
@@ -408,6 +408,57 @@ $('#statsModal').on('show.bs.modal', function (event) {
 	});
 });
 
+// in debts modal, paid button press
+$('#debtsHistory').delegate('.paidBtn', 'click', function(){
+   // var losses = $('#debtHolder').data('losses');
+   // for(var loss in losses) {
+   //    if (losses[loss].user2 == $(this).data('user2')) {
+   //       alert('success', 'found a debt to same person', true);
+   //    }
+   // }
+   $.ajax({
+      type: 'POST',
+      url: '/setpaid',
+      data: {
+         'id': $(this).data('id'),
+      },
+      success:function(retData){
+         alert(retData.type, retData.message);
+      },
+      error: function(retData){
+         alert(retData.type, retData.message);
+      }
+   });
+});
+
+//modal to show stats for each user of every bet in database for them
+$('#debtsModal').on('show.bs.modal', function (event) {
+   $.ajax({
+		type: 'GET',
+		url: '/getdebts',
+		success:function(retData){
+         $('#debtHolder').data('losses', '');
+         var losses = [];
+         var loss = {};
+			var outp = '<table class="table"><tr><th>Game</th><th>Who</th><th>W/L</th><th>Paid</th></tr>';
+			$.each(retData, function(i,rec){
+            outp += '<tr><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'))+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn"  data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-thumbs-up"></span></button>':'')+'</td></tr>';
+            if (rec.status==5) {
+               loss.id = rec._id;
+               loss.user2 = rec.user2;
+               losses.push(loss);
+            }
+			});
+         $('#debtHolder').data('losses', losses);
+			outp += '</table>';
+			document.getElementById("debtsHistory").innerHTML = outp;
+		},
+		error: function(retData){
+			alert(retData.type, retData.message);
+		}
+	});
+});
+
 // Scores stuff
 //toggle button to switch sport in scores page
 $('#scoresSport').on('click', function(){
@@ -489,7 +540,7 @@ function showMessages() {
          var outp='';
 			$.each(retData, function(i,rec){
             date = new Date(rec.date);
-				outp += '<span class="msghdr">'+rec.user.slice(0,4)+'</span>: '+rec.message+'  <span class="msgdate text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
+				outp += '<span class="msg-user">'+rec.user.slice(0,4)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
 			});
 			document.getElementById("msgList").innerHTML = outp;
 		},
@@ -657,21 +708,27 @@ $('#loginSubmit').on('click', function(){
 });
 
 $('#registerSubmit').on('click', function(){
-   $.ajax({
-      type: 'POST',
-      url: '/register',
-      data: {
-         'username': $('#registerUsername').val(),
-         'sms': $('#registerSMS').val(),
-         'password': $('#registerPassword').val()
-      },
-      success:function(retData){
-         alert(retData.type, retData.message);
-      },
-      error: function(retData){
-         alert(retData.type, retData.message);
-      }
-   });
+   if (!$('#registerSMS').val() || !$('#registerUsername').val()) {
+      alert('danger', 'You have not completed all the fields');
+   } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
+      $.ajax({
+         type: 'POST',
+         url: '/register',
+         data: {
+            'username': $('#registerUsername').val(),
+            'sms': $('#registerSMS').val(),
+            'password': $('#registerPassword').val()
+         },
+         success:function(retData){
+            alert(retData.type, retData.message);
+         },
+         error: function(retData){
+            alert(retData.type, retData.message);
+         }
+      });
+   } else {
+      alert('danger', "Passwords don't match, please try again");
+   }
 });
 
 // below is for swiping action on touchscreens
@@ -697,11 +754,13 @@ function getUrlPos(url){
    return position;
 }
 
-$('#page-content-wrapper').on('swipeleft', function(event){
+$(document).on('swipeleft', function(event){
+   // $("#wrapper").css('margin-left', '-360px');
    window.location.href = urls[(getUrlPos(window.location.pathname)+1)%urls.length];
 });
 
-$('#page-content-wrapper').on('swiperight', function(event){
+$(document).on('swiperight', function(event){
+   // $("#wrapper").css('margin-left', '360px');
    window.location.href = urls[(getUrlPos(window.location.pathname)-1 < 0)?urls.length-1:getUrlPos(window.location.pathname)-1];
 });
 
@@ -711,14 +770,18 @@ $('.toggleSidebar').on('click', function() {
 });
 
 // multi use alert modal
-function alert(type, message){
+function alert(type, message, wait){
    $('#alertBody').removeClass();
    $('#alertBody').addClass('modal-content').addClass('modal-'+type);
    $('#alertText').text(message);
    $('#alertModal').modal();
-   setTimeout(function(){
-      $('#alertModal').modal('hide');
-   }, 2000);
+   if (!wait) {
+      setTimeout(function(){
+         $('#alertModal').modal('hide');
+      }, 2000);
+   } else {
+      $('#alertOk').removeClass('nodisplay');
+   }
 }
 
 // Startup stuff
@@ -747,11 +810,18 @@ function doorBell(){
 		type: 'GET',
 		url: '/doorbell',
 		success:function(retData){
-         console.log('ring doorbell');
          if(retData.type == 'command'){
             eval(retData.message);
-         } else if (retData.type == 'messages'){  // bets waiting; too lazy to clean up css
-            $('#iconbar').addClass('glyphicon-flag').css('color', '#ee5f5b').css('font-size','24px');
+         } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
+            if (retData.bets) {
+               $('#notify1').addClass('glyphicon-flag').css('color', '#ee5f5b').css('font-size','24px').css('margin','10px');
+            }
+            if (retData.debts) {
+               $('#notify2').addClass('glyphicon-usd').css('color', '#62c462').css('font-size','24px').css('margin','10px');
+            }
+            if (retData.msgboard) {
+               $('#notify3').addClass('glyphicon-bullhorn').css('color', '#6BC6E1').css('font-size','24px').css('margin','10px');
+            }
          }
       },
 		error: function(retData){
@@ -825,5 +895,9 @@ function getOdds (sport){
 }
 
 $(document).ready(function() {
+   // if(window.location.search.substring == 2) {
+   //    $("#wrapper").css('margin-left', '-360px');
+   // }
+   // $("#wrapper").css('margin-left', '0px');
    doorBell();
 });

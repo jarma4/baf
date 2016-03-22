@@ -5,29 +5,18 @@
 	font-weight: bold;
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);;
 }
-.nodisplay{
-	display: none;
-}
-
 .odds-date-row {
 	font-size: 13px;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);;
 	padding: 4px 0px 0px 0px !important;
 }
 .popover {
 	background-color: $theme-danger;
 }
-
-.icon {
+.nav-icon {
 	height: 20px;
-	/*margin-left: 10px;*/
-}
-.center{
-	text-align: center;
-	float: none;
-}
-.right{
-	float: right;
-	margin-top:-5px;
+	margin-left: 10px;
 }
 .btn-scootlft{
 	margin-right: 30px;
@@ -36,14 +25,25 @@
 	width: 3em;
 	text-align: center;
 }
-
-.msghdr{
+.msg-user{
 	color: $theme-info;
 	font-style: italic;
 }
-.msgdate{
+.msg-date{
 	font-size: 85%;
 	color: $theme-primary;
+}
+
+.nodisplay{
+	display: none;
+}
+.center{
+	text-align: center;
+	float: none;
+}
+.right{
+	float: right;
+	margin-top:-5px;
 }
 
 td.td-odds {
