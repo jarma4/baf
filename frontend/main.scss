@@ -25,6 +25,14 @@
 	width: 3em;
 	text-align: center;
 }
+.heading-success{
+	color: $theme-success;
+	// font-style: italic;
+}
+.heading-danger{
+	color: $theme-danger;
+	// font-style: italic;
+}
 .msg-user{
 	color: $theme-info;
 	font-style: italic;

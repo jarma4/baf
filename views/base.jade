@@ -3,7 +3,7 @@ html
 		meta(charset='utf-8')
 		meta(http-equiv='X-UA-Compatible', content='IE=edge')
 		meta(name='viewport', content='width=device-width, initial-scale=1')
-		title B.A.F.
+		title 2DollarBets
 		//- link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css', rel='stylesheet')
 		link(href='css/bootstrap.slate.min.css', rel='stylesheet')
 		link(href='css/main.css', rel='stylesheet')
@@ -13,7 +13,7 @@ html
 			#sidebar-wrapper
 				ul.sidebar-nav
 					li.sidebar-brand
-						| B.A.F
+						| 2DB
 					//- li
 					//- 	a.toggleSidebar(href='/nfl') #[img(src="images/football.png").icon] NFL
 					li
@@ -37,7 +37,7 @@ html
 					span.glyphicon.glyphicon-menu-hamburger
 				a.right(href='/bets')
 					span#notify1.glyphicon
-				a.right(data-dismiss='modal', data-toggle='modal', data-target='#debtsModal')
+				a.right(data-toggle='modal', data-target='#debtsModal')
 					span#notify2.glyphicon
 				a.right(href='/messageboard')
 					span#notify3.glyphicon
@@ -85,7 +85,7 @@ html
 				.modal-content#alertBody
 					.modal-body
 						h4#alertText
-						button#alertOk.btn.btn-primary.nodisplay(data-dismiss="modal") OK
+						button#alertOk.btn.btn-success.nodisplay(data-toggle='modal', data-dismiss="modal") OK
 		#savedModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -100,11 +100,25 @@ html
 		#debtsModal.modal.fade
 			.modal-dialog
 				.modal-content
-					.modal-header
+					.modal-body
 						button.close(type='button', data-dismiss='modal') #[span &times;]
-						h4 Debts:
-						#debtsHistory
-						input#debtHolder.nodisplay
+						table#oweyou.table
+							tr
+								th.heading-success(colspan=4) Owed to You:
+							tr
+								th Date
+								th Game
+								th Who
+								th Paid
+						table#youowe.table
+							tr
+								th.heading-danger(colspan=4) You Owe:
+							tr
+								th Date
+								th Game
+								th Who
+								th Paid
+						//- input#debtHolder.nodisplay
 		#paidModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -114,8 +128,7 @@ html
 					.modal-body
 						button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
 						button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
-						input#paidId.nodisplay
-						
+						input#paidId.nodisplay						
 		#loginModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -134,6 +147,7 @@ html
 			.modal-dialog
 				.modal-content
 					.modal-header
+						button.close(type='button', data-dismiss='modal') #[span &times;]
 						h4.modal-title Register
 					.modal-body
 						form

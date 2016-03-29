@@ -46,7 +46,7 @@ $('#betModal').on('show.bs.modal', function (event) {
 $('#betSubmit').on('click', function() {
    $.ajax({
 		type: 'POST',
-		url: '/makebet',
+		url: '/api/makebet',
 		data: {
          'user2': $('#userList').val(),
 		   'amount': $('#betAmount').val(),
@@ -69,7 +69,7 @@ $('#betSubmit').on('click', function() {
 $('#betSave').on('click', function(){
    $.ajax({
 		type: 'POST',
-		url: '/makebet',
+		url: '/api/makebet',
 		data: {
          'user2': $('#userList').val(),
 		   'amount': $('#betAmount').val(),
@@ -130,14 +130,14 @@ $('#savedModal').on('show.bs.modal', function (event) {
 $('#savedSend').on('click', function(){
    $.ajax({
 		type: 'POST',
-		url: '/changebet',
+		url: '/api/changebet',
 		data: {
          'id': $('#savedId').val(),
          'status': 0,
          'newodds': $('#savedNewOdds').val()},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-1, 'savedBets',1);   //refresh page
+         getBets(-2, 'savedBets',2);   //refresh page
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -148,13 +148,13 @@ $('#savedSend').on('click', function(){
 $('#savedDelete').on('click', function(){
    $.ajax({
 		type: 'POST',
-		url: '/changebet',
+		url: '/api/changebet',
 		data: {
          'id': $('#savedId').val(),
          'status': -1},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-1, 'savedBets',1);
+         getBets(-2, 'savedBets',2);
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -176,7 +176,7 @@ function showBets () {
    $('#waitingYou').hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
-      url: '/getbets',
+      url: '/api/getbets',
       data: {
          'status': 0,   //what type of bets to retrieve
          'all': 0       //show for everyone or just current user
@@ -187,7 +187,7 @@ function showBets () {
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th><th>Act</th></tr>';
             $.each(retData, function(i,rec){
                if (rec.status == 1) {
-                  outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-usd"></span></button></td></tr>';
+                  outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-question-sign"></span></button></td></tr>';
                $('#waitingYou').show();
                }
             });
@@ -203,7 +203,7 @@ function showBets () {
    $('#waitingThem').hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
-      url: '/getbets',
+      url: '/api/getbets',
       data: {
          'status': 0,
          'all':0
@@ -231,14 +231,14 @@ function showBets () {
    //next dislplay accepted bets of other for info sake
    $.ajax({
       type: 'POST',
-      url: '/getbets',
+      url: '/api/getbets',
       data: {
          "status": 2,
          "all": 1
       },
       success:function(retData){
          if(retData.length){
-            var outp = '<table class="table table-condensed"><tr style="color:#ee5f5b">';
+            var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
@@ -261,7 +261,7 @@ function getBets(status, target, custom) {
    $('#'+target).hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
-      url: '/getbets',
+      url: '/api/getbets',
       data: {
          "status": status,
          "all": 0
@@ -299,7 +299,7 @@ $('#actionModal').on('show.bs.modal', function (event) {
 $('.actionAction').on('click', function(){
    $.ajax({
 		type: 'POST',
-		url: '/changebet',
+		url: '/api/changebet',
 		data: {
          'id': $('#actionId').val(),
          'status': $(this).val(),
@@ -320,7 +320,7 @@ function weeklyStats() {
    $('#weeklyStats').hide();
    $.ajax({
 		type: 'POST',
-		url: '/weeklystats',
+		url: '/api/weeklystats',
       data: {
          'week': getWeek(new Date())
       },
@@ -328,7 +328,7 @@ function weeklyStats() {
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
+               outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-success">':'<td class="heading-danger">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-danger">':'<td class="heading-success">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
             });
             outp += '</table>';
             document.getElementById('weeklyStats').innerHTML = outp;
@@ -363,7 +363,7 @@ $('#statsType').on('click', function(){
 function overallStats(nfl,nba) {
    $.ajax({
 		type: 'GET',
-		url: '/overallstats',
+		url: '/api/overallstats',
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
@@ -384,7 +384,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
    $('#statsTitle').text('Stats history for: '+button.data('user'));
    $.ajax({
 		type: 'POST',
-		url: '/userstats',
+		url: '/api/userstats',
       data: {
          'user': button.data('user')
       },
@@ -408,8 +408,8 @@ $('#statsModal').on('show.bs.modal', function (event) {
 	});
 });
 
-// in debts modal, paid button press
-$('#debtsHistory').delegate('.paidBtn', 'click', function(){
+// in Debts modal, for paid buttons click
+$('#oweyou').delegate('.paidBtn', 'click', function(){
    // var losses = $('#debtHolder').data('losses');
    // for(var loss in losses) {
    //    if (losses[loss].user2 == $(this).data('user2')) {
@@ -418,7 +418,7 @@ $('#debtsHistory').delegate('.paidBtn', 'click', function(){
    // }
    $.ajax({
       type: 'POST',
-      url: '/setpaid',
+      url: '/api/setpaid',
       data: {
          'id': $(this).data('id'),
       },
@@ -435,23 +435,39 @@ $('#debtsHistory').delegate('.paidBtn', 'click', function(){
 $('#debtsModal').on('show.bs.modal', function (event) {
    $.ajax({
 		type: 'GET',
-		url: '/getdebts',
+		url: '/api/getdebts',
 		success:function(retData){
-         $('#debtHolder').data('losses', '');
-         var losses = [];
-         var loss = {};
-			var outp = '<table class="table"><tr><th>Game</th><th>Who</th><th>W/L</th><th>Paid</th></tr>';
+         // $('#debtHolder').data('losses', '');
+         // var losses = [];
+         // var loss = {};
+			// var outp = '<table class="table"><tr><th>Game</th><th>Who</th><th>W/L</th><th>Paid</th></tr>';
+         $('#oweyou tr').each(function (index){
+            if (index > 1)
+               $(this).remove();
+         });
+         $('#youowe tr').each(function (index){
+            if (index > 1)
+               $(this).remove();
+         });
+         $('#oweyou').hide();       // hide just in case no needed
+         $('#youowe').hide();
 			$.each(retData, function(i,rec){
-            outp += '<tr><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'))+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn"  data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-thumbs-up"></span></button>':'')+'</td></tr>';
-            if (rec.status==5) {
-               loss.id = rec._id;
-               loss.user2 = rec.user2;
-               losses.push(loss);
+            var outp = '<tr><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'))+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
+            if (rec.status == 4) {
+               $('#oweyou tr:last').after(outp);
+               $('#oweyou').show();
+            } else {
+               $('#youowe tr:last').after(outp);
+               $('#youowe').show();
             }
+            // if (rec.status==5) {
+            //    loss.id = rec._id;
+            //    loss.user2 = rec.user2;
+            //    losses.push(loss);
 			});
-         $('#debtHolder').data('losses', losses);
-			outp += '</table>';
-			document.getElementById("debtsHistory").innerHTML = outp;
+         // $('#debtHolder').data('losses', losses);
+			// outp += '</table>';
+			// document.getElementById("debtsHistory").innerHTML = outp;
 		},
 		error: function(retData){
 			alert(retData.type, retData.message);
@@ -477,7 +493,7 @@ function showScores(sport, period) {
    $('#scoresDate').val(period);
    $.ajax({
 		type: 'POST',
-		url: '/getscores',
+		url: '/api/getscores',
       data: {
          'sport': sport,
          'year': ((period>17)?2016:2015), //too specific to football, needs to fixed
@@ -518,7 +534,7 @@ $('#msgSubmit').on('click', function(e){
       e.preventDefault();
       $.ajax({
    		type: 'POST',
-   		url: '/postmessage',
+   		url: '/api/postmessage',
    		data: {
             'message': $('#msgInput').val()
          },
@@ -535,7 +551,7 @@ $('#msgSubmit').on('click', function(e){
 function showMessages() {
    $.ajax({
 		type: 'GET',
-		url: '/msgboard',
+		url: '/api/msgboard',
 		success:function(retData){
          var outp='';
 			$.each(retData, function(i,rec){
@@ -554,7 +570,7 @@ $('#propSubmit').on('click', function(e){
       // e.preventDefault();
       $.ajax({
    		type: 'POST',
-   		url: '/postprop',
+   		url: '/api/postprop',
    		data: {
             'user2': $('#propUser2').val(),
             'amount': $('#propAmount').val(),
@@ -573,11 +589,11 @@ $('#propSubmit').on('click', function(e){
 function showProps() {
    $.ajax({
 		type: 'GET',
-		url: '/getprops',
+		url: '/api/getprops',
 		success:function(retData){
          var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Bet</th><th>Prop</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td style="color:#62c462">':'<td style="color:#ee5f5b">':'<td>')+rec.user1.slice(0,4)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td style="color:#ee5f5b">':'<td style="color:#62c462">':'<td>')+rec.user2.slice(0,4)+'</td><td>$'+rec.amount+'</td><td>'+rec.prop+'</td></tr>';
+				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,4)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,4)+'</td><td>$'+rec.amount+'</td><td>'+rec.prop+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("propList").innerHTML = outp;
@@ -592,7 +608,7 @@ function showProps() {
 function showStandings() {
    $.ajax({
 		type: 'GET',
-		url: '/getstandings',
+		url: '/api/getstandings',
 		success:function(retData){
          var eric = 0,
          john = 0,
@@ -625,7 +641,7 @@ $('#prefSave').on('click', function(e){
       e.preventDefault();
       $.ajax({
    		type: 'POST',
-   		url: '/setprefs',
+   		url: '/api/setprefs',
          data: {
             'sms': $('#changeSMS').val(),
             'pref_include_everyone': $('#prefIncludeEveryone').is(":checked"),
@@ -644,7 +660,7 @@ $('#prefSave').on('click', function(e){
 function getPrefs() {
    $.ajax({
 		type: 'GET',
-		url: '/getprefs',
+		url: '/api/getprefs',
 		success:function(retData){
          $('#username').text('Preferences for '+retData._id);
          $('#changeSMS').val(retData.sms);
@@ -688,7 +704,7 @@ $('#changeSubmit').on('click', function() {
 $('#loginSubmit').on('click', function(){
    $.ajax({
 		type: 'POST',
-		url: '/login',
+		url: '/admin/login',
 		data: {
          'username': $('#loginUsername').val(),
          'password': $('#loginPassword').val()
@@ -713,7 +729,7 @@ $('#registerSubmit').on('click', function(){
    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
       $.ajax({
          type: 'POST',
-         url: '/register',
+         url: '/admin/register',
          data: {
             'username': $('#registerUsername').val(),
             'sms': $('#registerSMS').val(),
@@ -774,7 +790,7 @@ function alert(type, message, wait){
    $('#alertBody').removeClass();
    $('#alertBody').addClass('modal-content').addClass('modal-'+type);
    $('#alertText').text(message);
-   $('#alertModal').modal();
+   $('#alertModal').modal('toggle');
    if (!wait) {
       setTimeout(function(){
          $('#alertModal').modal('hide');
@@ -788,7 +804,7 @@ function alert(type, message, wait){
 function getUsers (){
 	$.ajax({
 		type: 'GET',
-		url: '/users',
+		url: '/api/users',
 		success:function(retData){
          $('#userList').empty();
 			$.each(retData, function(i,user){
@@ -808,7 +824,7 @@ function getUsers (){
 function doorBell(){
 	$.ajax({
 		type: 'GET',
-		url: '/doorbell',
+		url: '/api/doorbell',
 		success:function(retData){
          if(retData.type == 'command'){
             eval(retData.message);
@@ -854,7 +870,7 @@ function getWeek(date){
 function getOdds (sport){
 	$.ajax({
 		type: 'GET',
-		url: '/'+sport+'odds',
+		url: '/api/'+sport+'odds',
 		// data: reqString,
 		dataType: 'json',
       success:function(retData){
@@ -900,4 +916,13 @@ $(document).ready(function() {
    // }
    // $("#wrapper").css('margin-left', '0px');
    doorBell();
+});
+
+$('#testButton').on('click', function (){
+   $('#testModal').modal('show');
+});
+
+$('#testAlert').on('click', function (){
+   alert('', 'Are you on top?',true);
+   $('#testModal').modal('show');
 });

@@ -73,6 +73,12 @@ var standingsSchema = new mongoose.Schema({
    aaron: String,
 });
 
+// mongoose.model('Users', usersSchema);
+// mongoose.model('Bets', betsSchema);
+// mongoose.model('Scores', scoresSchema);
+// mongoose.model('Messages', msgSchema);
+// mongoose.model('Props', propsSchema);
+// mongoose.model('Standings', standingsSchema);
 var Users = mongoose.model('Users', usersSchema);
 var Bets = mongoose.model('Bets', betsSchema);
 var Scores = mongoose.model('Scores', scoresSchema);
