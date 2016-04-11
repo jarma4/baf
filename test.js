@@ -2,26 +2,31 @@
 // fs = require('fs'),
 // exec = require('child_process').exec,
 // cheerio = require('cheerio'),
-var Users = require('./models/dbschema').Users,
-Bets = require('./models/dbschema').Bets,
-Messages = require('./models/dbschema').Messages,
-Promise = require('promise'),
+// var Users = require('./models/dbschema').Users,
+// Bets = require('./models/dbschema').Bets,
+// Messages = require('./models/dbschema').Messages,
+// Promise = require('promise'),
 // OUGame = require('./models/dbschema').OUGame,
 // // Scores = require('./models/dbschema').Scores,
-mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/baf');
+// mongoose = require('mongoose');
+// mongoose.connect('mongodb://localhost/baf');
 
-Bets.findByIdAndUpdate({_id: '56edbc685279d25312866da3'}, {paid:true}, function(err,singleBet){
-   console.log(singleBet);
-   if (err)
-      console.log('ERROR: '+err);
-   // Users.findOne({_id: singleBet.user1}, function(err,user){
-   //    console.log('user='+user);
-   //    if (err)
-   //       console.log(err);
-   //    console.log('user debts='+user.debts);
-   // });
-});
+function encode(owed, owe) {
+   var amount = owe + (owed << 4);
+   return amount;
+}
+
+function decode(num) {
+   console.log('owed = ' + (num >> 4));
+   console.log('owe = ' + (num & 0x0f));
+}
+// console.log('1owed,1owe = ', encode(1,1));
+// console.log('0owed,3owe = ', encode(0,3));
+// console.log('4owed,1owe = ', encode(4,1));
+decode(170);
+decode(120);
+decode(50);
+decode(68);
 
 //    var today = new Date();
 //    Messages.findOne({date: {$gte: today.setDate(today.getDate()-3)}}, function(err, messages) {

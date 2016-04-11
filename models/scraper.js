@@ -75,7 +75,7 @@ function updateBet(id,object){
 }
 
 function updateWinnerLoser(winner,loser,push){
-	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1, debts:2}}, function(err){
+	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1, debts:(1<<4)}}, function(err){
 		if (err)
 			console.log(_id+' had trouble updating - '+new Date());
 		else if (!push)
@@ -83,7 +83,7 @@ function updateWinnerLoser(winner,loser,push){
       else
          console.log('push - '+new Date());
 	});
-   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1, debts:-1}},function(err){
+   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1, debts:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating  - '+new Date());
 		else if (!push)
@@ -116,7 +116,7 @@ module.exports = {
          url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2015';
       } else {
          var today = new Date();
-         url = 'http://www.oddsshark.com/nba/scores?date='+(today.getMonth()+1)+'/'+today.getDate()+'/'+today.getFullYear();
+         url = 'http://www.oddsshark.com/nba/scores?date='+(today.getMonth()+1)+'/'+((today.getHours()>0)?today.getDate():today.getDate()-1)+'/'+today.getFullYear();
       }
       request(url, function (err, response, body) {
       	if(!err && response.statusCode == 200) {
@@ -151,7 +151,7 @@ module.exports = {
    },
 
    clearUnactedBets: function(){
-      // below search for unacted bets and marks refused after game starts; '-2' are saved
+      // below searches for unacted bets and marks refused after game starts; '-2' are saved
       Bets.find({status:{$in:[0,-2]}}, function(err, bets){
       	bets.forEach(function(single){
             if (single.gametime < new Date()) {
@@ -171,7 +171,7 @@ module.exports = {
    },
 
    clearRefusedBets: function(){
-      // below search for unacted bets and marks refused after game starts
+      // below searches for refused bets and deletes after 2 days
       Bets.remove({$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]}, function(err){
 			if(err)
 				console.log(err);

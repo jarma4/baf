@@ -21,20 +21,20 @@ app.set('views', './views');
 // manage data gathering via scraper model and schedule
 var scraper = require('./models/scraper');
 
-var oddsId = crontab.scheduleJob("0 6-15 * * *", scraper.refreshOddsInfo);
-var oddsId2 = crontab.scheduleJob("*/10 15-22 * * *", scraper.refreshOddsInfo);
-var clearUnactedId = crontab.scheduleJob("*/10 17-22 * * *", scraper.clearUnactedBets);
-// var checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']);
-var checkNbaScoresId = crontab.scheduleJob("*/10 0-1,19-23 * * *", scraper.checkScores,['nba']);
-var tallyBetsId = crontab.scheduleJob("*/15 0-1,6-9,19-23 * * *", scraper.tallyBets);
+// schedule worker jobs
+var oddsId = crontab.scheduleJob("*/30 6-15 * * *", scraper.refreshOddsInfo),
+   oddsId2 = crontab.scheduleJob("*/10 15-22 * * *", scraper.refreshOddsInfo),
+   clearUnactedId = crontab.scheduleJob("*/10 17-22 * * *", scraper.clearUnactedBets),
+   // checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']),
+   checkNbaScoresId = crontab.scheduleJob("*/10 0,19-23 * * *", scraper.checkScores,['nba']),
+   tallyBetsId = crontab.scheduleJob("*/15 0,6-9,19-23 * * *", scraper.tallyBets),
+   clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets),
+   updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
 
-var clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
-
-var updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
-
+// backup daily odds
 var backupOddsId = crontab.scheduleJob('0 22 * * *', function () {
    var now = new Date();
-   var cmd = exec('cp nba_info.json odds_backup/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate()+'_nba_info.json', function(error, stdout, stderr) {
+   var cmd = exec('cp nba_info.json backup/odds/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate()+'_nba_info.json', function(error, stdout, stderr) {
       if (error || stderr)
          console.log(error);
          console.log(stderr);
@@ -45,7 +45,7 @@ var backupOddsId = crontab.scheduleJob('0 22 * * *', function () {
 // backup mongo datbases
 var backupDbId = crontab.scheduleJob('0 3 * * 3', function () {
    var now = new Date();
-   var cmd = exec('mongodump -d baf -o db_backups/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
+   var cmd = exec('mongodump -d baf -o backup/datbases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr)
          console.log(error);
          console.log(stderr);

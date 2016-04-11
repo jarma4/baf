@@ -1,4 +1,4 @@
-$sidebar-width: 150px;
+$sidebar-width: 145px;
 $sidebar-background: #3a3f44;
 
 @mixin transition {
@@ -82,12 +82,16 @@ $sidebar-background: #3a3f44;
 // }
 
 .sidebar-nav > .sidebar-brand {
-    height: 50px;
-    font-size: 28px;
-    line-height: 60px;
-    color: $theme-warning;
-    font-style: italic;
-    font-weight: bold;
+   //  height: 50px;
+   //  font-size: 28px;
+   //  line-height: 60px;
+   //  color: $theme-warning;
+   //  font-style: italic;
+   //  font-weight: bold;
+}
+.sidebar-nav > .sidebar-brand img {
+   display: block;
+   margin: 10px auto 0px;
 }
 
 .sidebar-nav > .sidebar-brand a {

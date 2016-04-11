@@ -56,7 +56,7 @@ router.use(function (req, res, next) {
 
 router.post('/makebet', requireLogin, function (req, res) {
    fta_id = Math.random();
-   if ((req.body.user2 === 'EVERYONE' || req.body.user2 === 'EVERYONE2') && !req.body.later) {
+   if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.later) {
       Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
          users.forEach(function(single) {
             new Bets({
@@ -70,7 +70,7 @@ router.post('/makebet', requireLogin, function (req, res) {
                amount: req.body.amount,
                status: 0,
                paid: false,
-               fta: (req.body.user2 === 'EVERYONE2')?fta_id:0,
+               fta: (req.body.user2 == 'EVERYONE2')?fta_id:0,
                week: getWeek(new Date()),
                gametime: req.body.gametime,
                sport: req.body.sport
@@ -79,12 +79,12 @@ router.post('/makebet', requireLogin, function (req, res) {
                   console.log('Trouble adding bet');
                   res.send({'type':'danger', 'message':'Trouble adding bet'});
                } else {
-                  console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount+((req.body.user2 === 'EVERYONE2')?'(fta)':''));
+                  console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount+((req.body.user2 == 'EVERYONE2')?'(fta)':''));
                }
             });
             if (!req.body.later) {
                changeUser (single, 'bets', 1);
-               textUser(single, req.session.user._id, 'You have a new '+((req.body.sport==='nfl')?'NFL':'NBA')+' bet from ');
+               textUser(single, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from ');
             }
          });
          // res.send({'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Sent'});
@@ -99,7 +99,7 @@ router.post('/makebet', requireLogin, function (req, res) {
          team1: req.body.team1,
          team2: req.body.team2,
          amount: req.body.amount,
-         status: (req.body.later)?((req.body.sport==='nfl')?-1:-2):0,
+         status: (req.body.later)?((req.body.sport=='nfl')?-1:-2):0,
          paid: false,
          week: getWeek(new Date()),
          gametime: req.body.gametime,
@@ -115,7 +115,7 @@ router.post('/makebet', requireLogin, function (req, res) {
       });
       if (!req.body.later) {
          changeUser (req.body.user2, 'bets', 1);
-         textUser(req.body.user2, req.session.user._id, 'You have a new '+((req.body.sport==='nfl')?'NFL':'NBA')+' bet from ');
+         textUser(req.body.user2, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from ');
       }
    }
 });
@@ -136,13 +136,13 @@ router.post('/getbets', requireLogin, function(req,res){
                single.user2 = tmp;
                single.team2 = tmp2;
                single.status = 1;  // 1 means the other guy needs to act; 0 means req.session.user
-               if (single.type === 'spread' && single.odds < 0)
+               if (single.type == 'spread' && single.odds < 0)
                   single.odds = Math.abs(single.odds);
-               else if (single.type === 'spread')
+               else if (single.type == 'spread')
                   single.odds = -Math.abs(single.odds);
-               if (single.type === 'over')
+               if (single.type == 'over')
                   single.type = 'under';
-               else if (single.type === 'under')
+               else if (single.type == 'under')
                   single.type = 'over';
             }
             sortedBets.push(single);
@@ -198,10 +198,11 @@ router.post('/changebet', requireLogin, function(req,res){
          break;
       case '0':
          Bets.findOne({_id: req.body.id}, function(err, bet) {
+            console.log(bet);
             if(err)
                console.log(err);
             else {
-               if (bet.user2 === 'EVERYONE') {
+               if (bet.user2 == 'EVERYONE') {
                   Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
                      users.forEach(function(single) {
                         new Bets({
@@ -213,6 +214,7 @@ router.post('/changebet', requireLogin, function(req,res){
                            team1: bet.team1,
                            team2: bet.team2,
                            amount: bet.amount,
+                           paid: false,
                            status: 0,
                            week: getWeek(new Date()),
                            gametime: bet.gametime,
@@ -276,9 +278,9 @@ router.post('/weeklystats', requireLogin, function(req,res){
                   single.odds = Math.abs(single.odds);
                else
                   single.odds = -Math.abs(single.odds);
-               if (single.status === 4)
+               if (single.status == 4)
                   single.status = 5;
-               else if (single.status === 5)
+               else if (single.status == 5)
                   single.status = 4;
             }
             sortedBets.push(single);
@@ -329,7 +331,7 @@ router.get('/msgboard', requireLogin, function(req,res){
 });
 
 router.post('/getscores', requireLogin, function(req,res){
-   if (req.body.sport==='nfl')
+   if (req.body.sport=='nfl')
       Scores.find({sport:'nfl', week: req.body.period, year: Number(req.body.year)}, function(err,scores){
          if(err){
             console.log(err);
@@ -412,13 +414,12 @@ router.post('/setpaid', requireLogin, function(req,res){
             single.user2 = tmp;
             single.team2 = tmp2;
          }
-         // below changes winner/loser debt flags; single counter used: +2 for a win, -1 for a loss on initial recording
-         // in scraper/tallybets; when paid, do reverse
-         Users.update({_id: single.user1}, {$inc:{debts: -2}}, function (err) {  //reduce winners flag
+         // below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
+         Users.update({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
             if(err)
                console.log(err);
          });
-         Users.update({_id: single.user2}, {$inc:{debts: 1}}, function (err) {   //increase loser flag
+         Users.update({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
             if(err)
                console.log(err);
          });

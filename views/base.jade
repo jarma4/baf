@@ -7,13 +7,14 @@ html
 		//- link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css', rel='stylesheet')
 		link(href='css/bootstrap.slate.min.css', rel='stylesheet')
 		link(href='css/main.css', rel='stylesheet')
-		//- link(href='images/favicon.jpg', rel='shortcut icon', type='image/jpg')
+		link(href='images/favicon.png', rel='icon', type='image/png')
+		link(href='manifest.json', rel='manifest')
 	body
 		#wrapper
 			#sidebar-wrapper
 				ul.sidebar-nav
 					li.sidebar-brand
-						| 2DB
+						img(src="images/2db_sm.png")
 					//- li
 					//- 	a.toggleSidebar(href='/nfl') #[img(src="images/football.png").icon] NFL
 					li
@@ -37,7 +38,7 @@ html
 					span.glyphicon.glyphicon-menu-hamburger
 				a.right(href='/bets')
 					span#notify1.glyphicon
-				a.right(data-toggle='modal', data-target='#debtsModal')
+				a.right(href='#', data-toggle='modal', data-target='#debtsModal')
 					span#notify2.glyphicon
 				a.right(href='/messageboard')
 					span#notify3.glyphicon
@@ -85,7 +86,8 @@ html
 				.modal-content#alertBody
 					.modal-body
 						h4#alertText
-						button#alertOk.btn.btn-success.nodisplay(data-toggle='modal', data-dismiss="modal") OK
+						button#alertOk.btn.btn-success.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") OK
+						button#alertCancel.btn.btn-danger.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") Cancel
 		#savedModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -103,7 +105,7 @@ html
 					.modal-body
 						button.close(type='button', data-dismiss='modal') #[span &times;]
 						table#oweyou.table
-							tr
+							tr.heading
 								th.heading-success(colspan=4) Owed to You:
 							tr
 								th Date
@@ -111,7 +113,7 @@ html
 								th Who
 								th Paid
 						table#youowe.table
-							tr
+							tr.heading
 								th.heading-danger(colspan=4) You Owe:
 							tr
 								th Date
@@ -128,8 +130,8 @@ html
 					.modal-body
 						button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
 						button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
-						input#paidId.nodisplay						
-		#loginModal.modal.fade
+						input#paidId.nodisplay
+		#loginModal.modal.fade 
 			.modal-dialog
 				.modal-content
 					.modal-header

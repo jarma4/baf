@@ -83,6 +83,7 @@ $('#betSave').on('click', function(){
 		},
 		success:function(retData){
          alert(retData.type, retData.message);
+         getBets(-2, 'savedBets', 2);   //refresh page
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -137,7 +138,7 @@ $('#savedSend').on('click', function(){
          'newodds': $('#savedNewOdds').val()},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets',2);   //refresh page
+         getBets(-2, 'savedBets', 2);   //refresh page
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -154,7 +155,7 @@ $('#savedDelete').on('click', function(){
          'status': -1},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets',2);
+         getBets(-2, 'savedBets', 2);
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -229,6 +230,7 @@ function showBets () {
    $('#acceptedBets').hide(); //hide div to display until sure something there
    getBets(2,'acceptedBets'); //call function for user associated accepted bets
    //next dislplay accepted bets of other for info sake
+   $('#otherBets').hide(); //hide div to display until sure something there
    $.ajax({
       type: 'POST',
       url: '/api/getbets',
@@ -244,9 +246,9 @@ function showBets () {
                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
             });
             outp += '</table>';
-            document.getElementById("acceptedBets").innerHTML += outp;  //add to already there stuff
+            document.getElementById("otherBets").innerHTML = outp;
             $('[data-toggle="popover"]').popover();   //this is for comments that might be on bets
-            $('#acceptedBets').show();  //show display div
+            $('#otherBets').show();  //show display div
          }
       },
       error: function(retData){
@@ -268,7 +270,7 @@ function getBets(status, target, custom) {
       },
       success:function(retData){
          if(retData.length){
-            var outp = '<table class="table table-condensed"><tr>';
+            var outp = '<table class="table table-condensed"><tr class="heading">';
             if (status < 0)   //this is for saved bets, add send button
                outp += '<th>Send</th>';
             outp += '<th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
@@ -367,7 +369,7 @@ function overallStats(nfl,nba) {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,4)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl*nfl+rec.push_nfl*nfl*0.5+rec.win_nba*nba+rec.push_nba*nba*0.5)/(rec.win_nfl*nfl+rec.loss_nfl*nfl+rec.push_nfl*nfl+rec.win_nba*nba+rec.loss_nba*nba+rec.push_nba*nba)).toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec._id+'" >'+rec._id.slice(0,4)+'</a></td><td>'+(rec.win_nfl*nfl+rec.win_nba*nba)+'</td><td>'+(rec.loss_nfl*nfl+rec.loss_nba*nba)+'</td><td>'+(rec.push_nfl*nfl+rec.push_nba*nba)+'</td><td>'+((rec.win_nfl*nfl+rec.push_nfl*nfl*0.5+rec.win_nba*nba+rec.push_nba*nba*0.5)/(rec.win_nfl*nfl+rec.loss_nfl*nfl+rec.push_nfl*nfl+rec.win_nba*nba+rec.loss_nba*nba+rec.push_nba*nba)).toPrecision(3).slice(1,5)+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
@@ -416,19 +418,23 @@ $('#oweyou').delegate('.paidBtn', 'click', function(){
    //       alert('success', 'found a debt to same person', true);
    //    }
    // }
-   $.ajax({
-      type: 'POST',
-      url: '/api/setpaid',
-      data: {
-         'id': $(this).data('id'),
-      },
-      success:function(retData){
-         alert(retData.type, retData.message);
-      },
-      error: function(retData){
-         alert(retData.type, retData.message);
-      }
+   var id = $(this).data('id');
+   $('#alertOk').on('click', function(){  // attach event to OK button to update debt
+      $.ajax({
+         type: 'POST',
+         url: '/api/setpaid',
+         data: {
+            'id': id
+         },
+         success:function(retData){
+            $('#debtsModal').modal('show');
+         },
+         error: function(retData){
+            alert(retData.type, retData.message);
+         }
+      });
    });
+   alert('', 'Dismiss debt?', true);      // confirm modal
 });
 
 //modal to show stats for each user of every bet in database for them
@@ -440,7 +446,6 @@ $('#debtsModal').on('show.bs.modal', function (event) {
          // $('#debtHolder').data('losses', '');
          // var losses = [];
          // var loss = {};
-			// var outp = '<table class="table"><tr><th>Game</th><th>Who</th><th>W/L</th><th>Paid</th></tr>';
          $('#oweyou tr').each(function (index){
             if (index > 1)
                $(this).remove();
@@ -452,7 +457,8 @@ $('#debtsModal').on('show.bs.modal', function (event) {
          $('#oweyou').hide();       // hide just in case no needed
          $('#youowe').hide();
 			$.each(retData, function(i,rec){
-            var outp = '<tr><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'))+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
+            var date=new Date(rec.date);
+            var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
             if (rec.status == 4) {
                $('#oweyou tr:last').after(outp);
                $('#oweyou').show();
@@ -466,8 +472,6 @@ $('#debtsModal').on('show.bs.modal', function (event) {
             //    losses.push(loss);
 			});
          // $('#debtHolder').data('losses', losses);
-			// outp += '</table>';
-			// document.getElementById("debtsHistory").innerHTML = outp;
 		},
 		error: function(retData){
 			alert(retData.type, retData.message);
@@ -617,7 +621,7 @@ function showStandings() {
          outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th></tr>';
 
 			$.each(retData, function(i,rec){
-				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,3)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td style="color:#ee5f5b">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td></tr>';
+				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,3)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td></tr>';
 
             eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
             john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
@@ -786,17 +790,18 @@ $('.toggleSidebar').on('click', function() {
 });
 
 // multi use alert modal
-function alert(type, message, wait){
+function alert(type, message, pause){
    $('#alertBody').removeClass();
    $('#alertBody').addClass('modal-content').addClass('modal-'+type);
    $('#alertText').text(message);
    $('#alertModal').modal('toggle');
-   if (!wait) {
+   if (!pause) {
       setTimeout(function(){
          $('#alertModal').modal('hide');
       }, 2000);
    } else {
       $('#alertOk').removeClass('nodisplay');
+      $('#alertCancel').removeClass('nodisplay');
    }
 }
 
@@ -918,11 +923,11 @@ $(document).ready(function() {
    doorBell();
 });
 
-$('#testButton').on('click', function (){
-   $('#testModal').modal('show');
-});
-
-$('#testAlert').on('click', function (){
-   alert('', 'Are you on top?',true);
-   $('#testModal').modal('show');
-});
+// $('#testButton').on('click', function (){
+//    $('#testModal').modal('show');
+// });
+//
+// $('#testAlert').on('click', function (){
+//    $('#alertOk').attr('onclick', '$("#testModal").modal("show")');
+//    alert('', 'Are you sure you want to dismiss debt??', true);
+// });

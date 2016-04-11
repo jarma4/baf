@@ -1,4 +1,5 @@
 var gulp = require('gulp'),
+   nodemon = require('gulp-nodemon'),
    uglify = require('gulp-uglify'),
    sass = require('gulp-sass'),
    cssnano = require('gulp-cssnano'),
@@ -9,7 +10,7 @@ var gulp = require('gulp'),
 gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
-//      .pipe(uglify())
+      // .pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 
@@ -26,4 +27,13 @@ gulp.task('watch', function(){
    gulp.watch('./frontend/*.scss', ['styles']);
 });
 
-gulp.task('default', ['watch']);
+gulp.task('start', function () {
+   nodemon({
+      script: 'app.js',
+      ext: 'js',
+      ignore: ['frontend/*', 'public/*'],
+      env: { 'NODE_ENV': 'production' }
+   });
+});
+
+gulp.task('default', ['start', 'watch']);

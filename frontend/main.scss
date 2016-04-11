@@ -25,6 +25,9 @@
 	width: 3em;
 	text-align: center;
 }
+tr .heading {
+	border-top: none;
+}
 .heading-success{
 	color: $theme-success;
 	// font-style: italic;
