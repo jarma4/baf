@@ -10,7 +10,10 @@ block content
          .panel-heading Overall
             button#statsType.btn.btn-sm.btn-primary.right NBA
          #overallStats.panel-body
-         
+   .form-group
+      button#graphDays.btn.btn-sm.btn-primary.left 30days
+   canvas#winGraph(width='320', height='320')
+
 block modals
    #statsModal.modal.fade
       .modal-dialog
@@ -20,6 +23,8 @@ block modals
                h4#statsTitle
                #statsHistory
 block scripts
+   script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js')
    script(type='text/javascript') weeklyStats()
    script(type='text/javascript') overallStats(0,1)
+   script(type='text/javascript') drawChart(30)
             

@@ -28,8 +28,8 @@ var oddsId = crontab.scheduleJob("*/30 6-15 * * *", scraper.refreshOddsInfo),
    // checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']),
    checkNbaScoresId = crontab.scheduleJob("*/10 0,19-23 * * *", scraper.checkScores,['nba']),
    tallyBetsId = crontab.scheduleJob("*/15 0,6-9,19-23 * * *", scraper.tallyBets),
-   clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets),
-   updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
+   clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
+   // updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
 
 // backup daily odds
 var backupOddsId = crontab.scheduleJob('0 22 * * *', function () {

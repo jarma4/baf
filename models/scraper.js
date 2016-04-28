@@ -110,6 +110,7 @@ module.exports = {
    },
 
    checkScores: function(sport) {
+      // console.log('checking scores');
       var url;
       if (sport=='nfl') {
          wk = module.exports.getWeek(new Date());
@@ -181,6 +182,7 @@ module.exports = {
    },
 
    tallyBets: function(){
+      // console.log('tallying bets');
       Bets.find({$and:[{status:2}, {sport:'nba'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
             Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for

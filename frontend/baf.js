@@ -380,38 +380,108 @@ function overallStats(nfl,nba) {
 	});
 }
 
+//toggle button in overall stats picks between sports, changes text & color
+$('#graphDays').on('click', function(){
+   event.preventDefault();
+   if ($('#graphDays').text() == '30days') {
+         $('#graphDays').text('60days');
+         drawChart(60, 1);
+   } else if ($('#graphDays').text() == '60days') {
+      $('#graphDays').text('Season');
+      drawChart(90, 1);
+   } else {
+      $('#graphDays').text('30days');
+      drawChart(30, 1);
+   }
+});
+
+// declared global so that can be updated later
+var winChart;
+
+// below uses ChartJS library
+function drawChart(days, update) {
+   var ctx = document.getElementById("winGraph").getContext("2d"),
+      colors = ["blue", "red", "white", "green", "yellow"],
+      chartData = {
+         labels: '',
+         datasets: []
+      };
+
+   Chart.defaults.global.defaultFontColor = '#fff';
+   Chart.defaults.global.elements.line.tension = 0.4;
+   Chart.defaults.global.elements.line.borderWidth = 2;
+   Chart.defaults.global.elements.line.fill = true;
+
+   $.ajax({
+      type: 'POST',
+      url: '/api/graphstats',
+      data: {
+         "user": 'ALL',
+         "days": days,
+         "sport": 'nba'
+      },
+      success: function(retData){
+         chartData.labels = retData.xaxis;
+         $.each(retData.datasets, function(index, user){
+            var obj = {
+               label: user.name,
+               borderColor: colors[index],
+               data: user.data
+            };
+            chartData.datasets.push(obj);
+         });
+         if (update) {
+            winChart.data.labels = chartData.labels;
+            winChart.data.datasets = chartData.datasets;
+            winChart.update();
+         } else {
+            winChart = new Chart(ctx, {
+               type: 'line',
+               data: chartData,
+               //  options: chartOptions
+            });
+         }
+      },
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+   });
+}
+
+function getUserStats (user, sport) {
+   return $.ajax({
+   	type: 'POST',
+   	url: '/api/userstats',
+      data: {
+         'user': user,
+         'sport': sport}
+   });
+}
+
 //modal to show stats for each user of every bet in database for them
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   $.ajax({
-		type: 'POST',
-		url: '/api/userstats',
-      data: {
-         'user': button.data('user')
-      },
-		success:function(retData){
-			var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
-			$.each(retData, function(i,rec){
-            var date=new Date(rec.date);
-				outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
-            if (rec.user1 == button.data('user'))
-               outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
-            else
-               outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
-            outp += '</td></tr>';
-			});
-			outp += '</table>';
-			document.getElementById("statsHistory").innerHTML = outp;
-		},
-		error: function(retData){
+   getUserStats(button.data('user'), 'nba').success(function(retData) {
+   	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
+   	$.each(retData, function(i,rec){
+         var date=new Date(rec.date);
+   		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
+         if (rec.user1 == button.data('user'))
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
+         else
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
+         outp += '</td></tr>';
+   	});
+   	outp += '</table>';
+   	document.getElementById("statsHistory").innerHTML = outp;
+   }).error(function(retData){
 			alert(retData.type, retData.message);
-		}
 	});
 });
 
 // in Debts modal, for paid buttons click
-$('#oweyou').delegate('.paidBtn', 'click', function(){
+$('#oweyou').on('click', '.paidBtn', function(){
    // var losses = $('#debtHolder').data('losses');
    // for(var loss in losses) {
    //    if (losses[loss].user2 == $(this).data('user2')) {
@@ -420,6 +490,7 @@ $('#oweyou').delegate('.paidBtn', 'click', function(){
    // }
    var id = $(this).data('id');
    $('#alertOk').on('click', function(){  // attach event to OK button to update debt
+      $(this).off('click');               // needed so won't be repeated on other button presses
       $.ajax({
          type: 'POST',
          url: '/api/setpaid',

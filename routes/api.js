@@ -299,8 +299,81 @@ router.get('/overallstats', requireLogin, function(req,res){
    });
 });
 
+router.post('/graphstats', requireLogin, function(req,res){
+   var userList = [],
+      totals = {},         // rolling storage for win amount per user
+      counters = {},       // rolling storage for number of bets per user
+      seasonDate = new Date('Jan 28 2016'), // first date to store data per user
+      dates = [],          // xaxis data to be sent
+      userData = [];       // datasets for each user
+
+   // find users to get bet data for and intialize storage variables
+   Users.find({_id: {$ne: 'testuser'}}, {_id: 1}, function(err,users){
+      users.forEach(function(user){
+         userList.push(user._id);
+         userData.push({
+            name: user._id,
+            data: []
+         });
+         totals[user._id] = 0;
+         counters[user._id] = 0;
+      });
+      // console.log(counters);
+   }).sort({_id:1});
+
+   // find all valid bets and
+   var startDate = new Date();
+   startDate.setDate(startDate.getDate() - req.body.days);
+
+   console.log(startDate);
+   Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
+                                                      {user2: req.body.user}]},
+                     {status:{$in: [4,5,6]}},
+                     {sport: req.body.sport},
+                     (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err,bets){
+      if (err) {
+         console.log(err);
+      } else {
+         bets.forEach(function(bet, index){
+            if (bet.status == 4) {
+               totals[bet.user1]++;
+               counters[bet.user1]++;
+               counters[bet.user2]++;
+            } else if (bet.status == 5) {
+               totals[bet.user2]++;
+               counters[bet.user1]++;
+               counters[bet.user2]++;
+            } else if (bet.status == 6) {
+               totals[bet.user1] +=0.5;
+               counters[bet.user1]++;
+               totals[bet.user2] +=0.5;
+               counters[bet.user2]++;
+            }
+
+            // check if stop date to store data
+            if (bet.gametime > startDate) {
+               // store date for xaxis labels
+               dates.push(startDate.getMonth()+1+'/'+startDate.getDate());
+
+               // on date, save win % per user
+               userList.forEach(function(username, index){
+                  userData[index].data.push(totals[username]/counters[username]);
+               });
+
+               // advance next date to stop on
+               startDate.setDate(startDate.getDate()+req.body.days/15);
+            }
+         });
+      }
+      res.send({
+         xaxis : dates,
+         datasets: userData
+      });
+   }).sort({date: 1});
+});
+
 router.post('/userstats', requireLogin, function(req,res){
-   Bets.find({$and:[{$or:[{user1: req.body.user},{user2: req.body.user}]}, {status:{$in:[4,5,6]}}]}, function(err,bets){
+   Bets.find({$and:[{$or:[{user1: req.body.user},{user2: req.body.user}]}, {status:{$in:[4,5,6]}}, (req.body.sport)?{sport:req.body.sport}:{}]}, function(err,bets){
       if (err)
          console.log(err);
       else

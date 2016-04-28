@@ -1,32 +1,92 @@
 // var request = require('request'),
-// fs = require('fs'),
 // exec = require('child_process').exec,
 // cheerio = require('cheerio'),
-// var Users = require('./models/dbschema').Users,
-// Bets = require('./models/dbschema').Bets,
+var Users = require('./models/dbschema').Users,
+   Bets = require('./models/dbschema').Bets,
+   fs = require('fs'),
 // Messages = require('./models/dbschema').Messages,
 // Promise = require('promise'),
 // OUGame = require('./models/dbschema').OUGame,
 // // Scores = require('./models/dbschema').Scores,
-// mongoose = require('mongoose');
-// mongoose.connect('mongodb://localhost/baf');
+mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/baf');
 
-function encode(owed, owe) {
-   var amount = owe + (owed << 4);
-   return amount;
-}
+// var startDate = new Date("Dec 25 2015"),
+//    username = 'KRELL',
+//    weeks = [],
+//    xaxis = [],
+//    yaxis = [],
+//    totals = 0,
+//    results = {};
+//
+// for(var i = 0; i < 15; i++) {
+//    // console.log(weeks);
+//    weeks.push(new Date(startDate.setDate(startDate.getDate() + 7)));
+// }
+// console.log(weeks);
+var userList = [],
+   totals = {},         // rolling storage for win amount per user
+   counters = {},       // rolling storage for number of bets per user
+   currentDate = new Date('Jan 28 2016'), // first date to store data per user
+   dates = [],          // xaxis data to be sent
+   userData = [];       // datasets for each user
 
-function decode(num) {
-   console.log('owed = ' + (num >> 4));
-   console.log('owe = ' + (num & 0x0f));
-}
-// console.log('1owed,1owe = ', encode(1,1));
-// console.log('0owed,3owe = ', encode(0,3));
-// console.log('4owed,1owe = ', encode(4,1));
-decode(170);
-decode(120);
-decode(50);
-decode(68);
+// find users to get bet data for and intialize storage variables
+Users.find({_id: {$ne: 'testuser'}}, {_id: 1}, function(err,users){
+   users.forEach(function(user){
+      userList.push(user._id);
+      userData.push({
+         name: user._id,
+         data: []
+      });
+      totals[user._id] = 0;
+      counters[user._id] = 0;
+   });
+   // console.log(counters);
+}).sort({_id:1});
+
+Bets.find({$and:[ {status:{$in: [4,5,6]}},
+                  {sport: 'nba'}]}, function(err,bets){
+   if (err) {
+      console.log(err);
+   } else {
+      bets.forEach(function(bet, index){
+         if (bet.status == 4) {
+            totals[bet.user1]++;
+            counters[bet.user1]++;
+            counters[bet.user2]++;
+         } else if (bet.status == 5) {
+            totals[bet.user2]++;
+            counters[bet.user1]++;
+            counters[bet.user2]++;
+         } else if (bet.status == 6) {
+            totals[bet.user1] +=0.5;
+            counters[bet.user1]++;
+            totals[bet.user2] +=0.5;
+            counters[bet.user2]++;
+         }
+
+         // check if stop date to store data
+         if (bet.gametime > currentDate) {
+            // store date for xaxis labels
+            dates.push(currentDate.getMonth()+1+'/'+currentDate.getDate());
+
+            // on date, save win % per user
+            userList.forEach(function(username, index){
+               userData[index].data.push(totals[username]/counters[username]);
+            });
+
+            // advance next date to stop on
+            currentDate.setDate(currentDate.getDate()+5);
+         }
+      });
+   }
+   var sendData = {
+      xaxis : dates,
+      datasets: userData
+   };
+   var success = fs.writeFileSync('sample.json',JSON.stringify(sendData,0,3));
+});
 
 //    var today = new Date();
 //    Messages.findOne({date: {$gte: today.setDate(today.getDate()-3)}}, function(err, messages) {
