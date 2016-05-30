@@ -122,7 +122,7 @@ router.post('/makebet', requireLogin, function (req, res) {
 
 router.post('/getbets', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{status:req.body.status},(Number(req.body.all))?{$and:[{user1:{$ne: req.session.user._id}},{user2: {$ne: req.session.user._id}}]}:{$or:[{user1: req.session.user._id},{user2: req.session.user._id}]}]},function(err,bets){
+   Bets.find({$and:[{status:req.body.status}, {type: {$ne: 'future'}}, (Number(req.body.all))?{$and:[{user1: {$ne: req.session.user._id}}, {user2: {$ne: req.session.user._id}}]}:{$or: [{user1: req.session.user._id}, {user2: req.session.user._id}]}]}, function(err,bets){
       if(err){
          console.log(err);
       } else {
@@ -526,12 +526,22 @@ router.get('/getdebts', requireLogin, function(req,res){
    }).sort({date: -1}).limit(20);
 });
 
+router.get('/futureoffers', requireLogin, function(req,res){
+   Bets.find({$and:[{status: 0}, {type: 'future'}]}, function(err, offers){
+      res.json(offers);
+   });
+});
+
 router.get('/nflodds', function (req, res) {
    res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
 });
 
 router.get('/nbaodds', function (req, res) {
    res.sendFile('./nba_info.json', {'root':'/home/common/baf/'});
+});
+
+router.get('/futures', function (req, res) {
+   res.sendFile('./futures.json', {'root':'/home/common/baf/'});
 });
 
 // gets userlist for bet select list
@@ -594,10 +604,10 @@ function changeUser(user, key, inc) {
 
 function textUser(to, from, message){
    Users.findOne({_id: to}, function(err,user){
-      if (err)
+      if (err) {
          console.log(err);
-      else
-         if(user.pref_text_receive)
+      } else {
+         if(user.pref_text_receive) {
             sinchSms.sendMessage('+1'+user.sms, 'B.A.F. - ' + message + from + ' - http://2dollarbets.com/bets');
          // sms.send_message({
          //    src: '+16622193664',
@@ -606,6 +616,8 @@ function textUser(to, from, message){
          // }, function (status, response) {
          //    console.log('API Response:\n', response);
          // });
+         }
+      }
    });
 }
 

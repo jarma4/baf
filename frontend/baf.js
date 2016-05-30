@@ -403,7 +403,7 @@ function drawChart(days, update) {
    var ctx = document.getElementById("winGraph").getContext("2d"),
       colors = ["blue", "red", "white", "green", "yellow"],
       chartData = {
-         labels: '',
+         labels: [],
          datasets: []
       };
 
@@ -827,8 +827,8 @@ var urls = [
    '/',
    '/bets',
    '/stats',
+   '/futures',
    '/scores',
-   '/standings',
    '/props',
    '/messageboard',
    '/options'
@@ -994,6 +994,76 @@ $(document).ready(function() {
    doorBell();
 });
 
+$('#futureModal').on('show.bs.modal', function (event) {
+   var button = $(event.relatedTarget);
+   $('#futureText').text(((button.data('side') == 'give')?'Give ':'Take ') + button.data('odds')/100 + '/1 odds that ' + button.data('team') + ' will win ' + button.data('future'));
+   $('#futureSide').val(button.data('side'));
+   $('#futureOdds').val(button.data('odds'));
+   $('#futureTeam').val(button.data('team'));
+   $('#futureFuture').val(button.data('future'));
+});
+
+$('#futureSubmit').on('click', function() {
+   $.ajax({
+		type: 'POST',
+		url: '/api/makebet',
+		data: {
+		   'amount': 2,
+         'user2': 'testuser',
+		   'odds': $('#futureOdds').val(),
+         'type': 'future',
+		   'team1': $('#futureTeam').val(),
+         'team2': (($('#futureSide').val() == 'give')?'*':'') + $('#futureFuture').val(),
+         'sport': 'nba'
+		},
+		success:function(retData){
+         alert(retData.type, retData.message);
+		},
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+});
+
+function getFutures () {
+   $.ajax({
+		type: 'GET',
+		url: '/api/futureoffers',
+      success:function(retData){
+         var outp = '<table class="table table-condensed"><tr><th>Offer</th><th></th><th>Odds</th><th>Frm</th><th>Act</th></tr>';
+         $.each(retData, function(i,rec){
+            outp += '<tr><td>'+rec.team2+'</td><td>'+rec.team1+'</td><td>'+rec.odds/100+'/1</td><td>'+rec.user1.slice(0,4)+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#futureActModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-question-sign"></span></button></td></tr>';
+         });
+         outp += '</table>';
+         document.getElementById('futuresOffers').innerHTML = outp;
+      },
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+   $.ajax({
+		type: 'GET',
+		url: '/api/futures',
+      success:function(retData){
+         $.each(retData.futures, function(i,single){
+            var newPanel = '<div class="panel panel-primary"><div class="panel-heading"><span id="futuresTitle'+i+'"></span></div><div id="futuresPanel'+i+'" class="panel-body"></div></div>';
+
+            var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Action</th></tr>';
+            $.each(single.entries, function(i,rec){
+               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-info"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give </button></td><td><button class="btn btn-info" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
+            });
+            outp += '</table>';
+            $('#futuresGroup').append(newPanel);
+            document.getElementById('futuresPanel'+i).innerHTML = outp;
+            $('#futuresTitle'+i).text(single.event);
+            // $('#futuresTitle1').text('new');
+         });
+      },
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+}
 // $('#testButton').on('click', function (){
 //    $('#testModal').modal('show');
 // });

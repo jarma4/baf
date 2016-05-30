@@ -1,42 +1,15 @@
 {
-   "time": "4/27 21:40",
+   "time": "5/29 20:30",
    "week": 0,
    "games": [
       {
-         "date": "2016-04-28T00:00:00.000Z",
-         "team1": "CHR",
-         "team2": "@MIA",
-         "spread": 6,
-         "over": 193.5,
-         "moneyline1": 210,
-         "moneyline2": -250
-      },
-      {
-         "date": "2016-04-28T02:00:00.000Z",
-         "team1": "POR",
-         "team2": "@LAC",
-         "spread": -2.5,
-         "over": 195.5,
-         "moneyline1": -145,
-         "moneyline2": 125
-      },
-      {
-         "date": "2016-04-28T02:30:00.000Z",
-         "team1": "HOU",
+         "date": "2016-05-31T01:00:00.000Z",
+         "team1": "OKC",
          "team2": "@GS",
-         "spread": 9.5,
-         "over": 212.5,
-         "moneyline1": 400,
-         "moneyline2": -500
-      },
-      {
-         "date": "2016-04-29T00:00:00.000Z",
-         "team1": "ATL",
-         "team2": "@BOS",
-         "spread": -1.5,
-         "over": 197,
-         "moneyline1": -125,
-         "moneyline2": 105
+         "spread": 7,
+         "over": 218,
+         "moneyline1": 270,
+         "moneyline2": -330
       }
    ]
 }

@@ -57,7 +57,8 @@ var propsSchema = new mongoose.Schema({
    user1 : String,
    user2 : String,
    amount : Number,
-   prop: String
+   prop: String,
+   odds: Number
 });
 
 var standingsSchema = new mongoose.Schema({

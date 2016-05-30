@@ -38,6 +38,10 @@ router.get('/options', function(req, res) {
    res.render('options', {pagename:''});
 });
 
+router.get('/futures', function(req, res) {
+   res.render('futures', {pagename:''});
+});
+
 router.get('/test', function(req, res) {
    res.render('test', {pagename:''});
 });

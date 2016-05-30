@@ -25,9 +25,11 @@ html
 					li
 						a.toggleSidebar(href='/stats') #[span.glyphicon.glyphicon-stats] Stats
 					li
-						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-large] Scores
+						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-eye-open] Futures
 					li
-						a.toggleSidebar(href='/standings') #[span.glyphicon.glyphicon-list-alt] Standings
+						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-large] Scores
+					//- li
+					//- 	a.toggleSidebar(href='/standings') #[span.glyphicon.glyphicon-list-alt] Standings
 					li
 						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
 					li
@@ -45,6 +47,7 @@ html
 					span#notify3.glyphicon
 				block content
 
+		//- need to stay in base because used for nfl & nba
 		#betModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -82,13 +85,6 @@ html
 					.modal-footer
 						button#betSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Bet
 						button#betSave.btn.btn-primary.btn-lg.btn-block(type='submit', data-dismiss='modal') Save for later
-		#alertModal.modal.fade
-			.modal-dialog
-				.modal-content#alertBody
-					.modal-body
-						h4#alertText
-						button#alertOk.btn.btn-success.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") OK
-						button#alertCancel.btn.btn-danger.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") Cancel
 		#savedModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -132,7 +128,14 @@ html
 						button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
 						button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
 						input#paidId.nodisplay
-		#loginModal.modal.fade 
+		#alertModal.modal.fade
+			.modal-dialog
+				.modal-content#alertBody
+					.modal-body
+						h4#alertText
+						button#alertOk.btn.btn-success.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") OK
+						button#alertCancel.btn.btn-danger.btn-block.btn-lg.nodisplay(data-toggle='modal', data-dismiss="modal") Cancel
+		#loginModal.modal.fade
 			.modal-dialog
 				.modal-content
 					.modal-header
@@ -171,7 +174,8 @@ html
 						h2 Coming Soon ...
 		block modals
 
-		script(src='js/jquery-1.11.3.min.js')
+		script(src='https://code.jquery.com/jquery-2.2.4.min.js')
+		//- script(src='https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js')
 		script(src='js/jquery.mobile.custom.min.js')
 		script(src='js/bootstrap.min.js')
 		script(src='js/baf.js')
