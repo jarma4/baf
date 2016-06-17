@@ -1,15 +1,15 @@
 {
-   "time": "5/29 20:30",
+   "time": "6/17 12:00",
    "week": 0,
    "games": [
       {
-         "date": "2016-05-31T01:00:00.000Z",
-         "team1": "OKC",
+         "date": "2016-06-20T00:00:00.000Z",
+         "team1": "CLE",
          "team2": "@GS",
-         "spread": 7,
-         "over": 218,
-         "moneyline1": 270,
-         "moneyline2": -330
+         "spread": 5,
+         "over": 206.5,
+         "moneyline1": 170,
+         "moneyline2": -190
       }
    ]
 }

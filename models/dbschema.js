@@ -49,7 +49,8 @@ var scoresSchema = new mongoose.Schema({
    score2 : Number,
    winner: Number,
    week : Number,
-   sport : String
+   sport : String,
+   year: Number
 });
 
 var propsSchema = new mongoose.Schema({

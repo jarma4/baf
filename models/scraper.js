@@ -7,7 +7,7 @@ Scores = require('./dbschema').Scores,
 Standings = require('./dbschema').Standings,
 mongoose = require('mongoose');
 
-var seasonStart = new Date(2015,8,8),
+var seasonStart = new Date(2016,8,8),
    nflWeeks = [],
    numWeeks = 22,
    daylight_savings_offset = 0;
@@ -16,6 +16,8 @@ for (var i=0;i<numWeeks;i++){
       daylight_savings_offset = 3600000;
    nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+daylight_savings_offset));
 }
+
+var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARZ', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Green Bay': 'GB', 'Minnesota': 'MIN', 'New Orleans': 'NO', 'NY Giants': 'NYG', 'Philadelphia': 'PHI', 'Seattle': 'SEA', 'San Francisco': 'SF', 'Los Angelas': 'LA', 'Tampa Bay': 'TB', 'Washington': 'WAS', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Cincinatti': 'CIN', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Kansas City': 'KC', 'Jacksonville': 'JAC', 'Indianapolis': 'IND', 'Miami': 'MIA', 'New England': 'NE', 'NY Jets': 'NYJ', 'Oakland': 'OAK', 'Pittsburgh': 'PIT', 'San Diego': 'SD', 'Tennessee': 'TEN'};
 
 function getOdds(sport) {
    var url = 'http://www.oddsshark.com/'+sport+'/odds';
@@ -93,6 +95,33 @@ function updateWinnerLoser(winner,loser,push){
 	});
 }
 
+function addGame (wk, yr, sprt) {
+   var url = 'http://sports.yahoo.com/nfl/scoreboard/?week='+wk+'&phase=2&season=2016';
+   request(url, function (err, response, body) {
+      if(!err && response.statusCode === 200) {
+         var $ = cheerio.load(body);
+         $('.game').each(function(){
+            var tmp = new Scores({
+               score1: 0,
+               score2: 0,
+               winner: 0,
+               sport: sprt,
+               year: yr,
+               week: wk,
+               team1: $(this).children().next().children().children().first().text(),
+               team2: $(this).children().next().next().next().children().children().next().first().text()
+            }).save(function(err){
+               if(err) {
+                  console.log('Trouble adding game');
+               } else {
+                  console.log('Week '+wk+' game added');
+               }
+            });
+         });
+      }
+   });
+}
+
 module.exports = {
    getWeek: function(date){
       var wk=0;
@@ -104,6 +133,7 @@ module.exports = {
       }
       return wk;
    },
+
    refreshOddsInfo: function() {
 //      getOdds('nfl');
       getOdds('nba');

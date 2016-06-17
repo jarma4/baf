@@ -1,0 +1,21 @@
+{
+   "futures": [
+      {
+         "event": "NBA Final",
+         "entries": [
+            {
+               "team": "GSW in 7",
+               "ml": 160
+            },
+            {
+               "team": "GSW in 6",
+               "ml": 120
+            },
+            {
+               "team": "CLE in 7",
+               "ml": 375
+            }
+         ]
+      }
+   ]
+}

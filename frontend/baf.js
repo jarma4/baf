@@ -571,7 +571,7 @@ function showScores(sport, period) {
 		url: '/api/getscores',
       data: {
          'sport': sport,
-         'year': ((period>17)?2016:2015), //too specific to football, needs to fixed
+         'year': ((period>17)?2017:2016), //too specific to football, needs to fixed
          'period': period
       },
 		success:function(retData){
@@ -926,18 +926,21 @@ var monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getWeek(date){
-   var wk, dst=0;
-   var seasonStart = new Date(2015,8,8);
-   var nflWeeks = [];
+   var wk = 1,
+      dst=0,
+      seasonStart = new Date(2016,8,8),
+      nflWeeks = [];
    for (var i=0; i<23; i++){
       if (i > 7)
          dst = 3600000;
       nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
    }
-   for (i=0; i<21; i++){
-      if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
-         wk = i+1;
-         break;
+   if (date > nflWeeks[0]) {
+      for (i=0; i<21; i++){
+         if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
+            wk = i+1;
+            break;
+         }
       }
    }
    return wk;

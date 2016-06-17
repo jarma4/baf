@@ -1,0 +1,30 @@
+extends base
+//- block head
+//-    link(href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css", rel="stylesheet")
+block content
+   strong.lead &nbspFutures
+   #futuresOffers
+   #futuresGroup.panel-group
+         
+block modals
+   #futureModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
+               h4 Future Bet:
+            .modal-body
+               h3#futureText
+               .form-group
+               button#futureSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss="modal") Accept
+               button.btn.btn-danger.btn-lg.btn-block(type='submit', data-dismiss="modal") Cancel
+               input#futureOdds.nodisplay
+               input#futureTeam.nodisplay
+               input#futureFuture.nodisplay
+               input#futureSide.nodisplay
+
+block scripts
+   script(type='text/javascript') getFutures()
+
+
+            
