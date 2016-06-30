@@ -3,7 +3,7 @@ router = express.Router();
 
 // Main page renderings
 router.get('/', function(req, res) {
-   res.render('nba', {pagename:'NBA'});  // pagename not used now
+   res.render('nfl', {pagename:'NFL'});  // pagename not used now
 });
 
 router.get('/nfl', function(req, res) {
@@ -12,6 +12,14 @@ router.get('/nfl', function(req, res) {
 
 router.get('/bets', function(req, res) {
    res.render('bets', {pagename:'Bets'});
+});
+
+router.get('/nfl2', function(req, res) {
+   res.render('nfl2', {pagename:'NFL'});  // pagename not used now
+});
+
+router.get('/bets2', function(req, res) {
+   res.render('bets2', {pagename:'Bets'});
 });
 
 router.get('/stats', function(req, res) {

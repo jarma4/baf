@@ -8,10 +8,17 @@ block content
          #weeklyStats.panel-body
       .panel.panel-success
          .panel-heading Overall
-            button#statsType.btn.btn-sm.btn-primary.right NBA
+            //- button#statsType.btn.btn-sm.btn-info.right NBA
+            //- button#statsYear.btn.btn-sm.btn-primary.right 2015
+            select#statsType.btn.btn-sm.btn-primary.right
+               option NBA
+               option NFL
+            select#statsYear.btn.btn-sm.btn-primary.right
+               option 2015
+               option 2016
          #overallStats.panel-body
-   .form-group
-      button#graphDays.btn.btn-sm.btn-primary.left 30days
+   //- .form-group
+   //-    button#graphDays.btn.btn-sm.btn-primary.left 30days
    canvas#winGraph(width='320', height='320')
 
 block modals
@@ -25,6 +32,6 @@ block modals
 block scripts
    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js')
    script(type='text/javascript') weeklyStats()
-   script(type='text/javascript') overallStats(0,1)
-   script(type='text/javascript') drawChart(30)
+   script(type='text/javascript') overallStats()
+   //- script(type='text/javascript') drawChart(0)
             

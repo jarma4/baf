@@ -6,19 +6,28 @@ var usersSchema = new mongoose.Schema({
    sms : String,
    bets : Number,
    debts : Number,
-   win_nfl: Number,
-   win_nba: Number,
-   loss_nfl: Number,
-   loss_nba: Number,
-   push_nfl: Number,
-   push_nba: Number,
+   // win_nfl: Number,
+   // win_nba: Number,
+   // loss_nfl: Number,
+   // loss_nba: Number,
+   // push_nfl: Number,
+   // push_nba: Number,
    pref_include_everyone: Boolean,
    pref_text_receive: Boolean,
    pref_text_accept: Boolean
 });
 
+var recordsSchema = new mongoose.Schema({
+   user : String,
+   sport : String,
+   year : Number,
+   loss: Number,
+   win: Number,
+   push: Number,
+});
+
 var betsSchema = new mongoose.Schema({
-   date : Date,
+   year : Number,
    user1 : String,
    user2 : String,
    amount : Number,
@@ -82,6 +91,7 @@ var standingsSchema = new mongoose.Schema({
 // mongoose.model('Props', propsSchema);
 // mongoose.model('Standings', standingsSchema);
 var Users = mongoose.model('Users', usersSchema);
+var Records = mongoose.model('Records', recordsSchema);
 var Bets = mongoose.model('Bets', betsSchema);
 var Scores = mongoose.model('Scores', scoresSchema);
 var Messages = mongoose.model('Messages', msgSchema);
@@ -90,6 +100,7 @@ var Standings = mongoose.model('Standings', standingsSchema);
 
 module.exports = {
    Users: Users,
+   Records: Records,
    Bets: Bets,
    Scores: Scores,
    Messages: Messages,

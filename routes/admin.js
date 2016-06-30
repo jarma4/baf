@@ -2,6 +2,7 @@ var express = require('express'),
    router = express.Router(),
    bodyParser = require('body-parser'),
    session = require('client-sessions'),
+   Records = require('../models/dbschema').Records,
    Users = require('../models/dbschema').Users;
 
 router.use(session({
@@ -37,12 +38,6 @@ router.post('/register', function(req,res){
       password: req.body.password,
       bets: 0,
       debts: 0,
-      nfl_win: 0,
-      nfl_loss: 0,
-      nfl_push: 0,
-      nba_win: 0,
-      nba_loss: 0,
-      nba_push: 0,
       pref_include_everyone : 1,
       pref_text_receive : 1,
       pref_text_accept : 0,
@@ -56,6 +51,22 @@ router.post('/register', function(req,res){
          console.log(err);
          res.send({'type':'danger', 'message':message});
       } else {
+         // create record entry in db
+         var sports = ['nfl', 'nba'];
+         for (var i=0; i < sports.length; i++) {
+            new Records({
+               user: req.body.username,
+               year: new Date().getFullYear(),
+               sport: sports[i],
+               win: 0,
+               loss: 0,
+               push : 0,
+            }).save(function(err){
+               if (err){
+                  console.log(err);
+               }
+            });
+         }
          console.log('Registration successful');
          req.session.user = newuser;  // login new user by giving session
          res.send({'type':'success', 'message':'Registration Successful'});

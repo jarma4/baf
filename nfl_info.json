@@ -1,5 +1,42 @@
 {
    "time": "2/8 22:10",
-   "week": 0,
-   "games": []
+   "week": 1,
+   "games": [
+      {
+         "date": "2016-09-08T00:00:00.000Z",
+         "team1": "CAR",
+         "team2": "@DEN",
+         "spread": 5,
+         "over": 40,
+         "moneyline1": 165,
+         "moneyline2": -185
+      },
+      {
+         "date": "2016-09-08T00:00:00.000Z",
+         "team1": "TB",
+         "team2": "@ATL",
+         "spread": 5,
+         "over": 40,
+         "moneyline1": 165,
+         "moneyline2": -185
+      },
+      {
+         "date": "2016-09-08T00:00:00.000Z",
+         "team1": "MIN",
+         "team2": "@TEN",
+         "spread": 5,
+         "over": 40,
+         "moneyline1": 165,
+         "moneyline2": -185
+      },
+      {
+         "date": "2016-09-08T00:00:00.000Z",
+         "team1": "SD",
+         "team2": "@KC",
+         "spread": 5,
+         "over": 40,
+         "moneyline1": 165,
+         "moneyline2": -185
+      }
+   ]
 }
