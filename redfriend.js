@@ -8,12 +8,12 @@ var request = require('request'),
 // mongoose.connect('mongodb://127.0.0.1/vcl');
 
 getPage('https://www.reddit.com/prefs/friends/').then(function(body){
-   var beforeDate = new Date(new Date() - 1000*60*60*24*550);
+   var beforeDate = new Date(new Date() - 1000*60*60*24*400);
    var $ = cheerio.load(body);
    $('.user').each(function(i){
       var friend = $(this).find('a').text(),
          posts = $(this).text().split('(');
-      if (posts[1].replace(')','') < 500)
+      if (posts[1].replace(')','') < 1000)
          console.log(friend+' has '+posts[1].replace(')','')+' posts');
       getPage('https://www.reddit.com/user/' + friend + '/submitted').then(function(body){
          var $$ = cheerio.load(body);

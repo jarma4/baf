@@ -1,21 +1,22 @@
 {
-   /*"futures": [
+   "futures": [
       {
-         "event": "NBA Final",
+         "event": "2016 World Series Winner",
+         "time": "8/1",
          "entries": [
             {
-               "team": "GSW in 7",
-               "ml": 160
+               "team": "Cubs",
+               "ml": 310
             },
             {
-               "team": "GSW in 6",
-               "ml": 120
+               "team": "Giants",
+               "ml": 645
             },
             {
-               "team": "CLE in 7",
-               "ml": 375
+               "team": "Indians",
+               "ml": 695
             }
          ]
       }
-   ]*/
+   ]
 }

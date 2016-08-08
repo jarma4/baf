@@ -27,7 +27,7 @@ router.use(bodyParser.urlencoded({ extended: false }));
 router.use(session({
   cookieName: 'session',
   secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
-  duration: 5 * 24 * 60 * 60 * 1000,
+  duration: 14 * 24 * 60 * 60 * 1000,
   activeDuration: 5 * 60 * 1000,
 }));
 
@@ -56,12 +56,13 @@ router.use(function (req, res, next) {
 });
 
 router.post('/makebet', requireLogin, function (req, res) {
-   fta_id = Math.random();
+   fta_id = Math.random();    // 'first to act' identifier
    if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.later) {
       Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
          users.forEach(function(single) {
             new Bets({
                date: new Date(),
+               year: new Date().getFullYear(),
                user1: req.session.user._id,
                user2: single,
                odds: req.body.odds,
@@ -93,6 +94,7 @@ router.post('/makebet', requireLogin, function (req, res) {
    } else {
       new Bets({
          date: new Date(),
+         year: new Date().getFullYear(),
          user1: req.session.user._id,
          user2: req.body.user2,
          odds: req.body.odds,
@@ -114,7 +116,7 @@ router.post('/makebet', requireLogin, function (req, res) {
             res.send({'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Sent'});
          }
       });
-      if (!req.body.later) {
+      if (!req.body.later && req.body.type != 'future') {
          changeUser (req.body.user2, 'bets', 1);
          textUser(req.body.user2, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from '+req.session.user._id);
       }
@@ -400,7 +402,7 @@ router.post('/graphstats', requireLogin, function(req,res){
 });
 
 router.post('/userstats', requireLogin, function(req,res){
-   Bets.find({$and:[{$or:[{user1: req.body.user},{user2: req.body.user}]}, {status:{$in:[4,5,6]}}, (req.body.sport)?{sport:req.body.sport}:{}]}, function(err,bets){
+   Bets.find({$and:[{$or:[{user1: req.body.user},{user2: req.body.user}], sport: req.body.sport, year: req.body.year}, {status:{$in:[4,5,6]}}, (req.body.sport)?{sport:req.body.sport}:{}]}, function(err,bets){
       if (err)
          console.log(err);
       else
@@ -555,7 +557,10 @@ router.get('/getdebts', requireLogin, function(req,res){
 
 router.get('/futureoffers', requireLogin, function(req,res){
    Bets.find({$and:[{status: 0}, {type: 'future'}]}, function(err, offers){
-      res.json(offers);
+      res.json({
+         sessionId: req.session.user._id,
+         offers: offers
+      });
    });
 });
 
@@ -580,7 +585,10 @@ router.get('/users', requireLogin, function(req,res){
 
 // called when new page is loaded
 router.get('/doorbell', requireLogin, function(req,res){
-   var answer = {type: 'message'};
+   var answer = {
+      type: 'message',
+      // username: req.session.user._id
+      };
    var betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){
          if (err)

@@ -343,35 +343,22 @@ function weeklyStats() {
 	});
 }
 
-//toggle button in overall stats picks between sports, changes text & color
-$('#statsType').change('click', function(){
-   // event.preventDefault();
-   // if ($('#statsType').val() == 'NBA') {
-   //    $('#statsType').val('NFL');
-   //    $('#statsType').removeClass('btn-info').addClass('btn-warning');
-   //    overallStats();
-   // } else if ($('#statsType').val() == 'NFL') {
-   //    $('#statsType').val('NBA');
-   //    $('#statsType').removeClass('btn-warning').addClass('btn-info');
+// switch overall stats
+$('#statsSport').change('click', function(){
       overallStats();
-   // }
-   // } else {
-   //    $('#statsType').text('ALL');
-   //    $('#statsType').removeClass('btn-info').addClass('btn-primary');
-   //    overallStats(1,1);
-   // }
 });
+
 $('#statsYear').change('click', function(){
       overallStats();
 });
 
-//overall can be all/nfl/nba so arguments in function used to pick which data to use
+// get overall stats and graph
 function overallStats() {
    $.ajax({
 		type: 'POST',
 		url: '/api/overallstats',
       data: {
-         'sport': $('#statsType').val().toLowerCase(),
+         'sport': $('#statsSport').val().toLowerCase(),
          'year': $('#statsYear').val()
       },
 		success:function(retData){
@@ -389,7 +376,7 @@ function overallStats() {
 	});
 }
 
-//toggle button in overall stats picks between sports, changes text & color
+// change chart period - currently unused
 $('#graphDays').on('click', function(){
    event.preventDefault();
    if ($('#graphDays').text() == '30days') {
@@ -403,9 +390,6 @@ $('#graphDays').on('click', function(){
       drawChart(30, 1);
    }
 });
-
-// declared global so that can be updated later
-var winChart;
 
 // below uses ChartJS library
 function drawChart(days, update) {
@@ -427,7 +411,7 @@ function drawChart(days, update) {
       data: {
          user: 'ALL',
          days: days,
-         sport: $('#statsType').val().toLowerCase(),
+         sport: $('#statsSport').val().toLowerCase(),
          year: $('#statsYear').val()
       },
       success: function(retData){
@@ -458,13 +442,15 @@ function drawChart(days, update) {
    });
 }
 
-function getUserStats (user, sport) {
+function getUserStats (user, sport, year) {
    return $.ajax({
    	type: 'POST',
    	url: '/api/userstats',
       data: {
-         'user': user,
-         'sport': sport}
+         user: user,
+         sport: sport,
+         year: year
+      }
    });
 }
 
@@ -472,7 +458,7 @@ function getUserStats (user, sport) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), 'nba').success(function(retData) {
+   getUserStats(button.data('user'), $('#statsSport').val().toLowerCase(), $('#statsYear').val()).success(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -492,7 +478,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
 
 $('#futureModal').on('show.bs.modal', function (event) {
    var button = $(event.relatedTarget);
-   $('#futureText').text(((button.data('side') == 'give')?'Give ':'Take ') + button.data('odds')/100 + '/1 odds that ' + button.data('team') + ' will win ' + button.data('future'));
+   $('#futureText').text(((button.data('side') == 'give')?'Give ':'Take ') + button.data('odds')/100 + '/1 odds that "' + button.data('team') + '" will win "' + button.data('future')+'"');
    $('#futureSide').val(button.data('side'));
    $('#futureOdds').val(button.data('odds'));
    $('#futureTeam').val(button.data('team'));
@@ -505,15 +491,16 @@ $('#futureSubmit').on('click', function() {
 		url: '/api/makebet',
 		data: {
 		   'amount': 2,
-         'user2': 'testuser',
+         'user2': ($('#futureSide').val() == 'give')?'give':'take',
 		   'odds': $('#futureOdds').val(),
          'type': 'future',
 		   'team1': $('#futureTeam').val(),
-         'team2': (($('#futureSide').val() == 'give')?'*':'') + $('#futureFuture').val(),
+         'team2': $('#futureFuture').val(),
          'sport': 'nba'
 		},
 		success:function(retData){
          alert(retData.type, retData.message);
+         getFutures();
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -521,14 +508,45 @@ $('#futureSubmit').on('click', function() {
 	});
 });
 
-function getFutures () {
+$('#futureRescindSubmit').on('click', function(){
+   $.ajax({
+		type: 'POST',
+		url: '/api/changebet',
+		data: {
+         'id': $('#futureRescindId').val(),
+         'status': -1},
+		success:function(retData){
+         alert(retData.type, retData.message);
+         getFutures();
+		},
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+});
+
+$('#futuresOffers').delegate('.futureOffer', 'click', function(event) {
+   // var button = $(event.relatedTarget);
+   if($(this).data('user') == username){
+      $('#futureRescindId').val($(this).data('id'));
+      $('#futureRescindModal').modal('show');
+   } else {
+      $('#futureActId').val($(this).data('id'));
+      $('#futureActModal').modal('show');
+   }
+});
+
+function getFutures() {
+   $('#futureOffers').hide();   //hide div to display until sure something there
    $.ajax({
 		type: 'GET',
 		url: '/api/futureoffers',
       success:function(retData){
-         var outp = '<table class="table table-condensed"><tr><th>Offer</th><th></th><th>Odds</th><th>Frm</th><th>Act</th></tr>';
-         $.each(retData, function(i,rec){
-            outp += '<tr><td>'+rec.team2+'</td><td>'+rec.team1+'</td><td>'+rec.odds/100+'/1</td><td>'+rec.user1.slice(0,4)+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#futureActModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-question-sign"></span></button></td></tr>';
+         username = retData.sessionId; // being returned so buttons can be customized
+         var outp = '<table class="table table-condensed">';
+         $.each(retData.offers, function(i,rec){
+            outp += '<tr><td>'+rec.user1+((rec.user2 == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
+            $('#futureOffers').show();   //hide div to display until sure something there
          });
          outp += '</table>';
          document.getElementById('futuresOffers').innerHTML = outp;
@@ -544,11 +562,11 @@ function getFutures () {
          $.each(retData.futures, function(i,single){
             var newPanel = '<div class="panel panel-primary"><div class="panel-heading"><span id="futuresTitle'+i+'"></span></div><div id="futuresPanel'+i+'" class="panel-body"></div></div>';
 
-            var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Action</th></tr>';
+            var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
             $.each(single.entries, function(i,rec){
-               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-info"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give </button></td><td><button class="btn btn-info" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
+               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-info"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-info" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
             });
-            outp += '</table>';
+            outp += '</table><em>updated: '+retData.futures[i].time+'</em>';
             $('#futuresGroup').append(newPanel);
             document.getElementById('futuresPanel'+i).innerHTML = outp;
             $('#futuresTitle'+i).text(single.event);
@@ -867,7 +885,7 @@ $('#loginSubmit').on('click', function(){
 		},
 		success:function(retData){
          if (retData.type == 'success'){
-            window.username = $('#loginUsername').val();
+            // username = $('#loginUsername').val();
             getUsers();
          }
          alert(retData.type, retData.message);
@@ -905,17 +923,6 @@ $('#registerSubmit').on('click', function(){
 });
 
 // below is for swiping action on touchscreens
-var urls = [
-   '/',
-   '/bets',
-   '/stats',
-   '/futures',
-   '/scores',
-   '/props',
-   '/messageboard',
-   '/options'
-];
-
 function getUrlPos(url){
    var position;
    for (i=0; i<urls.length; i++){
@@ -987,6 +994,7 @@ function doorBell(){
          if(retData.type == 'command'){
             eval(retData.message);
          } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
+            // username = retData.username; // keep around for things
             if (retData.bets) {
                $('#notify1').addClass('glyphicon-flag').css('color', '#ee5f5b').css('font-size','24px').css('margin','10px');
             }
@@ -1003,9 +1011,6 @@ function doorBell(){
 		}
 	});
 }
-
-var monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-   dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getWeek(date){
    var wk = 1,
@@ -1083,7 +1088,21 @@ $(document).ready(function() {
    doorBell();
 });
 
-nflColors = {
+var username,
+   urls = [
+   '/',
+   '/bets',
+   '/stats',
+   '/futures',
+   '/scores',
+   '/props',
+   '/messageboard',
+   '/options'
+   ], // used for swiping between pages
+   winChart, // declared global so that charts can be updated between functions
+   monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+   dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+   nflColors = {
    ATL: '#A71930', ARZ: '#97233F', CAR: '#0085CA', CHI: '#0B162A', DAL: '#002244', DET: '#005A8B', GB: '#203731', MIN: '#4F2683', NO: '#9F8958', NYG: '#0B2265', PHI: '#004953', SEA: '#69BE28', SF: '#AA0000', LA: '#B3995D', TB: '#D50A0A', WAS: '#773141', BAL: '#241773', BUF: '#00338D', CIN: '#FB4F14', CLE: '#FB4F14', DEN: '#FB4F14', HOU: '#03202F', KC: '#E31837', JAC: '#006778', IND: '#002C5F', MIA: '#008E97', NE: '#002244', NYJ: '#203731', OAK: '#A5ACAF', PIT: '#FFB612', SD: '#0073CF', TEN: '#4B92DB'
 };
 

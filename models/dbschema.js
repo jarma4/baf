@@ -27,6 +27,7 @@ var recordsSchema = new mongoose.Schema({
 });
 
 var betsSchema = new mongoose.Schema({
+   date: Date,
    year : Number,
    user1 : String,
    user2 : String,
