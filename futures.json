@@ -1,20 +1,20 @@
 {
-   "futures": [
+   "future": [
       {
-         "event": "2016 World Series Winner",
-         "time": "8/1",
+         "event": "Broncos Starting QB",
+         "time": "8/9",
          "entries": [
             {
-               "team": "Cubs",
-               "ml": 310
+               "team": "Sanches",
+               "ml": -127
             },
             {
-               "team": "Giants",
-               "ml": 645
+               "team": "Siemian",
+               "ml": 179
             },
             {
-               "team": "Indians",
-               "ml": 695
+               "team": "Lynch",
+               "ml": 473
             }
          ]
       }

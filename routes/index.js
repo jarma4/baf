@@ -1,5 +1,8 @@
 var express = require('express'),
+// Auth = require('./auth'),
 router = express.Router();
+
+module.exports = router;
 
 // Main page renderings
 router.get('/', function(req, res) {
@@ -50,7 +53,10 @@ router.get('/futures', function(req, res) {
    res.render('futures', {pagename:''});
 });
 
+router.get('/login', function(req, res) {
+   res.render('login', {pagename:''});
+});
+
 router.get('/test', function(req, res) {
    res.render('test', {pagename:''});
 });
-module.exports = router;

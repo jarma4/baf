@@ -2,7 +2,49 @@ var express = require('express'),
    app = express(),
    crontab = require('node-crontab'),
    exec = require('child_process').exec,
+  // auth = require('./routes/auth'),
    compression = require('compression');
+   // bodyParser = require('body-parser'),
+   // session = require('client-sessions'),
+   // Users = require('./models/dbschema').Users,
+   // mongoose = require('mongoose');
+// mongoose.connect('mongodb://127.0.0.1/baf');
+
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(session({
+//   cookieName: 'session',
+//   secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
+//   duration: 14 * 24 * 60 * 60 * 1000,
+//   activeDuration: 5 * 60 * 1000,
+// }));
+//
+// app.use(function (req, res, next) {
+//   if (req.session && req.session.user) {
+//     Users.findOne({ _id: req.session.user._id }, function (err, user) {
+//       if (user) {
+//          console.log('user found');
+//         req.user = user;
+//         delete req.user.password;
+//         req.session.user = user;
+//         res.locals.user = user;
+//       }
+//       next();
+//     });
+//   } else {
+//     next();
+//   }
+// });
+//
+// function requireLogin(req, res, next) {
+//    // console.log('in auth');
+//    if (!req.user) {
+//       console.log('no auth');
+//       res.redirect('/login');
+//       // res.send({'type':'command', 'message':'$("#loginModal").modal()'});
+//    } else {
+//       next();
+//    }
+// }
 
 // load different routes
 var routes = require('./routes/index'),
@@ -22,13 +64,13 @@ app.set('views', './views');
 var scraper = require('./models/scraper');
 
 // schedule worker jobs
-// var oddsId = crontab.scheduleJob("*/30 6-15 * * *", scraper.refreshOddsInfo),
-//    oddsId2 = crontab.scheduleJob("*/10 15-22 * * *", scraper.refreshOddsInfo),
-//    clearUnactedId = crontab.scheduleJob("*/10 17-22 * * *", scraper.clearUnactedBets),
-//    checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']),
+var oddsId = crontab.scheduleJob("*/15 7-22 * * *", scraper.refreshOddsInfo),
+   // oddsId2 = crontab.scheduleJob("*/10 9-22 * * 0", scraper.refreshOddsInfo),
+   clearUnactedId = crontab.scheduleJob("*/10 17-22 * * *", scraper.clearUnactedBets),
+   checkNflScoresId = crontab.scheduleJob("*/10 19,22 * * 0,6", scraper.checkScores,['nfl']),
 //    checkNbaScoresId = crontab.scheduleJob("*/10 0,19-23 * * *", scraper.checkScores,['nba']),
-//    tallyBetsId = crontab.scheduleJob("*/15 0,6-9,19-23 * * *", scraper.tallyBets),
-//    clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
+   tallyBetsId = crontab.scheduleJob("*/15 0,6-9,19-23 * * *", scraper.tallyBets),
+   clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
 //    updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
 
 // backup daily odds
@@ -43,15 +85,15 @@ var scraper = require('./models/scraper');
 // });
 
 // backup mongo datbases
-// var backupDbId = crontab.scheduleJob('0 3 * * 3', function () {
-//    var now = new Date();
-//    var cmd = exec('mongodump -d baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
-//       if (error || stderr)
-//          console.log(error);
-//          console.log(stderr);
-//       });
-//    console.log('DB backup - '+now);
-// });
+var backupDbId = crontab.scheduleJob('0 3 * * 3', function () {
+   var now = new Date();
+   var cmd = exec('mongodump -d baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
+      if (error || stderr)
+         console.log(error);
+         console.log(stderr);
+      });
+   console.log('DB backup - '+now);
+});
 
 var server = app.listen(8083, function () {
    console.log('App listening at on port 8083');

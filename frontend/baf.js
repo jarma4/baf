@@ -1,12 +1,14 @@
+// "use strict";
+
 // prepopulate modal items with data from database
 $('#betModal').on('show.bs.modal', function (event) {
    var vs1, vs2, odds, gameDb, button = $(event.relatedTarget);
    $('#oddsMod').removeClass('nodisplay');  // display just in case turned off
 
    if (button.data('sport') == 'nfl')
-      gameDb = nflDb;
+      gameDb = window.nflDb;
    else
-      gameDb = nbaDb;
+      gameDb = window.nbaDb;
 
    // odds database in certain order, need to order bet elements so that user
    // choice is first before sent
@@ -172,9 +174,13 @@ $('.btn-increment').on('click', function(event){
       $(this).next().val(Number($(this).next().val())-0.5);
 });
 
+// handles collapse icon animation
+$('.collapseIcon').on('click', function(event){
+   $(this).toggleClass('open');
+});
+
 //below displays 4 panels on bets page; each has it's own quirks so not so DRY
 function showBets () {
-   $('#waitingYou').hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
       url: '/api/getbets',
@@ -188,8 +194,9 @@ function showBets () {
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th><th>Act</th></tr>';
             $.each(retData, function(i,rec){
                if (rec.status == 1) {
-                  outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-question-sign"></span></button></td></tr>';
-               $('#waitingYou').show();
+                  outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-hand-left"></span></button></td></tr>';
+                  $('#waitingYou').addClass('in');
+                  $('#waitingYouTitle span.collapseIcon').removeClass('hidden');
                }
             });
             outp += '</table>';
@@ -200,8 +207,6 @@ function showBets () {
          alert(retData.type, retData.message);
       }
    });
-
-   $('#waitingThem').hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
       url: '/api/getbets',
@@ -215,7 +220,8 @@ function showBets () {
             $.each(retData, function(i,rec){
                if (rec.status === 0) {
                   outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
-               $('#waitingThem').show();  //show display div; can't do outside async callback
+                  $('#waitingThem').addClass('in');
+                  $('#waitingThemTitle span.collapseIcon').removeClass('hidden');
                }
             });
             outp += '</table>';
@@ -227,8 +233,9 @@ function showBets () {
       }
    });
 
-   $('#acceptedBets').hide(); //hide div to display until sure something there
-   getBets(2,'acceptedBets'); //call function for user associated accepted bets
+   //call function for user associated accepted bets
+   getBets(2,'acceptedBets');
+
    //next dislplay accepted bets of other for info sake
    $('#otherBets').hide(); //hide div to display until sure something there
    $.ajax({
@@ -244,6 +251,7 @@ function showBets () {
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+               $('#acceptedBets').addClass('in');
             });
             outp += '</table>';
             document.getElementById("otherBets").innerHTML = outp;
@@ -260,7 +268,6 @@ function showBets () {
 }
 
 function getBets(status, target, custom) {
-   $('#'+target).hide();   //hide div to display until sure something there
    $.ajax({
       type: 'POST',
       url: '/api/getbets',
@@ -279,11 +286,12 @@ function getBets(status, target, custom) {
                if ((custom == 1 && rec.sport == 'nfl') || (custom == 2 && rec.sport == 'nba'))
                   outp += '<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#savedModal" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-send"></span></button></td>';
                outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td></tr>';
+               $('#'+target).addClass('in');
+               $('#'+target+'Title span.collapseIcon').removeClass('hidden');
             });
             outp += '</table>';
             document.getElementById(target).innerHTML = outp;
             $('[data-toggle="popover"]').popover();
-            $('#'+target).show();
          }
       },
       error: function(retData){
@@ -319,7 +327,6 @@ $('.actionAction').on('click', function(){
 
 // Stats stuff
 function weeklyStats() {
-   $('#weeklyStats').hide();
    $.ajax({
 		type: 'POST',
 		url: '/api/weeklystats',
@@ -331,10 +338,11 @@ function weeklyStats() {
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
                outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-success">':'<td class="heading-danger">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-danger">':'<td class="heading-success">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
+               $('#weeklyStats').addClass('in');
+               $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
             });
             outp += '</table>';
             document.getElementById('weeklyStats').innerHTML = outp;
-            $('#weeklyStats').show();
          }
       },
 		error: function(retData){
@@ -365,6 +373,7 @@ function overallStats() {
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
 				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,4)+'</a></td><td>'+(rec.win)+'</td><td>'+(rec.loss)+'</td><td>'+(rec.push)+'</td><td>'+((rec.win+rec.push*0.5)/(rec.win+rec.loss+rec.push)).toPrecision(3).slice(1,5)+'</td></tr>';
+            $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
@@ -491,9 +500,9 @@ $('#futureSubmit').on('click', function() {
 		url: '/api/makebet',
 		data: {
 		   'amount': 2,
-         'user2': ($('#futureSide').val() == 'give')?'give':'take',
+         'type': ($('#futureSide').val() == 'give')?'give':'take',
 		   'odds': $('#futureOdds').val(),
-         'type': 'future',
+         'user2': '',
 		   'team1': $('#futureTeam').val(),
          'team2': $('#futureFuture').val(),
          'sport': 'nba'
@@ -525,6 +534,25 @@ $('#futureRescindSubmit').on('click', function(){
 	});
 });
 
+$('#futureOfferSubmit').on('click', function(){
+   $.ajax({
+		type: 'POST',
+		url: '/api/changebet',
+		data: {
+         'id': $('#futureActId').val(),
+         'status': 2,
+         'future': true
+      },
+		success:function(retData){
+         alert(retData.type, retData.message);
+         getFutures();
+		},
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+});
+
 $('#futuresOffers').delegate('.futureOffer', 'click', function(event) {
    // var button = $(event.relatedTarget);
    if($(this).data('user') == username){
@@ -537,16 +565,20 @@ $('#futuresOffers').delegate('.futureOffer', 'click', function(event) {
 });
 
 function getFutures() {
-   $('#futureOffers').hide();   //hide div to display until sure something there
+   // first see if there are any existing offers
    $.ajax({
-		type: 'GET',
-		url: '/api/futureoffers',
+		type: 'POST',
+		url: '/api/getfutureoffers',
+      data: {
+         status: 0
+      },
       success:function(retData){
          username = retData.sessionId; // being returned so buttons can be customized
          var outp = '<table class="table table-condensed">';
          $.each(retData.offers, function(i,rec){
             outp += '<tr><td>'+rec.user1+((rec.user2 == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
-            $('#futureOffers').show();   //hide div to display until sure something there
+            $('#futuresOffers').addClass('in');
+            $('#futuresOffersTitle span.collapseIcon').removeClass('hidden');
          });
          outp += '</table>';
          document.getElementById('futuresOffers').innerHTML = outp;
@@ -555,16 +587,19 @@ function getFutures() {
          alert(retData.type, retData.message);
 		}
 	});
+   // next check if there are any futures
    $.ajax({
 		type: 'GET',
-		url: '/api/futures',
+		url: '/api/getfutures',
       success:function(retData){
+         $('#futuresGroup').empty();
          $.each(retData.futures, function(i,single){
-            var newPanel = '<div class="panel panel-primary"><div class="panel-heading"><span id="futuresTitle'+i+'"></span></div><div id="futuresPanel'+i+'" class="panel-body"></div></div>';
-
+            // create new/separate panel for each future
+            var newPanel = '<div class="panel panel-primary"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-chevron-right"></span></a></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
+            // create new table for panel contents
             var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
             $.each(single.entries, function(i,rec){
-               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-info"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-info" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
+               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-primary"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-primary" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
             });
             outp += '</table><em>updated: '+retData.futures[i].time+'</em>';
             $('#futuresGroup').append(newPanel);
@@ -577,6 +612,28 @@ function getFutures() {
          alert(retData.type, retData.message);
 		}
 	});
+   // lastly get accepted future offers
+   $.ajax({
+      type: 'POST',
+      url: '/api/getfutureoffers',
+      data: {
+         status: 2
+      },
+      success:function(retData){
+         username = retData.sessionId; // being returned so buttons can be customized
+         var outp = '<table class="table table-condensed">';
+         $.each(retData.offers, function(i,rec){
+            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' don\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
+            $('#futuresAccepted').addClass('in');
+            $('#futuresAcceptedTitle span.collapseIcon').removeClass('hidden');
+         });
+         outp += '</table>';
+         document.getElementById('futuresAccepted').innerHTML = outp;
+      },
+      error: function(retData){
+         alert(retData.type, retData.message);
+      }
+   });
 }
 
 // Scores stuff
@@ -657,7 +714,7 @@ function showMessages() {
 		type: 'GET',
 		url: '/api/msgboard',
 		success:function(retData){
-         var outp='';
+         var date, outp='';
 			$.each(retData, function(i,rec){
             date = new Date(rec.date);
 				outp += '<span class="msg-user">'+rec.user.slice(0,4)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
@@ -714,7 +771,8 @@ function showStandings() {
 		type: 'GET',
 		url: '/api/getstandings',
 		success:function(retData){
-         var eric = 0,
+         var outp,
+         eric = 0,
          john = 0,
          russell = 0,
          aaron = 0;
@@ -925,7 +983,7 @@ $('#registerSubmit').on('click', function(){
 // below is for swiping action on touchscreens
 function getUrlPos(url){
    var position;
-   for (i=0; i<urls.length; i++){
+   for (var i=0; i<urls.length; i++){
       if (url == urls[i]) {
          position = i;
          break;
@@ -1051,7 +1109,7 @@ function getOdds (sport){
             sportColor = 'info';
          }
          $.each(retData.games, function(i,rec){
-            var checkDisabled = '', btnColor, date = new Date(rec.date);
+            var checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
             // gray out and disable if game already started
             if (date > new Date()) {
@@ -1105,12 +1163,3 @@ var username,
    nflColors = {
    ATL: '#A71930', ARZ: '#97233F', CAR: '#0085CA', CHI: '#0B162A', DAL: '#002244', DET: '#005A8B', GB: '#203731', MIN: '#4F2683', NO: '#9F8958', NYG: '#0B2265', PHI: '#004953', SEA: '#69BE28', SF: '#AA0000', LA: '#B3995D', TB: '#D50A0A', WAS: '#773141', BAL: '#241773', BUF: '#00338D', CIN: '#FB4F14', CLE: '#FB4F14', DEN: '#FB4F14', HOU: '#03202F', KC: '#E31837', JAC: '#006778', IND: '#002C5F', MIA: '#008E97', NE: '#002244', NYJ: '#203731', OAK: '#A5ACAF', PIT: '#FFB612', SD: '#0073CF', TEN: '#4B92DB'
 };
-
-// $('#testButton').on('click', function (){
-//    $('#testModal').modal('show');
-// });
-//
-// $('#testAlert').on('click', function (){
-//    $('#alertOk').attr('onclick', '$("#testModal").modal("show")');
-//    alert('', 'Are you sure you want to dismiss debt??', true);
-// });

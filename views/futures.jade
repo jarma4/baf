@@ -3,12 +3,16 @@ extends base
 //-    link(href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css", rel="stylesheet")
 block content
    strong.lead &nbspFutures
-   .panel-group
-      .panel.panel-info
-         .panel-heading Offers   
-         #futuresOffers.panel-body
-   #futuresGroup.panel-group
-   #futuresAccepteds.panel-group
+   //- .panel-group
+   .panel.panel-warning
+      .panel-heading Offers
+         a(data-toggle='collapse', href='#futuresOffers')#futuresOffersTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+      #futuresOffers.panel-collapse.collapse
+   #futuresGroup
+   .panel.panel-success
+      .panel-heading Accepted
+         a(data-toggle='collapse', href='#futuresAccepted')#futuresAcceptedTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+      #futuresAccepted.panel-collapse.collapse
          
 block modals
    #futureModal.modal.fade

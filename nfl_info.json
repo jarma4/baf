@@ -1,42 +1,159 @@
 {
-   "time": "2/8 22:10",
+   "time": "9/8 17:15",
    "week": 1,
    "games": [
       {
-         "date": "2016-09-08T00:00:00.000Z",
+         "date": "2016-09-09T00:30:00.000Z",
          "team1": "CAR",
          "team2": "@DEN",
-         "spread": 1.5,
-         "over": 43.5,
-         "moneyline1": 165,
-         "moneyline2": -185
+         "spread": -3,
+         "over": 40.5,
+         "moneyline1": -155,
+         "moneyline2": 135
       },
       {
-         "date": "2016-09-08T00:00:00.000Z",
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "BUF",
+         "team2": "@BAL",
+         "spread": 3,
+         "over": 44.5,
+         "moneyline1": 150,
+         "moneyline2": -170
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "CHI",
+         "team2": "@HOU",
+         "spread": 6,
+         "over": 44,
+         "moneyline1": 220,
+         "moneyline2": -260
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
          "team1": "TB",
          "team2": "@ATL",
          "spread": 3,
-         "over": 43,
-         "moneyline1": 165,
-         "moneyline2": -185
+         "over": 47.5,
+         "moneyline1": 125,
+         "moneyline2": -145
       },
       {
-         "date": "2016-09-08T00:00:00.000Z",
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "OAK",
+         "team2": "@NO",
+         "spread": 1.5,
+         "over": 51,
+         "moneyline1": 105,
+         "moneyline2": -125
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "GB",
+         "team2": "@JAC",
+         "spread": -5.5,
+         "over": 48,
+         "moneyline1": -250,
+         "moneyline2": 210
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
          "team1": "MIN",
          "team2": "@TEN",
-         "spread": -3,
-         "over": 43,
+         "spread": -2.5,
+         "over": 41,
+         "moneyline1": -140,
+         "moneyline2": 120
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "CIN",
+         "team2": "@NYJ",
+         "spread": -2.5,
+         "over": 42,
+         "moneyline1": -140,
+         "moneyline2": 120
+      },
+      {
+         "date": "2016-09-11T17:00:00.000Z",
+         "team1": "CLE",
+         "team2": "@PHI",
+         "spread": 3.5,
+         "over": 41,
          "moneyline1": 165,
          "moneyline2": -185
       },
       {
-         "date": "2016-09-08T00:00:00.000Z",
+         "date": "2016-09-11T17:00:00.000Z",
          "team1": "SD",
          "team2": "@KC",
-         "spread": 7,
+         "spread": 6.5,
+         "over": 44,
+         "moneyline1": 240,
+         "moneyline2": -280
+      },
+      {
+         "date": "2016-09-11T20:05:00.000Z",
+         "team1": "MIA",
+         "team2": "@SEA",
+         "spread": 10,
+         "over": 44,
+         "moneyline1": 425,
+         "moneyline2": -550
+      },
+      {
+         "date": "2016-09-11T20:25:00.000Z",
+         "team1": "NYG",
+         "team2": "@DAL",
+         "spread": 0,
+         "over": 46,
+         "moneyline1": -110,
+         "moneyline2": -110
+      },
+      {
+         "date": "2016-09-11T20:25:00.000Z",
+         "team1": "DET",
+         "team2": "@IND",
+         "spread": 3.5,
+         "over": 51,
+         "moneyline1": 155,
+         "moneyline2": -175
+      },
+      {
+         "date": "2016-09-12T00:30:00.000Z",
+         "team1": "NE",
+         "team2": "@ARI",
+         "spread": 6,
+         "over": 46.5,
+         "moneyline1": 225,
+         "moneyline2": -265
+      },
+      {
+         "date": "2016-09-12T23:10:00.000Z",
+         "team1": "PIT",
+         "team2": "@WAS",
+         "spread": -3,
+         "over": 50,
+         "moneyline1": -160,
+         "moneyline2": 140
+      },
+      {
+         "date": "2016-09-13T02:20:00.000Z",
+         "team1": "LAR",
+         "team2": "@SF",
+         "spread": -2.5,
          "over": 43,
-         "moneyline1": 165,
-         "moneyline2": -185
+         "moneyline1": -140,
+         "moneyline2": 120
+      },
+      {
+         "date": "2016-09-16T00:25:00.000Z",
+         "team1": "NYJ",
+         "team2": "@BUF",
+         "spread": 0,
+         "over": 0,
+         "moneyline1": 0,
+         "moneyline2": 0
       }
    ]
 }

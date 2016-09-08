@@ -12,7 +12,8 @@
 	padding: 4px 0px 0px 0px !important;
 }
 .popover {
-	background-color: $theme-danger;
+	background-color: white;
+	color: $theme-danger;
 }
 .nav-icon {
 	height: 20px;
@@ -73,7 +74,13 @@ td.td-odds {
 	}
 }
 
-
+.collapseIcon {
+	margin-left: 10px;
+	transition: all 300ms linear;
+}
+.collapseIcon.open {
+	transform: rotate(90deg);
+}
 // below defines modal classes
 @each $color in (
 	default $theme-default,

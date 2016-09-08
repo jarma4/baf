@@ -23,6 +23,7 @@ router.post('/login', function(req,res){
             req.session.user = user;
             console.log('User '+req.session.user._id+' password correct');
             res.send({'type':'success', 'message':'Login Successful'});
+            // res.redirect('/');
          } else {
             console.log('Password '+req.body.password+' not correct');
             res.send({'type':'danger', 'message':'Password incorrect'});

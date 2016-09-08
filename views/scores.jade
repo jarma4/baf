@@ -2,17 +2,16 @@ extends base
 
 block content
    strong.lead &nbspScores
-   .panel-group
-      .panel.panel-primary
-         .panel-heading
-            span#scoresPeriod
-            button.scoresInc.btn.btn-default.right(value=1)
-               span.glyphicon.glyphicon-chevron-right
-            button.scoresInc.btn.btn-default.right(value=-1)
-               span.glyphicon.glyphicon-chevron-left
-            button#scoresSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
-            input#scoresDate.nodisplay
-         #scoresArea.panel-body
+   .panel.panel-primary
+      .panel-heading
+         span#scoresPeriod
+         button.scoresInc.btn.btn-default.right(value=1)
+            span.glyphicon.glyphicon-chevron-right
+         button.scoresInc.btn.btn-default.right(value=-1)
+            span.glyphicon.glyphicon-chevron-left
+         button#scoresSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
+         input#scoresDate.nodisplay
+      #scoresArea.panel-body
          
 block scripts
    script(type='text/javascript') showScores('nfl', 1)

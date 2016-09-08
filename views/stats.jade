@@ -4,19 +4,21 @@ block content
    strong.lead &nbspStats
    .panel-group
       .panel.panel-primary
-         .panel-heading Last 5 Days
-         #weeklyStats.panel-body
+         .panel-heading 
+            | Last 5 Days
+            a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+         #weeklyStats.panel-collapse.collapse
       .panel.panel-success
-         .panel-heading Overall
-            //- button#statsType.btn.btn-sm.btn-info.right NBA
-            //- button#statsYear.btn.btn-sm.btn-primary.right 2015
+         .panel-heading
+            | Overall
+            a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
             select#statsSport.btn.btn-sm.btn-primary.right
                option NBA
                option NFL
             select#statsYear.btn.btn-sm.btn-primary.right
                option 2015
                option 2016
-         #overallStats.panel-body
+         #overallStats.panel-collapse.collapse.in
    //- .form-group
    //-    button#graphDays.btn.btn-sm.btn-primary.left 30days
    canvas#winGraph(width='320', height='320')
@@ -31,7 +33,8 @@ block modals
                #statsHistory
 block scripts
    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js')
-   script(type='text/javascript') weeklyStats()
-   script(type='text/javascript') overallStats()
-   //- script(type='text/javascript') drawChart(0)
-            
+   script(type='text/javascript').
+      $('#statsSport').val('NFL');
+      $('#statsYear').val('2016');
+      weeklyStats()
+      overallStats()
