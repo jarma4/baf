@@ -3,6 +3,7 @@ fs = require('fs'),
 cheerio = require('cheerio'),
 Users = require('./dbschema').Users,
 Bets = require('./dbschema').Bets,
+Records = require('./dbschema').Records,
 Scores = require('./dbschema').Scores,
 Standings = require('./dbschema').Standings,
 mongoose = require('mongoose');
@@ -77,22 +78,31 @@ function updateBet(id,object){
 }
 
 function updateWinnerLoser(winner,loser,push){
-	Users.update({_id:winner},(push)?{$inc:{push_nba:1}}:{$inc:{win_nba:1, debts:(1<<4)}}, function(err){
+	Records.update({user: winner, year: 2016},(push)?{$inc:{push:1}}:{$inc:{win:1}}, function(err){
 		if (err)
-			console.log(_id+' had trouble updating - '+new Date());
+			console.log(user+' had trouble updating wins - '+new Date());
 		else if (!push)
 			console.log(winner+' is winner - '+new Date());
       else
          console.log('push - '+new Date());
 	});
-   Users.update({_id:loser},(push)?{$inc:{push_nba:1}}:{$inc:{loss_nba:1, debts:1}},function(err){
+   Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
 		if (err)
-			console.log(_id+' had trouble updating  - '+new Date());
+			console.log(user+' had trouble updating winner debts - '+new Date());
+   });
+   Records.update({user: loser, year: 2016},(push)?{$inc:{push:1}}:{$inc:{loss:1}},function(err){
+		if (err)
+			console.log(_id+' had trouble updating loser - '+new Date());
 		else if (!push)
 			console.log(loser+' is loser - '+new Date());
       else
          console.log('push - '+new Date());
 	});
+   Users.update({_id: loser}, {$inc: {debts:1}}, function(err){
+      if (err)
+         console.log(user+' had trouble updating loser debts - '+new Date());
+   });
+
 }
 
 function addGame (wk, yr, sprt) {
@@ -140,11 +150,11 @@ module.exports = {
    },
 
    checkScores: function(sport) {
-      // console.log('checking scores');
+      // console.log('checking scores ...');
       var url;
       if (sport=='nfl') {
          wk = module.exports.getWeek(new Date());
-         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2015';
+         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2016';
       } else {
          var today = new Date();
          url = 'http://www.oddsshark.com/nba/scores?date='+(today.getMonth()+1)+'/'+((today.getHours()>0)?today.getDate():today.getDate()-1)+'/'+today.getFullYear();
@@ -182,8 +192,8 @@ module.exports = {
    },
 
    clearUnactedBets: function(){
-      // below searches for unacted bets and marks refused after game starts; '-2' are saved
-      Bets.find({status:{$in:[0,-2]}}, function(err, bets){
+      // below searches for unacted bets and marks refused after game starts; '-' are saved
+      Bets.find({status:{$lte:0}}, function(err, bets){
       	bets.forEach(function(single){
             if (single.gametime < new Date()) {
                Bets.update({_id:single._id},{status:3}, function(err){
@@ -212,20 +222,24 @@ module.exports = {
    },
 
    tallyBets: function(){
-      // console.log('tallying bets');
-      Bets.find({$and:[{status:2}, {sport:'nba'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
+      // console.log('tallying bets ...');
+      Bets.find({$and:[{status:2}, {sport:'nfl'}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
+            // console.log('found bet, looking for score');
             Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
                               {winner:{$ne: 0}},
                               {$or:[{$and:[{team1: singleBet.team1.replace('@','')},
                                           {team2: singleBet.team2.replace('@','')}]},
                                     {$and:[{team1: singleBet.team2.replace('@','')},
                                           {team2: singleBet.team1.replace('@','')}]}]},
-                              {date:{$gt: singleBet.gametime.setHours(0,0)}},
-                              {date:{$lt: singleBet.gametime.setHours(23,59)}}]}, function(err, game){
+                              // {date:{$gt: singleBet.gametime.setHours(0,0)}},
+                              // {date:{$lt: singleBet.gametime.setHours(23,59)}}]},
+                              {week: singleBet.week},
+                              {year: singleBet.year}]}, function(err, game){
    				if(err)
-   					console.log(err);
+   					a(err);
    				else if (game) {
+                  // console.log('found score');
                   if (singleBet.type == 'spread') {
    						if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
    						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
@@ -283,7 +297,7 @@ module.exports = {
    },
 
    getScores: function(wk) {
-      var url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+wk+'/2015';
+      var url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+wk+'/2016';
       request(url, function (err, response, body) {
        	if(!err && response.statusCode == 200) {
       		var $ = cheerio.load(body);
@@ -301,7 +315,7 @@ module.exports = {
                   matchup.team2 = $(this).prev().prev().prev().text();
                   matchup.score2 = $(this).text();
                   matchup.week = wk;
-                  matchup.year = 2015;
+                  matchup.year = 2016;
                   if (Number(matchup.score1) > Number(matchup.score2)) {
                      matchup.winner = 1;
                   } else {

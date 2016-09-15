@@ -35,7 +35,8 @@ $('#betModal').on('show.bs.modal', function (event) {
    // now ordered, prepopulate items
    $('#betTeam1').val(vs1);
    $('#betTeam2').val(vs2);
-   $('#betOdds').val(odds);
+   // $('#betOdds').val(odds);
+   $('#betChange').val(odds);
    $('#betSport').val(button.data('sport'));
    $('#betType').val(button.data('type'));
    $('#betGametime').val(button.data('gametime'));
@@ -52,7 +53,7 @@ $('#betSubmit').on('click', function() {
 		data: {
          'user2': $('#userList').val(),
 		   'amount': $('#betAmount').val(),
-		   'odds': Number($('#betOdds').val())+Number($('#betChange').val()),
+		   'odds': Number($('#betChange').val()),
          'type': $('#betType').val(),
 		   'team1': $('#betTeam1').val(),
          'team2': $('#betTeam2').val(),
@@ -75,7 +76,7 @@ $('#betSave').on('click', function(){
 		data: {
          'user2': $('#userList').val(),
 		   'amount': $('#betAmount').val(),
-		   'odds': Number($('#betOdds').val())+Number($('#betChange').val()),
+		   'odds': Number($('#betChange').val()),
          'type': $('#betType').val(),
 		   'team1': $('#betTeam1').val(),
          'team2': $('#betTeam2').val(),
@@ -168,10 +169,13 @@ $('#savedDelete').on('click', function(){
 //bet modal has +/- to increment/decrement values
 $('.btn-increment').on('click', function(event){
    event.preventDefault();
-   if ($(this).val()=='1')
+   if ($(this).val()=='1') {
       $(this).prev().val(Number($(this).prev().val())+0.5);
-   else
+      $(this).prev().addClass('bg-danger');
+   } else {
       $(this).next().val(Number($(this).next().val())-0.5);
+      $(this).next().addClass('bg-danger');
+   }
 });
 
 // handles collapse icon animation
@@ -251,7 +255,8 @@ function showBets () {
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
-               $('#acceptedBets').addClass('in');
+               $('#acceptedPanel').addClass('in');
+               $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
             });
             outp += '</table>';
             document.getElementById("otherBets").innerHTML = outp;
@@ -278,14 +283,15 @@ function getBets(status, target, custom) {
       success:function(retData){
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr class="heading">';
+            outp += '<th>You</th><th>Odds</th><th>Them</th><th>$</th>';
             if (status < 0)   //this is for saved bets, add send button
                outp += '<th>Send</th>';
-            outp += '<th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp +='<tr>';
+               outp +='</tr><tr>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
                if ((custom == 1 && rec.sport == 'nfl') || (custom == 2 && rec.sport == 'nba'))
                   outp += '<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#savedModal" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-send"></span></button></td>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td></tr>';
+               outp += '</tr>';
                $('#'+target).addClass('in');
                $('#'+target+'Title span.collapseIcon').removeClass('hidden');
             });
@@ -1125,7 +1131,7 @@ function getOdds (sport){
             if ((date.getDate() > prevDate) || (date.getDate() == 1 && prevDate !== 1))
                outp += '<tr class="modal-primary"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
 
-            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+(date.getHours()-12)+':'+('0'+date.getMinutes()).slice(-2)+'pm<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+'pm<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
             prevDate = date.getDate();
             gameNum++;
          });

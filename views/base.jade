@@ -68,11 +68,11 @@ html
 									button.btn-increment.btn.btn-primary(value="1")
 										span.glyphicon.glyphicon-plus
 								.form-group#oddsMod
-									label(for='betChange') Odds Modifier:
+									label(for='betChange') Change Odds:
 									.input-group
 										button.btn-increment.btn.btn-primary(value="0")
 											span.glyphicon.glyphicon-minus
-										input#betChange.small-inputbox(value='0', type='number')
+										input#betChange.small-inputbox(type='number')
 										button.btn-increment.btn.btn-primary(value="1")
 											span.glyphicon.glyphicon-plus
 								input#betUser2.nodisplay
@@ -148,7 +148,7 @@ html
 						input#loginPassword.form-control(type='password', required)
 					.modal-footer
 						button#loginSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Sign in
-						button#loginRegister.btn.btn-primary.btn-lg.btn-block(data-dismiss='modal', , data-target='#registerModal') Register
+						button#loginRegister.btn.btn-primary.btn-lg.btn-block(data-dismiss='modal', data-toggle='modal', data-target='#registerModal') Register
 		#registerModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -175,7 +175,6 @@ html
 		block modals
 
 		script(src='https://code.jquery.com/jquery-2.2.4.min.js')
-		//- script(src='https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js')
 		script(src='js/jquery.mobile.custom.min.js')
 		script(src='js/bootstrap.min.js')
 		script(src='js/baf.js')

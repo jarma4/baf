@@ -349,7 +349,7 @@ router.post('/graphstats', requireLogin, function(req,res){
    var userList = [],
       totals = {},         // rolling storage for win amount per user
       counters = {},       // rolling storage for number of bets per user
-      seasonDate = new Date('Jan 28 2016'), // first date to store data per user
+      // seasonDate = new Date('Jan 28 2016'), // first date to store data per user
       dates = [],          // xaxis data to be bet sent
       userData = [];       // datasets for each user
 
@@ -372,9 +372,8 @@ router.post('/graphstats', requireLogin, function(req,res){
    if (Number(req.body.days)) {  // if a number of days are given, go back from today that many
       startDate.setDate(startDate.getDate() - req.body.days);
    } else { // else start at the begining of the season
-         startDate = (req.body.sport == 'nfl')?new Date(req.body.year, 8, 8):new Date(req.body.year, 9, 25);
+         startDate = (req.body.sport == 'nfl')?new Date(req.body.year, 8, 7):new Date(req.body.year, 9, 25);
    }
-
    // find all valid bets during period, keep counters and process
    Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
                                                       {user2: req.body.user}]},
@@ -459,7 +458,6 @@ router.post('/getscores', requireLogin, function(req,res){
          if(err){
             console.log(err);
          } else {
-            console.log('sending');
             res.json(scores);
          }
       });
@@ -678,7 +676,7 @@ for (var i=0;i<22;i++){
 
 function getWeek(date){
    var wk;
-   for (i=0;i<22;i++){
+   for (var i=0;i<22;i++){
       if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
          wk = i+1;
          break;
