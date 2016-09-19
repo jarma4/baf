@@ -140,7 +140,19 @@ router.post('/makebet', requireLogin, function (req, res) {
 
 router.post('/getbets', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{status:req.body.status}, {type: {$ne: 'give'}}, {type: {$ne: 'take'}}, (Number(req.body.all))?{$and:[{user1: {$ne: req.session.user._id}}, {user2: {$ne: req.session.user._id}}]}:{$or: [{user1: req.session.user._id}, {user2: req.session.user._id}]}]}, function(err,bets){
+   Bets.find({$and:[
+      {status:(req.body.status==1)?0:req.body.status},
+      {type: {$ne: 'give'}},
+      {type: {$ne: 'take'}},
+      (Number(req.body.all))?{$and:[
+                                 {user1: {$ne: req.session.user._id}},
+                                 {user2: {$ne: req.session.user._id}}]}
+                            :(req.body.status=='0')?{user2: req.session.user._id}
+                                                   :(req.body.status=='1')?{user1: req.session.user._id}
+                                                                          :{$or:[
+                                                                              {user1: req.session.user._id},
+                                                                              {user2: req.session.user._id}]}]
+      }, function(err,bets){
       if(err){
          console.log(err);
       } else {
@@ -312,7 +324,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
          });
          res.json(sortedBets);
       }
-   }).sort({date: -1});
+   }).sort({user1: 1, date: -1});
 });
 
 router.post('/overallstats', requireLogin, function(req,res){

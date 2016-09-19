@@ -10,7 +10,7 @@ var gulp = require('gulp'),
 gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
-      // .pipe(uglify())
+      //.pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 

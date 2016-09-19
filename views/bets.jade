@@ -3,35 +3,40 @@ extends base
 block content
    strong.lead &nbspBets
    //- .panel-group
-   .panel.panel-warning
-      .panel-heading 
-         | Waiting on You
-         a(data-toggle='collapse', href='#waitingYou')#waitingYouTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-      #waitingYou.panel-collapse.collapse
-   .panel.panel-info
-      .panel-heading
-         | Waiting on Them
-         a(data-toggle='collapse', href='#waitingThem')#waitingThemTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-      #waitingThem.panel-collapse.collapse
-   .panel.panel-success
-      .panel-heading
-         | Accepted Bets
-         a(data-toggle='collapse', href='#acceptedPanel')#acceptedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-      #acceptedPanel.panel-collapse.collapse
-         #acceptedBets
-         #otherBets
-   .panel.panel-primary
-      .panel-heading
-         | Refused Bets
-         a(data-toggle='collapse', href='#refusedBets')#refusedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-      #refusedBets.panel-collapse.collapse
+   .container-fluid
+      .row.no-gutters
+         .col-md-3
+            .panel.panel-primary
+               .panel-heading 
+                  | Waiting on You
+                  a(data-toggle='collapse', href='#waitingYou')#waitingYouTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #waitingYou.panel-collapse.collapse
+         .col-md-3
+            .panel.panel-info
+               .panel-heading
+                  | Waiting on Them
+                  a(data-toggle='collapse', href='#waitingThem')#waitingThemTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #waitingThem.panel-collapse.collapse
+         .col-md-3
+            .panel.panel-success
+               .panel-heading
+                  | Accepted Bets
+                  a(data-toggle='collapse', href='#acceptedBets')#acceptedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #acceptedBets.panel-collapse.collapse
+                  // #otherBets added here via JS
+         .col-md-3
+            .panel.panel-default
+               .panel-heading
+                  | Refused Bets
+                  a(data-toggle='collapse', href='#refusedBets')#refusedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #refusedBets.panel-collapse.collapse
 block modals
    #actionModal.modal.fade
       .modal-dialog
          .modal-content
             .modal-header
                button.close(type='button', data-dismiss='modal') #[span &times;]
-               h4 Act on Bet:
+               h4 Act on Bet?
             .modal-body
                .form-group
                   label(for='actionComment') Comment:
@@ -39,7 +44,18 @@ block modals
                button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
                button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
                input#actionId.nodisplay
-
+   #rescindModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
+               h4 Rescind Bet?
+            .modal-body
+               //- h4#oddsText
+               button#rescindSend.btn.btn-success.btn-lg.btn-block(data-dismiss="modal") Rescind
+               button.btn.btn-danger.btn-lg.btn-block(data-dismiss="modal") Cancel
+               input#rescindId.nodisplay
+               
 block scripts
    script(type='text/javascript') showBets()
             

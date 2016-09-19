@@ -17,7 +17,7 @@ html
 					li.sidebar-brand
 						img(src="images/2db_sm.png")
 					li
-						a.toggleSidebar(href='/nfl') #[img(src="images/football.png").icon] NFL
+						a.toggleSidebar(href='/') #[img(src="images/football.png").icon] NFL
 					//- li
 					//- 	a#nbaPage.toggleSidebar(href='/') #[img(src="images/basketball.png").nav-icon] NBA
 					li
@@ -25,9 +25,9 @@ html
 					li
 						a.toggleSidebar(href='/stats') #[span.glyphicon.glyphicon-stats] Stats
 					li
-						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-eye-open] Futures
-					li
 						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-large] Scores
+					li
+						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-eye-open] Futures
 					//- li
 					//- 	a.toggleSidebar(href='/standings') #[span.glyphicon.glyphicon-list-alt] Standings
 					li
@@ -47,7 +47,7 @@ html
 					span#notify3.glyphicon
 				block content
 
-		//- need to stay in base because used for nfl & nba
+		//- need to stay in base because used for nfl & nba views
 		#betModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -89,6 +89,7 @@ html
 			.modal-dialog
 				.modal-content
 					.modal-header
+						button.close(type='button', data-dismiss='modal') #[span &times;]
 						h4#savedTitle
 					.modal-body
 						h4#oddsText
@@ -139,7 +140,8 @@ html
 			.modal-dialog
 				.modal-content
 					.modal-header
-						h4.modal-title Please login
+						button.close(type='button', data-dismiss='modal') #[span &times;]
+						h4.modal-title Please login:
 					.modal-body
 						form
 						label(for='loginUsername') Username

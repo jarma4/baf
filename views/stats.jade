@@ -2,26 +2,30 @@ extends base
 
 block content
    strong.lead &nbspStats
-   .panel-group
-      .panel.panel-primary
-         .panel-heading 
-            | Last 5 Days
-            a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-         #weeklyStats.panel-collapse.collapse
-      .panel.panel-success
-         .panel-heading
-            | Overall
-            a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-            select#statsSport.btn.btn-sm.btn-primary.right
-               option NBA
-               option NFL
-            select#statsYear.btn.btn-sm.btn-primary.right
-               option 2015
-               option 2016
-         #overallStats.panel-collapse.collapse.in
-   //- .form-group
-   //-    button#graphDays.btn.btn-sm.btn-primary.left 30days
-   canvas#winGraph(width='320', height='320')
+   .container-fluid
+      .row
+         .col-md-4
+            .panel.panel-primary
+               .panel-heading 
+                  | Last 5 Days
+                  a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #weeklyStats.panel-collapse.collapse
+         .col-md-4
+            .panel.panel-success
+               .panel-heading
+                  | Overall
+                  a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+                  select#statsSport.btn.btn-sm.btn-primary.right
+                     option NBA
+                     option NFL
+                  select#statsYear.btn.btn-sm.btn-primary.right
+                     option 2015
+                     option 2016
+               #overallStats.panel-collapse.collapse.in
+         //- .form-group
+         //-    button#graphDays.btn.btn-sm.btn-primary.left 30days
+         .col-md-4
+            canvas#winGraph(width='320', height='320')
 
 block modals
    #statsModal.modal.fade

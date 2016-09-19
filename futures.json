@@ -1,20 +1,20 @@
 {
-   "future": [
+   "futures": [
       {
-         "event": "Broncos Starting QB",
-         "time": "8/9",
+         "event": "SuperBowl Winner",
+         "time": "9/12",
          "entries": [
             {
-               "team": "Sanches",
-               "ml": -127
+               "team": "New England",
+               "ml": 655
             },
             {
-               "team": "Siemian",
-               "ml": 179
+               "team": "GreenBay",
+               "ml": 670
             },
             {
-               "team": "Lynch",
-               "ml": 473
+               "team": "Seattle",
+               "ml": 830
             }
          ]
       }

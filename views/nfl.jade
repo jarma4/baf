@@ -4,8 +4,18 @@ block content
    strong.lead#nflWeek
    img(src="images/football.png")
    #savedBets
-   #nflOdds
-   em#nflTimestamp
+   .container-fluid
+      .row.no-gutters
+         .col-md-3
+            em#nflTimestamp.right
+            #nflOdds1
+         .col-md-3
+            #nflOdds2
+         .col-md-3
+            #nflOdds3
+         .col-md-3
+            #nflOdds4
+   
    
 block scripts
    script(type='text/javascript') getOdds('nfl')
