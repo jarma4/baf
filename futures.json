@@ -1,20 +1,24 @@
 {
    "futures": [
       {
-         "event": "SuperBowl Winner",
-         "time": "9/12",
+         "event": "2017 SuperBowl",
+         "time": "9/20",
          "entries": [
             {
                "team": "New England",
-               "ml": 655
+               "ml": 565
+            },
+            {
+               "team": "Pittsburgh",
+               "ml": 725
             },
             {
                "team": "GreenBay",
-               "ml": 670
+               "ml": 850
             },
             {
-               "team": "Seattle",
-               "ml": 830
+               "team": "Carolina",
+               "ml": 875
             }
          ]
       }

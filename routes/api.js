@@ -185,6 +185,16 @@ router.post('/getbets', requireLogin, function(req,res){
 router.post('/changebet', requireLogin, function(req,res){
    switch (req.body.status) {           // delete bet
       case '-1':
+         // if not save later bet or future, descement bet flag notice
+         Bets.findOne({_id:req.body.id}, function(err, singleBet){
+            if(err)
+               console.log(err);
+            else {
+               if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
+                  changeUser(singleBet.user2, 'bets', -1);
+               }
+            }
+         });
          Bets.remove({_id:req.body.id}, function(err){
             if(err)
                console.log(err);
@@ -324,7 +334,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
          });
          res.json(sortedBets);
       }
-   }).sort({user1: 1, date: -1});
+   }).sort({date: -1, user1: 1, });
 });
 
 router.post('/overallstats', requireLogin, function(req,res){
@@ -359,8 +369,8 @@ router.post('/overallstats', requireLogin, function(req,res){
 
 router.post('/graphstats', requireLogin, function(req,res){
    var userList = [],
-      totals = {},         // rolling storage for win amount per user
-      counters = {},       // rolling storage for number of bets per user
+      total = {},         // rolling storage for win amount per user
+      numBets = {},       // rolling storage for number of bets per user
       // seasonDate = new Date('Jan 28 2016'), // first date to store data per user
       dates = [],          // xaxis data to be bet sent
       userData = [];       // datasets for each user
@@ -373,10 +383,10 @@ router.post('/graphstats', requireLogin, function(req,res){
             name: user._id,
             data: []
          });
-         totals[user._id] = 0;
-         counters[user._id] = 0;
+         total[user._id] = 0;
+         numBets[user._id] = 0;
       });
-      // console.log(counters);
+      // console.log(numBets);
    }).sort({_id:1});
 
    // find start date for desired period
@@ -384,53 +394,59 @@ router.post('/graphstats', requireLogin, function(req,res){
    if (Number(req.body.days)) {  // if a number of days are given, go back from today that many
       startDate.setDate(startDate.getDate() - req.body.days);
    } else { // else start at the begining of the season
-         startDate = (req.body.sport == 'nfl')?new Date(req.body.year, 8, 7):new Date(req.body.year, 9, 25);
+         startDate = (req.body.sport == 'nfl')?1:new Date(req.body.year, 9, 25);
    }
-   // find all valid bets during period, keep counters and process
+   // find all valid bets during period, keep numBets and process
    Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
                                                       {user2: req.body.user}]},
                      {status:{$in: [4,5,6]}},
                      {sport: req.body.sport},
+                     {year: req.body.year},
                      (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err,bets){
       if (err) {
          console.log(err);
       } else {
          bets.forEach(function(bet, index){
-            if (bet.status == 4) {
-               totals[bet.user1]++;
-               counters[bet.user1]++;
-               counters[bet.user2]++;
-            } else if (bet.status == 5) {
-               totals[bet.user2]++;
-               counters[bet.user1]++;
-               counters[bet.user2]++;
-            } else if (bet.status == 6) {
-               totals[bet.user1] +=0.5;
-               counters[bet.user1]++;
-               totals[bet.user2] +=0.5;
-               counters[bet.user2]++;
-            }
-
+            if (index === 0)
+               startDate = bet.week;
             // check if stop date to store data
-            if (bet.gametime > startDate) {
+            if (bet.week > startDate) {
                // store date for xaxis labels
-               dates.push(startDate.getMonth()+1+'/'+startDate.getDate());
-
+               dates.push(startDate);
                // on date, save win % per user
                userList.forEach(function(username, index){
-                  userData[index].data.push(totals[username]/counters[username]);
+                  userData[index].data.push(total[username]/numBets[username]);
                });
-
                // advance next date to stop on
-               startDate.setDate(startDate.getDate()+((req.body.sport == 'nba')?14:7));
+               startDate += 1;
+            }
+            if (bet.status == 4) {
+               total[bet.user1]++;
+               numBets[bet.user1]++;
+               numBets[bet.user2]++;
+            } else if (bet.status == 5) {
+               total[bet.user2]++;
+               numBets[bet.user1]++;
+               numBets[bet.user2]++;
+            } else if (bet.status == 6) {
+               total[bet.user1] +=0.5;
+               numBets[bet.user1]++;
+               total[bet.user2] +=0.5;
+               numBets[bet.user2]++;
             }
          });
+         // push remaining info once done
+         dates.push(startDate);
+         userList.forEach(function(username, index){
+            userData[index].data.push(total[username]/numBets[username]);
+         });
+
       }
       res.send({
          xaxis : dates,
          datasets: userData
       });
-   }).sort({date: 1});
+   }).sort({week: 1});
 });
 
 router.post('/userstats', requireLogin, function(req,res){
@@ -663,7 +679,7 @@ function textUser(to, from, message, pref2){
          console.log(err);
       } else {
          if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-            sinchSms.sendMessage('+1'+user.sms, 'B.A.F. - ' + message + ' - http://2dollarbets.com/bets');
+            sinchSms.sendMessage('+1'+user.sms, '2DB - ' + message + ' - http://2dollarbets.com/bets');
 
          // sms.send_message({
          //    src: '+16622193664',

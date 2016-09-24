@@ -208,64 +208,13 @@ $('#rescindSend').on('click', function(){
 
 //below displays 4 panels on bets page; each has it's own quirks so not so DRY
 function showBets () {
-   // $.ajax({
-   //    type: 'POST',
-   //    url: '/api/getbets',
-   //    data: {
-   //       'status': 0,   //what type of bets to retrieve
-   //       'all': 0       //show for everyone or just current user
-   //    },
-   //    success:function(retData){
-   //       if(retData.length){
-   //          //table rows have special button on far right column
-   //          var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th><th>Act</th></tr>';
-   //          $.each(retData, function(i,rec){
-   //             // if (rec.status == 1) {
-   //                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td><td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#actionModal" data-id="'+rec._id+'"><span class="glyphicon glyphicon-hand-left"></span></button></td></tr>';
-   //             // }
-   //          });
-   //          outp += '</table>';
-   //          document.getElementById("waitingYou").innerHTML = outp;
-   //          $('#waitingYou').addClass('in');
-   //          $('#waitingYouTitle span.collapseIcon').removeClass('hidden');
-   //       }
-   //    },
-   //    error: function(retData){
-   //       alert(retData.type, retData.message);
-   //    }
-   // });
-   // $.ajax({
-   //    type: 'POST',
-   //    url: '/api/getbets',
-   //    data: {
-   //       'status': 1,
-   //       'all':0
-   //    },
-   //    success:function(retData){
-   //       if(retData.length){
-   //          var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
-   //          $.each(retData, function(i,rec){
-   //             // if (rec.status === 0) {
-   //                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
-   //             // }
-   //          });
-   //          outp += '</table>';
-   //          document.getElementById("waitingThem").innerHTML = outp;
-   //          $('#waitingThem').addClass('in');
-   //          $('#waitingThemTitle span.collapseIcon').removeClass('hidden');
-   //       }
-   //    },
-   //    error: function(retData){
-   //       alert(retData.type,retData.message);
-   //    }
-   // });
    getBets(0, 'waitingYou', 'accept');
    getBets(1, 'waitingThem', 'rescind');
-   getBets(2,'acceptedBets');
-   getBets(3,'refusedBets');  //routine
+   getBets(2, 'acceptedBets');
+   getBets(3, 'refusedBets');
 
    //next dislplay accepted bets of other for info sake
-   $('#otherBets').hide(); //hide div to display until sure something there
+   // $('#otherBets').hide(); //hide div to display until sure something there
    $.ajax({
       type: 'POST',
       url: '/api/getbets',
@@ -276,8 +225,8 @@ function showBets () {
       success:function(retData){
          if(retData.length){
             // first need to create div since not present/overwritten in #acceptBets
-            var  otherBetsDiv = document.getElementById("acceptedBets").appendChild(document.createElement('div'));
-            otherBetsDiv.id = 'otherBets';
+            // var  otherBetsDiv = document.getElementById("acceptedBets").appendChild(document.createElement('div'));
+            // otherBetsDiv.id = 'otherBets';
             // now go ahead and populate
             var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
@@ -285,11 +234,11 @@ function showBets () {
                outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
             });
             outp += '</table>';
-            document.getElementById("otherBets").innerHTML = outp;
+            $('#acceptedBets').append(outp);
             $('#acceptedBets').addClass('in');
             $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
             $('[data-toggle="popover"]').popover();   //this is for comments that might be on bets
-            $('#otherBets').show();  //show display div
+            // $('#otherBets').show();  //show display div
          }
       },
       error: function(retData){
@@ -320,7 +269,7 @@ function getBets(status, target, addButton) {
                outp += '</tr>';
             });
             outp += '</table>';
-            document.getElementById(target).innerHTML = outp;
+            $('#'+target).prepend(outp);
             $('#'+target).addClass('in');
             $('#'+target+'Title span.collapseIcon').removeClass('hidden');
             $('[data-toggle="popover"]').popover();
@@ -404,7 +353,7 @@ function overallStats() {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,4)+'</a></td><td>'+(rec.win)+'</td><td>'+(rec.loss)+'</td><td>'+(rec.push)+'</td><td>'+((rec.win+rec.push*0.5)/(rec.win+rec.loss+rec.push)).toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,5)+'</a></td><td>'+(rec.win)+'</td><td>'+(rec.loss)+'</td><td>'+(rec.push)+'</td><td>'+((rec.win+rec.push*0.5)/(rec.win+rec.loss+rec.push)).toPrecision(3).slice(1,5)+'</td></tr>';
             $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
 			});
 			outp += '</table>';
@@ -435,16 +384,16 @@ $('#graphDays').on('click', function(){
 // below uses ChartJS library
 function drawChart(days, update) {
    var ctx = document.getElementById("winGraph").getContext("2d"),
-      colors = ["blue", "red", "white", "green", "yellow", "purple"],
+      colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray"],
       chartData = {
          labels: [],
          datasets: []
       };
 
    Chart.defaults.global.defaultFontColor = '#fff';
-   Chart.defaults.global.elements.line.tension = 0.4;
+   Chart.defaults.global.elements.line.tension = 0.2;
    Chart.defaults.global.elements.line.borderWidth = 2;
-   Chart.defaults.global.elements.line.fill = true;
+   Chart.defaults.global.elements.line.fill = false;
 
    $.ajax({
       type: 'POST',
@@ -475,6 +424,8 @@ function drawChart(days, update) {
                data: chartData,
                //  options: chartOptions
             });
+            winChart.options.scales.yAxes[0].gridLines.color = '#444';
+
          }
       },
 		error: function(retData){
@@ -608,7 +559,7 @@ function getFutures() {
          username = retData.sessionId; // being returned so buttons can be customized
          var outp = '<table class="table table-condensed">';
          $.each(retData.offers, function(i,rec){
-            outp += '<tr><td>'+rec.user1+((rec.user2 == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
+            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.type == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
             $('#futuresOffers').addClass('in');
             $('#futuresOffersTitle span.collapseIcon').removeClass('hidden');
          });

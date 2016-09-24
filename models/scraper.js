@@ -88,10 +88,6 @@ function updateWinnerLoser(winner,loser,push){
       else
          console.log('push - '+new Date());
 	});
-   Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
-		if (err)
-			console.log(user+' had trouble updating winner debts - '+new Date());
-   });
    Records.update({user: loser, year: 2016},(push)?{$inc:{push:1}}:{$inc:{loss:1}},function(err){
 		if (err)
 			console.log(_id+' had trouble updating loser - '+new Date());
@@ -100,11 +96,16 @@ function updateWinnerLoser(winner,loser,push){
       else
          console.log('push - '+new Date());
 	});
-   Users.update({_id: loser}, {$inc: {debts:1}}, function(err){
-      if (err)
-         console.log(user+' had trouble updating loser debts - '+new Date());
-   });
-
+   if (!push) {
+      Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
+         if (err)
+         console.log(user+' had trouble updating winner debts - '+new Date());
+      });
+      Users.update({_id: loser}, {$inc: {debts:1}}, function(err){
+         if (err)
+            console.log(user+' had trouble updating loser debts - '+new Date());
+      });
+   }
 }
 
 function addGame (wk, yr, sprt) {
