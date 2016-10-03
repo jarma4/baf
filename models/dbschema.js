@@ -8,7 +8,8 @@ var usersSchema = new mongoose.Schema({
    debts : Number,
    pref_include_everyone: Boolean,
    pref_text_receive: Boolean,
-   pref_text_accept: Boolean
+   pref_text_accept: Boolean,
+   slack: String
 });
 
 var recordsSchema = new mongoose.Schema({
@@ -17,7 +18,8 @@ var recordsSchema = new mongoose.Schema({
    year : Number,
    loss: Number,
    win: Number,
-   push: Number
+   push: Number,
+   pct: Number
 });
 
 var betsSchema = new mongoose.Schema({

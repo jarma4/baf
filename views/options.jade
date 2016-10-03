@@ -21,6 +21,8 @@ block content
                   label
                      input#prefTextAccept(type='checkbox')
                      | Text me when someone accepts my bet
+               label(for='changeSlack') Slack
+               input#changeSlack.form-control
                button#prefSave.btn.btn-success(type='submit', name='status', value='1', data-dismiss="modal") Save
    a.btn.btn-primary.btn-lg.btn-block(type='button', data-toggle='modal', data-target='#changePasswordModal') Change Password
    a.btn.btn-primary.btn-lg.btn-block(type='button', href='/admin/logout') Logout

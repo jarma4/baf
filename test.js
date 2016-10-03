@@ -4,26 +4,39 @@ var request = require('request'),
 var mongoose = require('mongoose'),
    // Players = require('./models/dbschema').Players,
    // Bets = require('./models/dbschema').Bets,
-   Scores = require('./models/dbschema').Scores;
+   Records = require('./models/dbschema').Records;
 //    fs = require('fs'),
 // Messages = require('./models/dbschema').Messages,
 // Promise = require('promise'),
 // OUGame = require('./models/dbschema').OUGame,
 mongoose.connect('mongodb://localhost/baf');
 
-var ml = [-500, 350];
-var implied_odds, total = 0, nojuice = [];
+Records.find({}, function(err, records) {
+   records.forEach(function(record){
+      Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
+         if (err)
+            console.log('error');
+         else
+            console.log((record.win+0.5*record.push)/(record.win+record.loss+record.push)+' pct written');
+      });
+   });
+});
 
-for (var i in ml) {
-   if (ml[i] < 0)
-      implied_odds = -1*ml[i] / (-1*ml[i] + 100);
-   else
-      implied_odds = 100 / (ml[i] + 100);
-   nojuice.push(implied_odds);
-   total += implied_odds;
-   console.log('implied_odds for '+i+' is '+ implied_odds);
-}
-console.log('nojuice is '+nojuice[0]/total*100+'% and '+nojuice[1]/total*100+'%');
+//how to remove juice
+// var ml = [-500, 350];
+// var implied_odds, total = 0, nojuice = [];
+//
+// for (var i in ml) {
+//    if (ml[i] < 0)
+//       implied_odds = -1*ml[i] / (-1*ml[i] + 100);
+//    else
+//       implied_odds = 100 / (ml[i] + 100);
+//    nojuice.push(implied_odds);
+//    total += implied_odds;
+//    console.log('implied_odds for '+i+' is '+ implied_odds);
+// }
+// console.log('nojuice is '+nojuice[0]/total*100+'% and '+nojuice[1]/total*100+'%');
+
 // Players.find({}, function(err, players) {
 //    players.forEach(function(rec){
 //       var score = rec.r_yards/10+rec.p_yards/10+rec.r_tds*6+rec.p_tds*6;

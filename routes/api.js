@@ -186,22 +186,27 @@ router.post('/changebet', requireLogin, function(req,res){
    switch (req.body.status) {           // delete bet
       case '-1':
          // if not save later bet or future, descement bet flag notice
-         Bets.findOne({_id:req.body.id}, function(err, singleBet){
-            if(err)
-               console.log(err);
-            else {
-               if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
-                  changeUser(singleBet.user2, 'bets', -1);
+         var  tmp = new Promise(function(resolve, reject) {
+            Bets.findOne({_id:req.body.id}, function(err, singleBet){
+               if(err) {
+                  console.log(err);
+                  reject();
+               } else {
+                  if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
+                     changeUser(singleBet.user2, 'bets', -1);
+                  }
+                  resolve();
                }
-            }
-         });
-         Bets.remove({_id:req.body.id}, function(err){
-            if(err)
-               console.log(err);
-            else {
-               console.log('Bet _id='+req.body.id+' deleted - '+new Date());
-               res.send({'type':'success', 'message':'Bet deleted'});
-            }
+            });
+         }).then(function() {
+            Bets.remove({_id:req.body.id}, function(err){
+               if(err)
+                  console.log(err);
+               else {
+                  console.log('Bet _id='+req.body.id+' deleted - '+new Date());
+                  res.send({'type':'success', 'message':'Bet deleted'});
+               }
+            });
          });
          break;
       case '2':
@@ -263,6 +268,7 @@ router.post('/changebet', requireLogin, function(req,res){
                            amount: bet.amount,
                            paid: false,
                            status: 0,
+                           year: new Date().getFullYear(),
                            week: getWeek(new Date()),
                            gametime: bet.gametime,
                            sport: bet.sport
@@ -308,7 +314,8 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
-   Bets.find({$and:[{date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}},{status: {$in:[4,5,6]}}]}, function(err,complete){
+   // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
+   Bets.find({$and:[{week: req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -338,11 +345,12 @@ router.post('/weeklystats', requireLogin, function(req,res){
 });
 
 router.post('/overallstats', requireLogin, function(req,res){
-   Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, year: req.body.year}, function(err,stats){
+   var stats = [];
+   Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, year: req.body.year}, function(err,records){
       if (err)
          console.log(err);
       else
-         if(!stats.length) {  // new season, create new records for all users per sport
+         if(!records.length) {
             Users.find({}, {_id: 1}, function(err,users){
                users.forEach(function(user){
                   var sports = ['nfl', 'nba'];
@@ -363,8 +371,8 @@ router.post('/overallstats', requireLogin, function(req,res){
                });
             });
          }
-         res.json(stats);
-   });
+         res.json(records);
+   }).sort({pct:-1});
 });
 
 router.post('/graphstats', requireLogin, function(req,res){
@@ -474,6 +482,23 @@ router.post('/postmessage', requireLogin, function(req,res){
    });
 });
 
+router.post('/slack', function(req,res){
+   // console.log(req.body);
+   if (req.body.token === 'gUOpWBCpkeaoxjBUJCbbmeh9') {
+      new Messages({
+         date: new Date(),
+         user: req.body.user_name,
+         message: req.body.text
+      }).save(function(err){
+         if(err) {
+            console.log('Trouble adding message');
+         } else {
+            console.log('Message from Slack');
+         }
+      });
+   }
+});
+
 router.get('/msgboard', requireLogin, function(req,res){
    Messages.find(function(err,message){
       res.json(message);
@@ -545,7 +570,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 });
 
 router.get('/getprefs',function(req,res){
-   Users.findOne({_id: req.session.user}, {_id:1,  pref_include_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1}, function(err,user){
+   Users.findOne({_id: req.session.user}, {_id:1,  pref_include_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1, slack: 1}, function(err,user){
       res.json(user);
    });
 });

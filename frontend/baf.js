@@ -86,7 +86,7 @@ $('#betSave').on('click', function(){
 		},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets', 2);   //refresh page
+         getBets(-1, 'savedBets', 'send');   //refresh page
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -141,7 +141,7 @@ $('#savedSend').on('click', function(){
          'newodds': $('#savedNewOdds').val()},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets', 2);   //refresh page
+         getBets(-1, 'savedBets', 'send');   //refresh page
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -158,7 +158,7 @@ $('#savedDelete').on('click', function(){
          'status': -1},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets', 2);
+         getBets(-1, 'savedBets', 'send');
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -198,7 +198,7 @@ $('#rescindSend').on('click', function(){
          'status': -1},
 		success:function(retData){
          alert(retData.type, retData.message);
-         getBets(-2, 'savedBets', 2);
+         showBets();
 		},
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -231,7 +231,7 @@ function showBets () {
             var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,4)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
             });
             outp += '</table>';
             $('#acceptedBets').append(outp);
@@ -257,20 +257,22 @@ function getBets(status, target, addButton) {
       },
       success:function(retData){
          if(retData.length){
+            $('#'+target).empty();
             var outp = '<table class="table table-condensed"><tr class="heading">';
             outp += '<th>You</th><th>Odds</th><th>Them</th><th>$</th>';
             if (addButton)   //this is for saved bets, add send button
                outp += '<th>Act</th>';
             $.each(retData, function(i,rec){
                outp +='</tr><tr>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,4)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
                if (addButton)
                   outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'savedModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-'+((addButton=='accept')?'hand-left':(addButton=='rescind')?'remove':'send')+'"></span></button></td>';
                outp += '</tr>';
             });
             outp += '</table>';
             $('#'+target).prepend(outp);
-            $('#'+target).addClass('in');
+            if ($('#'+target+'Title').children().hasClass('open'))
+               $('#'+target).addClass('in');
             $('#'+target+'Title span.collapseIcon').removeClass('hidden');
             $('[data-toggle="popover"]').popover();
          }
@@ -306,24 +308,90 @@ $('.actionAction').on('click', function(){
 	});
 });
 
+//toggle button to switch stat type
+$('#statsType').on('click', function(){
+      if ($('#statsType').text()=='Detail'){
+         $('#statsType').text('Summary');
+         // $('#statsType').removeClass('btn-warning').addClass('btn-info');
+         // showScores('nba', new Date());
+      } else {
+         $('#statsType').text('Detail');
+         // $('#statsType').removeClass('btn-info').addClass('btn-warning');
+         // showScores('nfl', getWeek(new Date()));
+      }
+});
+
+// back/forward button to get different scores
+$('.statsInc').on('click', function(event){
+   event.preventDefault();
+   var tmp = $('#statsPeriod').text().split(' ');
+   if (tmp[0]=='Week') {
+      if (Number(tmp[1]) >= 1 && Number(tmp[1]) < 21)
+         weeklyStats(Number(tmp[1])+$(this).val()*1);
+   } else {
+      weeklyStats('nba', new Date(Number(new Date($('#statsDate').val()))+$(this).val()*(24*60*60*1000)));
+   }
+});
+
 // Stats stuff
-function weeklyStats() {
+function weeklyStats(wk) {
    $.ajax({
 		type: 'POST',
 		url: '/api/weeklystats',
       data: {
-         'week': getWeek(new Date())
+         'week': wk
       },
 		success:function(retData){
          if(retData.length){
+            var wins = {}, losses = {}, pushes = {};
             var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-success">':'<td class="heading-danger">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-danger">':'<td class="heading-success">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+rec.amount+'</td></tr>';
-               $('#weeklyStats').addClass('in');
+               outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-success">':'<td class="heading-danger">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,5)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-danger">':'<td class="heading-success">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,5)+')</td><td>'+rec.amount+'</td></tr>';
+               if ($('#weeklyStatsTitle').children().hasClass('open'))
+                  $('#weeklyStats').addClass('in');
                $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
+               switch (rec.status) {
+                  case 4:
+                     if (wins[rec.user1])
+                        wins[rec.user1] += 1;
+                     else
+                        wins[rec.user1]=1;
+                     if (losses[rec.user2])
+                        losses[rec.user2] += 1;
+                     else
+                        losses[rec.user2]=1;
+                     break;
+                  case 5:
+                     if (wins[rec.user2])
+                        wins[rec.user2] += 1;
+                     else
+                        wins[rec.user2]=1;
+                     if (losses[rec.user1])
+                        losses[rec.user1] += 1;
+                     else
+                        losses[rec.user1]=1;
+                     break;
+                  case 6:
+                     if (pushes[rec.user1])
+                        pushes[rec.user1] += 1;
+                     else
+                        pushes[rec.user1]=1;
+                     if (pushes[rec.user2])
+                        pushes[rec.user2] += 1;
+                     else
+                        pushes[rec.user2]=1;
+                     break;
+               }
             });
             outp += '</table>';
+            // for (var key in wins) {
+            //    outp2 += '<tr><td>'+key+'</td><td>'+wins.key+'</td><td>'+losses.key+'</td></tr>';
+            // }
+            $('#statsPeriod').text('Week '+ wk);
             document.getElementById('weeklyStats').innerHTML = outp;
+            if ($('#weeklyStatsTitle').hasClass('open'))
+               $('#weeklyStatsTitle').addClass('in');
+            $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
          }
       },
 		error: function(retData){
@@ -353,7 +421,7 @@ function overallStats() {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,5)+'</a></td><td>'+(rec.win)+'</td><td>'+(rec.loss)+'</td><td>'+(rec.push)+'</td><td>'+((rec.win+rec.push*0.5)/(rec.win+rec.loss+rec.push)).toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,5)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
             $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
 			});
 			outp += '</table>';
@@ -425,7 +493,7 @@ function drawChart(days, update) {
                //  options: chartOptions
             });
             winChart.options.scales.yAxes[0].gridLines.color = '#444';
-
+            winChart.options.legend.position = 'bottom';
          }
       },
 		error: function(retData){
@@ -456,9 +524,9 @@ $('#statsModal').on('show.bs.modal', function (event) {
          var date=new Date(rec.date);
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
          if (rec.user1 == button.data('user'))
-            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,4)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,5)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
          else
-            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,4)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,5)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
          outp += '</td></tr>';
    	});
    	outp += '</table>';
@@ -570,7 +638,7 @@ function getFutures() {
          alert(retData.type, retData.message);
 		}
 	});
-   // next check if there are any futures
+   // next check if there are any futures propostions
    $.ajax({
 		type: 'GET',
 		url: '/api/getfutures',
@@ -578,17 +646,17 @@ function getFutures() {
          $('#futuresGroup').empty();
          $.each(retData.futures, function(i,single){
             // create new/separate panel for each future
-            var newPanel = '<div class="panel panel-info"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-chevron-right"></span></a></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
+            var newPanel = '<div class="panel panel-info"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-chevron-right"></span></a><em class="right">updated: '+retData.futures[i].time+'</em></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
             // create new table for panel contents
             var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
             $.each(single.entries, function(i,rec){
                outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-primary"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-primary" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
             });
-            outp += '</table><em>updated: '+retData.futures[i].time+'</em>';
             $('#futuresGroup').append(newPanel);
             document.getElementById('futuresPanel'+i).innerHTML = outp;
             $('#futuresTitle'+i).text(single.event);
-            // $('#futuresTitle1').text('new');
+            if (new Date('2016/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
+               $('#futuresTitle'+i).next().next().addClass('heading-danger');
          });
       },
 		error: function(retData){
@@ -699,7 +767,7 @@ function showMessages() {
          var date, outp='';
 			$.each(retData, function(i,rec){
             date = new Date(rec.date);
-				outp += '<span class="msg-user">'+rec.user.slice(0,4)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
+				outp += '<span class="msg-user">'+rec.user.slice(0,5)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
 			});
 			document.getElementById("msgList").innerHTML = outp;
 		},
@@ -736,7 +804,7 @@ function showProps() {
 		success:function(retData){
          var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Bet</th><th>Prop</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,4)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,4)+'</td><td>$'+rec.amount+'</td><td>'+rec.prop+'</td></tr>';
+				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5)+'</td><td>$'+rec.amount+'</td><td>'+rec.prop+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("propList").innerHTML = outp;
@@ -811,6 +879,7 @@ function getPrefs() {
          $('#prefIncludeEveryone').prop('checked', retData.pref_include_everyone);
          $('#prefTextReceive').prop('checked', retData.pref_text_receive);
          $('#prefTextAccept').prop('checked', retData.pref_text_accept);
+         $('#changeSlack').val(retData.slack);
       },
       error: function(retData){
 			alert(retData.type,retData.message);
@@ -1014,10 +1083,12 @@ function getUsers (){
 		type: 'GET',
 		url: '/api/users',
 		success:function(retData){
+         window.userList = [];
          $('#userList').empty();
 			$.each(retData, function(i,user){
 				$('#userList').append('<option value="'+user._id+'">'+user._id+'</option>');
             $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
+            window.userList.push(user._id);
 			});
          $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
          $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
@@ -1112,11 +1183,12 @@ function getOdds (sport){
                outp = '<table class="table">';
             }
             // draw date row if needed
-            if ((date.getDate() > prevDate) || (date.getDate() == 1 && prevDate !== 1))
+            var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            if (tmpDate > prevDate)
                outp += '<tr class="modal-primary"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
 
-            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+'pm<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
-            prevDate = date.getDate();
+            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+            prevDate = tmpDate;
             gameNum++;
          });
          outp += '</table>';

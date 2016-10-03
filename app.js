@@ -46,19 +46,20 @@ var express = require('express'),
 //    }
 // }
 
-// load different routes
-var routes = require('./routes/index'),
-   api = require('./routes/api'),
-   admin = require('./routes/admin');
-app.use('/', routes);
-app.use('/api', api);
-app.use('/admin', admin);
 
 // enable middleware
 app.use(compression());
 app.use('/', express.static(__dirname + '/public'));
 app.set('view engine', 'jade');
 app.set('views', './views');
+
+// load different routes
+var routes = require('./routes/index'),
+api = require('./routes/api'),
+admin = require('./routes/admin');
+app.use('/', routes);
+app.use('/api', api);
+app.use('/admin', admin);
 
 // manage data gathering via scraper model and schedule
 var scraper = require('./models/scraper');
@@ -69,20 +70,20 @@ var oddsId = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    clearUnactedId = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    checkNflScoresId = crontab.scheduleJob("*/10 0,6-9,15,19,22-23 * * 0,1,4", scraper.checkScores,['nfl']),
 //    checkNbaScoresId = crontab.scheduleJob("*/10 0,19-23 * * *", scraper.checkScores,['nba']),
-   tallyBetsId = crontab.scheduleJob("*/10 0,6-9,15,19,22-23 * * 0,1,4", scraper.tallyBets),
+   tallyBetsId = crontab.scheduleJob("*/10 0,6-9,15,19,21-23 * * 0,1,4", scraper.tallyBets),
    clearRefusedId = crontab.scheduleJob("0 22 * * *", scraper.clearRefusedBets);
 //    updateStandingsId = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
 
 // backup daily odds
-// var backupOddsId = crontab.scheduleJob('0 22 * * *', function () {
-//    var now = new Date();
-//    var cmd = exec('cp nba_info.json backup/odds/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate()+'_nba_info.json', function(error, stdout, stderr) {
-//       if (error || stderr)
-//          console.log(error);
-//          console.log(stderr);
-//       });
-//    console.log('Odds backup - '+now);
-// });
+var backupOddsId = crontab.scheduleJob('0 22 * * 0,1,4', function () {
+   var now = new Date();
+   var cmd = exec('cp nfl_info.json backup/odds/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate()+'_nfl_info.json', function(error, stdout, stderr) {
+      if (error || stderr)
+         console.log(error);
+         console.log(stderr);
+      });
+   console.log('Odds backup - '+now);
+});
 
 // backup mongo datbases
 var backupDbId = crontab.scheduleJob('49 17 * * 4', function () {

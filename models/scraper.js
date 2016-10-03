@@ -64,7 +64,7 @@ function getOdds(sport) {
             'week':  module.exports.getWeek(now),
             'games': games};
          if (games.length) { // only write if something was found
-            var success = fs.writeFileSync(sport+'_info.json',JSON.stringify(sendData,0,3));
+            var success = fs.writeFileSync(sport+'_info.json',JSON.stringify(sendData));
          }
       }
    });
@@ -77,6 +77,15 @@ function updateBet(id,object){
 		else
 			console.log(id+' bet updated - '+new Date());
 	});
+}
+
+function updatePct (person) {
+   Records.findOne({user: person, year: 2016, sport: 'nfl'}, function(err, record) {
+      Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
+         if (err)
+            console.log('pct error');
+      });
+   });
 }
 
 function updateWinnerLoser(winner,loser,push){
@@ -96,6 +105,8 @@ function updateWinnerLoser(winner,loser,push){
       else
          console.log('push - '+new Date());
 	});
+	updatePct(winner);
+	updatePct(loser);
    if (!push) {
       Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
          if (err)

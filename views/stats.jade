@@ -6,14 +6,19 @@ block content
       .row
          .col-md-4
             .panel.panel-primary
-               .panel-heading 
-                  | Last 5 Days
+               .panel-heading
+                  span#statsPeriod
+                  button.statsInc.btn.btn-default.right(value=1)
+                     span.glyphicon.glyphicon-chevron-right
+                  button.statsInc.btn.btn-default.right(value=-1)
+                     span.glyphicon.glyphicon-chevron-left 
+                  button#statsType.btn.btn-sm.btn-default.btn-scootlft.right Detail
                   a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #weeklyStats.panel-collapse.collapse
-         .col-md-4
+         .col-md-4      
             .panel.panel-success
                .panel-heading
-                  | Overall
+                  | Season
                   a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                   select#statsSport.btn.btn-sm.btn-primary.right
                      option NBA
@@ -22,7 +27,31 @@ block content
                      option 2015
                      option 2016
                #overallStats.panel-collapse.collapse.in
-         //- .form-group
+            //- #statCarousel.carousel.slide(data-ride='carousel', data-interval='0')
+            //-    .carousel-inner(role='listbox')
+            //-       .item.active
+            //-          .panel.panel-primary
+            //-             .panel-heading 
+            //-                | Last 5 Days
+            //-             #carousel1.panel-body
+            //-       .item
+            //-          .panel.panel-success
+            //-             .panel-heading
+            //-                | Overall
+            //-                a(data-toggle='collapse', href='#overallStats')#overallStatsTitle 
+            //-                select#statsSport.btn.btn-sm.btn-primary.right
+            //-                   option NBA
+            //-                   option NFL
+            //-                select#statsYear.btn.btn-sm.btn-primary.right
+            //-                   option 2015
+            //-                   option 2016
+            //-             #carousel2.panel-body
+            //-    a.left.carousel-control(href='#statCarousel', role='button', data-slide='next') 
+            //-       span.glyphicon.glyphicon-chevron-left(aria-hidden="true")
+            //-       span.sr-only Previous
+            //-    a.right.carousel-control(href='#statCarousel', role='button', data-slide='prev')
+            //-       span.glyphicon.glyphicon-chevron-right(aria-hidden="true")
+            //-       span.sr-only Next
          //-    button#graphDays.btn.btn-sm.btn-primary.left 30days
          .col-md-4
             canvas#winGraph(width='320', height='320')
@@ -40,5 +69,5 @@ block scripts
    script(type='text/javascript').
       $('#statsSport').val('NFL');
       $('#statsYear').val('2016');
-      weeklyStats()
+      weeklyStats(getWeek(new Date()))
       overallStats()
