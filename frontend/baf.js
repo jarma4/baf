@@ -340,13 +340,14 @@ function weeklyStats(wk) {
 		url: '/api/weeklystats',
       data: {
          'week': wk
-      },
+      }, //
 		success:function(retData){
+         $('#weeklyStats').empty();
          if(retData.length){
             var wins = {}, losses = {}, pushes = {};
-            var outp = '<table class="table table-condensed"><tr><th>You</th><th>Odds</th><th>Them</th><th>$</th></tr>';
+            var outp = '<table class="table table-condensed"><tr><th>Winner</th><th>Odds</th><th>Loser</th><th>$</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-success">':'<td class="heading-danger">'):'<td>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1.replace('@','')+' ('+rec.user1.slice(0,5)+')</td><td>'+rec.odds+'</td>'+((rec.status < 6)?((rec.status == 4)?'<td class="heading-danger">':'<td class="heading-success">'):'<td>')+rec.team2.replace('@','')+' ('+rec.user2.slice(0,5)+')</td><td>'+rec.amount+'</td></tr>';
+               outp += '<tr><td'+((rec.status != 6)?' class="heading-success">':'>')+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/>':'<img class="icon" src="images/basketball.png"/>')+((rec.status == 5)?rec.team2.replace('@','')+' ('+rec.user2.slice(0,5):rec.team1.replace('@','')+' ('+rec.user1.slice(0,5))+')</td><td>'+((rec.status == 5)?((rec.odds<0)?Math.abs(rec.odds):-Math.abs(rec.odds)):rec.odds)+'</td><td'+((rec.status != 6)?' class="heading-danger">':'>')+((rec.status == 5)?rec.team1.replace('@','')+' ('+rec.user1.slice(0,5):rec.team2.replace('@','')+' ('+rec.user2.slice(0,5))+')</td><td>'+rec.amount+'</td></tr>';
                if ($('#weeklyStatsTitle').children().hasClass('open'))
                   $('#weeklyStats').addClass('in');
                $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
@@ -387,12 +388,12 @@ function weeklyStats(wk) {
             // for (var key in wins) {
             //    outp2 += '<tr><td>'+key+'</td><td>'+wins.key+'</td><td>'+losses.key+'</td></tr>';
             // }
-            $('#statsPeriod').text('Week '+ wk);
             document.getElementById('weeklyStats').innerHTML = outp;
             if ($('#weeklyStatsTitle').hasClass('open'))
                $('#weeklyStatsTitle').addClass('in');
             $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
          }
+         $('#statsPeriod').text('Week '+ wk);
       },
 		error: function(retData){
 			alert(retData.type, retData.message);
@@ -1129,7 +1130,7 @@ function doorBell(){
 function getWeek(date){
    var wk = 1,
       dst=0,
-      seasonStart = new Date(2016,8,8),
+      seasonStart = new Date(2016,8,7),
       nflWeeks = [];
    for (var i=0; i<23; i++){
       if (i > 7)

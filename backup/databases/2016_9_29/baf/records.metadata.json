@@ -1,0 +1,1 @@
+{ "options" : { "create" : "baf.records" }, "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "baf.records", "name" : "_id_" } ] }

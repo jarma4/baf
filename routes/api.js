@@ -718,7 +718,7 @@ function textUser(to, from, message, pref2){
    });
 }
 
-var seasonStart = new Date(2016,8,8);
+var seasonStart = new Date(2016,8,7);
 var nflWeeks = [];
 var dst = 0;
 for (var i=0;i<22;i++){
