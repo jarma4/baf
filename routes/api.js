@@ -638,15 +638,15 @@ router.post('/getfutureoffers', requireLogin, function(req,res){
 });
 
 router.get('/nflodds', function (req, res) {
-   res.sendFile('./nfl_info.json', {'root':'/home/common/baf/'});
+   res.sendFile('./nfl_info.json', {'root':__dirname+'/..'});
 });
 
 router.get('/nbaodds', function (req, res) {
-   res.sendFile('./nba_info.json', {'root':'/home/common/baf/'});
+   res.sendFile('./nba_info.json', {'root':__dirname+'/..'});
 });
 
 router.get('/getfutures', function (req, res) {
-   res.sendFile('./futures.json', {'root':'/home/common/baf/'});
+   res.sendFile('./futures.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list

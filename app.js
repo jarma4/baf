@@ -86,7 +86,7 @@ var backupOddsId = crontab.scheduleJob('0 22 * * 0,1,4', function () {
 });
 
 // backup mongo datbases
-var backupDbId = crontab.scheduleJob('49 17 * * 4', function () {
+var backupDbId = crontab.scheduleJob('0 1 * * 4', function () {
    var now = new Date();
    var cmd = exec('mongodump -d baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr)
@@ -96,6 +96,6 @@ var backupDbId = crontab.scheduleJob('49 17 * * 4', function () {
    console.log('DB backup - '+now);
 });
 
-var server = app.listen(8083, function () {
-   console.log('App listening at on port 8083');
+var server = app.listen(process.env.BAF_PORT, function () {
+   console.log('App listening at on port '+process.env.BAF_PORT);
 });
