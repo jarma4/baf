@@ -1,4 +1,4 @@
-extends base 
+extends base
 
 block content
    strong.lead &nbspOptions
@@ -7,7 +7,7 @@ block content
          #username.panel-heading
          .panel-body
             form
-               label(for='changeSMS') SMS
+               label(for='changeSMS') Phone# for Notifications:
                input#changeSMS.form-control
                .checkbox
                   label
@@ -21,7 +21,7 @@ block content
                   label
                      input#prefTextAccept(type='checkbox')
                      | Text me when someone accepts my bet
-               label(for='changeSlack') Slack
+               label(for='changeSlack') Slack Username:
                input#changeSlack.form-control
                button#prefSave.btn.btn-success(type='submit', name='status', value='1', data-dismiss="modal") Save
    a.btn.btn-primary.btn-lg.btn-block(type='button', data-toggle='modal', data-target='#changePasswordModal') Change Password
@@ -42,5 +42,5 @@ block content
                      input#changePassword2.form-control(type='password', required)
                .modal-footer
                      button#changeSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
-block scripts 
+block scripts
    script(type='text/javascript') getPrefs()

@@ -11,16 +11,14 @@ var mongoose = require('mongoose'),
 // OUGame = require('./models/dbschema').OUGame,
 mongoose.connect('mongodb://localhost/baf');
 
-Records.find({}, function(err, records) {
-   records.forEach(function(record){
-      Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
-         if (err)
-            console.log('error');
-         else
-            console.log((record.win+0.5*record.push)/(record.win+record.loss+record.push)+' pct written');
-      });
-   });
-});
+function spritePosition (team) {
+   var width = 70, height = 50, cols = 6;
+   var teams = ['ATL', 'ARZ', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN'];
+   var index = teams.indexOf(team);
+   return index%cols*width*-1+' '+Math.floor(index/cols)*height*-1;
+}
+
+console.log(spritePosition('3x3'));
 
 //how to remove juice
 // var ml = [-500, 350];

@@ -2,30 +2,31 @@
    "futures": [
       {
          "event": "2017 SuperBowl",
-         "time": "9/26",
+         "time": "10/13",
          "entries": [
             {
                "team": "New England",
-               "ml": 395
+               "ml": 400
             },
             {
-               "team": "Denver",
-               "ml": 1100
-            },{
                "team": "Pittsburgh",
-               "ml": 1175
-            },
-            {
-               "team": "GreenBay",
-               "ml": 815
-            },
-            {
-               "team": "Carolina",
-               "ml": 1350
+               "ml": 600
             },
             {
                "team": "Seattle",
-               "ml": 1365
+               "ml": 750
+            },
+            {
+               "team": "Minnesota",
+               "ml": 800
+            },
+            {
+               "team": "GreenBay",
+               "ml": 850
+            },
+            {
+               "team": "Denver",
+               "ml": 1000
             }
          ]
       }

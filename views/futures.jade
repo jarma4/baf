@@ -24,12 +24,20 @@ block modals
          .modal-content
             .modal-header
                button.close(type='button', data-dismiss='modal') #[span &times;]
-               h4 Future Bet:
+               h4#futureText
             .modal-body
-               h3#futureText
-               .form-group
-                  button#futureSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss="modal") Accept
-                  button.btn.btn-danger.btn-lg.btn-block(type='submit', data-dismiss="modal") Cancel
+               
+               //- .form-group
+               label(for='offerDays') Keep offer for this many days:
+               .input-group
+                  button.btn-increment.btn.btn-primary(value="0")
+                     span.glyphicon.glyphicon-minus
+                  input#futureTimeout.small-inputbox(value='7', min='0', type='number')
+                  button.btn-increment.btn.btn-primary(value="1")
+                     span.glyphicon.glyphicon-plus
+            .modal-footer
+               button#futureSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss="modal") Accept
+               button.btn.btn-danger.btn-lg.btn-block(type='submit', data-dismiss="modal") Cancel
                input#futureOdds.nodisplay
                input#futureTeam.nodisplay
                input#futureFuture.nodisplay

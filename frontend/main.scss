@@ -1,14 +1,42 @@
 @import '_slate';
 @import '_sidebar';
 
+.logoBtn {
+	background-color: $theme-warning;
+	border-color: $theme-warning;
+	color: black;
+	// width: 150px;
+	// align-items: center;
+}
+.logoBtn td{
+	color: white;
+}
+img.logo-sm {
+	// background: url('../images/nfl_logo_sprite_small.png') no-repeat;
+	// display: block;
+	object-fit: none;
+	// object-position: 0 0;
+	width: 35px;
+	height: 25px;
+// 	margin-top: 10px;
+}
+img.logo-md {
+	// background: url('../images/nfl_logo_sprite_small.png') no-repeat;
+	// display: block;
+	object-fit: none;
+	object-position: 0px 0px;
+	width: 70px;
+	height: 50px;
+	margin-left: 0px;
+}
 .panel-heading {
 	font-weight: bold;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);
 }
 .odds-date-row {
 	font-size: 13px;
 	font-weight: bold;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);
 	padding: 4px 0px 0px 0px !important;
 }
 .popover {

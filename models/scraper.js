@@ -225,9 +225,12 @@ module.exports = {
       });
    },
 
-   clearRefusedBets: function(){
+   dailyCleaning: function(){
       // below searches for refused bets and deletes after 2 days
-      Bets.remove({$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]}, function(err){
+      Bets.remove({$or:[
+                     {$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]},
+                     {$and:[{status:0}, {type: {$in: ['take', 'give']}}, {date:{$lt:new Date()}}]}]},
+                      function(err){
 			if(err)
 				console.log(err);
 			else

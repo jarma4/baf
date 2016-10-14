@@ -71,13 +71,16 @@ function requireLogin (req, res, next) {
 }
 
 router.post('/makebet', requireLogin, function (req, res) {
-   fta_id = Math.random();    // 'first to act' identifier
+   var fta_id = Math.random(),    // 'first to act' identifier
+      today2 = new Date(),
+      today = new Date();
+   // console.log(today.setDate(today.getDate()+7*24*60*60*1000))
    if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.later) {
       Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
          users.forEach(function(single) {
             new Bets({
-               date: new Date(),
-               year: new Date().getFullYear(),
+               date: today,
+               year: today.getFullYear(),
                user1: req.session.user._id,
                user2: single,
                odds: req.body.odds,
@@ -88,12 +91,12 @@ router.post('/makebet', requireLogin, function (req, res) {
                status: 0,
                paid: false,
                fta: (req.body.user2 == 'EVERYONE2')?fta_id:0,
-               week: getWeek(new Date()),
+               week: getWeek(today),
                gametime: req.body.gametime,
                sport: req.body.sport
             }).save(function(err){
                if(err) {
-                  console.log('Trouble adding bet');
+                  console.log('Trouble adding bet: '+err);
                   res.send({'type':'danger', 'message':'Trouble adding bet'});
                } else {
                   console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount+((req.body.user2 == 'EVERYONE2')?'(fta)':''));
@@ -108,8 +111,9 @@ router.post('/makebet', requireLogin, function (req, res) {
       });
    } else {
       new Bets({
-         date: new Date(),
-         year: new Date().getFullYear(),
+         week: getWeek(today),
+         year: today.getFullYear(),
+         date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
          user1: req.session.user._id,
          user2: req.body.user2,
          odds: req.body.odds,
@@ -119,12 +123,11 @@ router.post('/makebet', requireLogin, function (req, res) {
          amount: req.body.amount,
          status: (req.body.later)?((req.body.sport=='nfl')?-1:-2):0,
          paid: false,
-         week: getWeek(new Date()),
          gametime: req.body.gametime,
          sport: req.body.sport
       }).save(function(err){
          if(err) {
-            console.log('Trouble adding bet');
+            console.log('Trouble adding bet: '+err);
             res.send({'type':'danger', 'message':'Trouble adding bet'});
          } else {
             console.log('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount);
@@ -315,7 +318,7 @@ router.post('/changebet', requireLogin, function(req,res){
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
-   Bets.find({$and:[{week: req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{year:2016}, {week: req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {

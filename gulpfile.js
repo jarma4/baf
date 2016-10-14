@@ -9,14 +9,14 @@ var gulp = require('gulp'),
 
 gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
-      .pipe(plumber())
-//      .pipe(uglify())
+      // .pipe(plumber())
+      .pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 
 gulp.task('styles', function(){
    gulp.src('./frontend/*.scss')
-      .pipe(plumber())
+      // .pipe(plumber())
       .pipe(sass())
       .pipe(cssnano())
       .pipe(gulp.dest('./public/css'));

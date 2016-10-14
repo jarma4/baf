@@ -41,9 +41,9 @@ $('#betModal').on('show.bs.modal', function (event) {
    $('#betType').val(button.data('type'));
    $('#betGametime').val(button.data('gametime'));
    if (button.data('type') == 'spread')
-      $('#betTitle').text('Bet is: '+vs1+' '+odds+' vs '+vs2);
+      $('#betTitle').text('You want: '+vs1+' '+odds+' vs '+vs2);
    else
-      $('#betTitle').text('Bet is: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
+      $('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
 });
 
 $('#betSubmit').on('click', function() {
@@ -206,6 +206,7 @@ $('#rescindSend').on('click', function(){
 	});
 });
 
+
 //below displays 4 panels on bets page; each has it's own quirks so not so DRY
 function showBets () {
    getBets(0, 'waitingYou', 'accept');
@@ -228,10 +229,17 @@ function showBets () {
             // var  otherBetsDiv = document.getElementById("acceptedBets").appendChild(document.createElement('div'));
             // otherBetsDiv.id = 'otherBets';
             // now go ahead and populate
+            var numBets = [];
             var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,5)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+                  if (!numBets[rec.user1])
+                     numBets[rec.user1] = 0;
+                  if (!numBets[rec.user2])
+                     numBets[rec.user2] = 0;
+                  numBets[rec.user1] += 1;
+                  numBets[rec.user2] += 1;
             });
             outp += '</table>';
             $('#acceptedBets').append(outp);
@@ -264,7 +272,7 @@ function getBets(status, target, addButton) {
                outp += '<th>Act</th>';
             $.each(retData, function(i,rec){
                outp +='</tr><tr>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,5)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
                if (addButton)
                   outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'savedModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-'+((addButton=='accept')?'hand-left':(addButton=='rescind')?'remove':'send')+'"></span></button></td>';
                outp += '</tr>';
@@ -310,24 +318,21 @@ $('.actionAction').on('click', function(){
 
 //toggle button to switch stat type
 $('#statsType').on('click', function(){
-      if ($('#statsType').text()=='Detail'){
-         $('#statsType').text('Summary');
-         // $('#statsType').removeClass('btn-warning').addClass('btn-info');
-         // showScores('nba', new Date());
-      } else {
-         $('#statsType').text('Detail');
-         // $('#statsType').removeClass('btn-info').addClass('btn-warning');
-         // showScores('nfl', getWeek(new Date()));
-      }
+   var parsed = $('#statsPeriod').text().split(' ');
+   if ($('#statsType').text()=='Detail')
+      $('#statsType').text('Summary');
+   else
+      $('#statsType').text('Detail');
+   weeklyStats(Number(parsed[1]));
 });
 
 // back/forward button to get different scores
 $('.statsInc').on('click', function(event){
    event.preventDefault();
-   var tmp = $('#statsPeriod').text().split(' ');
-   if (tmp[0]=='Week') {
-      if (Number(tmp[1]) >= 1 && Number(tmp[1]) < 21)
-         weeklyStats(Number(tmp[1])+$(this).val()*1);
+   var parsed = $('#statsPeriod').text().split(' ');
+   if (parsed[0]=='Week') {
+      if ((Number(parsed[1]) > 1 && $(this).val()=='-1') || (Number(parsed[1]) < 21 && $(this).val()=='1'))
+         weeklyStats(Number(parsed[1])+$(this).val()*1);
    } else {
       weeklyStats('nba', new Date(Number(new Date($('#statsDate').val()))+$(this).val()*(24*60*60*1000)));
    }
@@ -344,51 +349,46 @@ function weeklyStats(wk) {
 		success:function(retData){
          $('#weeklyStats').empty();
          if(retData.length){
-            var wins = {}, losses = {}, pushes = {};
-            var outp = '<table class="table table-condensed"><tr><th>Winner</th><th>Odds</th><th>Loser</th><th>$</th></tr>';
+            var weeklyRecords = {},
+               // initialize detail and summart output tables
+               outp = '<table class="table table-condensed"><tr><th>Winner</th><th>Odds</th><th>Loser</th><th>$</th></tr>',
+               outp2 = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td'+((rec.status != 6)?' class="heading-success">':'>')+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/>':'<img class="icon" src="images/basketball.png"/>')+((rec.status == 5)?rec.team2.replace('@','')+' ('+rec.user2.slice(0,5):rec.team1.replace('@','')+' ('+rec.user1.slice(0,5))+')</td><td>'+((rec.status == 5)?((rec.odds<0)?Math.abs(rec.odds):-Math.abs(rec.odds)):rec.odds)+'</td><td'+((rec.status != 6)?' class="heading-danger">':'>')+((rec.status == 5)?rec.team1.replace('@','')+' ('+rec.user1.slice(0,5):rec.team2.replace('@','')+' ('+rec.user2.slice(0,5))+')</td><td>'+rec.amount+'</td></tr>';
+               outp += '<tr><td'+((rec.status != 6)?' class="heading-success">':'>')+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/>':'<img class="icon" src="images/basketball.png"/>')+((rec.status == 5)?rec.team2.replace('@','')+' ('+rec.user2.slice(0,6):rec.team1.replace('@','')+' ('+rec.user1.slice(0,6))+')</td><td>'+((rec.status == 5)?((rec.odds<0)?Math.abs(rec.odds):-Math.abs(rec.odds)):rec.odds)+'</td><td'+((rec.status != 6)?' class="heading-danger">':'>')+((rec.status == 5)?rec.team1.replace('@','')+' ('+rec.user1.slice(0,6):rec.team2.replace('@','')+' ('+rec.user2.slice(0,6))+')</td><td>'+rec.amount+'</td></tr>';
                if ($('#weeklyStatsTitle').children().hasClass('open'))
                   $('#weeklyStats').addClass('in');
                $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
-               switch (rec.status) {
+
+               if (!weeklyRecords[rec.user1])
+                  weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0};
+               if (!weeklyRecords[rec.user2])
+                  weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0};
+               switch  (rec.status) {
                   case 4:
-                     if (wins[rec.user1])
-                        wins[rec.user1] += 1;
-                     else
-                        wins[rec.user1]=1;
-                     if (losses[rec.user2])
-                        losses[rec.user2] += 1;
-                     else
-                        losses[rec.user2]=1;
+                     weeklyRecords[rec.user1].wins += 1;
+                     weeklyRecords[rec.user2].losses += 1;
                      break;
                   case 5:
-                     if (wins[rec.user2])
-                        wins[rec.user2] += 1;
-                     else
-                        wins[rec.user2]=1;
-                     if (losses[rec.user1])
-                        losses[rec.user1] += 1;
-                     else
-                        losses[rec.user1]=1;
+                     weeklyRecords[rec.user2].wins += 1;
+                     weeklyRecords[rec.user1].losses += 1;
                      break;
                   case 6:
-                     if (pushes[rec.user1])
-                        pushes[rec.user1] += 1;
-                     else
-                        pushes[rec.user1]=1;
-                     if (pushes[rec.user2])
-                        pushes[rec.user2] += 1;
-                     else
-                        pushes[rec.user2]=1;
+                     weeklyRecords[rec.user1].push += 1;
+                     weeklyRecords[rec.user2].push += 1;
                      break;
                }
             });
             outp += '</table>';
-            // for (var key in wins) {
-            //    outp2 += '<tr><td>'+key+'</td><td>'+wins.key+'</td><td>'+losses.key+'</td></tr>';
-            // }
-            document.getElementById('weeklyStats').innerHTML = outp;
+            // build Summary table
+            for (var player in weeklyRecords) {
+               outp2 += '<tr><td>'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td></tr>';
+            }
+            outp2 += '</table>';
+            // check whether Detail or Summary screen
+            if ($('#statsType').text() == 'Detail')
+               document.getElementById('weeklyStats').innerHTML = outp;
+            else
+               document.getElementById('weeklyStats').innerHTML = outp2;
             if ($('#weeklyStatsTitle').hasClass('open'))
                $('#weeklyStatsTitle').addClass('in');
             $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
@@ -422,7 +422,7 @@ function overallStats() {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,5)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
+				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
             $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
 			});
 			outp += '</table>';
@@ -525,9 +525,9 @@ $('#statsModal').on('show.bs.modal', function (event) {
          var date=new Date(rec.date);
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
          if (rec.user1 == button.data('user'))
-            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,5)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,6)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
          else
-            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,5)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
+            outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,6)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
          outp += '</td></tr>';
    	});
    	outp += '</table>';
@@ -539,7 +539,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
 
 $('#futureModal').on('show.bs.modal', function (event) {
    var button = $(event.relatedTarget);
-   $('#futureText').text(((button.data('side') == 'give')?'Give ':'Take ') + button.data('odds')/100 + '/1 odds that "' + button.data('team') + '" will win "' + button.data('future')+'"');
+   $('#futureText').text(((button.data('side') == 'give')?'* You will give: ':'* You will take: ') + button.data('odds')/100 + '/1 odds that "' + button.data('team') + '" will '+((button.data('side') == 'give')?'not':'')+' win "' + button.data('future')+'"');
    $('#futureSide').val(button.data('side'));
    $('#futureOdds').val(button.data('odds'));
    $('#futureTeam').val(button.data('team'));
@@ -555,6 +555,7 @@ $('#futureSubmit').on('click', function() {
          'type': ($('#futureSide').val() == 'give')?'give':'take',
 		   'odds': $('#futureOdds').val(),
          'user2': '',
+         'timeout': $('#futureTimeout').val(),
 		   'team1': $('#futureTeam').val(),
          'team2': $('#futureFuture').val(),
          'sport': 'nba'
@@ -734,7 +735,7 @@ $('.scoresInc').on('click', function(event){
    event.preventDefault();
    var tmp = $('#scoresPeriod').text().split(' ');
    if (tmp[0]=='Week') {
-      if (Number(tmp[1]) >= 1 && Number(tmp[1]) < 21)
+      if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 21 && $(this).val()=='1'))
          showScores('nfl', Number(tmp[1])+$(this).val()*1);
    } else {
       showScores('nba', new Date(Number(new Date($('#scoresDate').val()))+$(this).val()*(24*60*60*1000)));
@@ -768,7 +769,7 @@ function showMessages() {
          var date, outp='';
 			$.each(retData, function(i,rec){
             date = new Date(rec.date);
-				outp += '<span class="msg-user">'+rec.user.slice(0,5)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
+				outp += '<span class="msg-user">'+rec.user.slice(0,6)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
 			});
 			document.getElementById("msgList").innerHTML = outp;
 		},
@@ -803,9 +804,9 @@ function showProps() {
 		type: 'GET',
 		url: '/api/getprops',
 		success:function(retData){
-         var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Bet</th><th>Prop</th></tr>';
+         var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th><th>$</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5)+'</td><td>$'+rec.amount+'</td><td>'+rec.prop+'</td></tr>';
+				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5)+'</td><td>'+rec.prop+'</td><td>'+rec.amount+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("propList").innerHTML = outp;
@@ -963,7 +964,7 @@ $('#debtsModal').on('show.bs.modal', function (event) {
          $('#youowe').hide();
 			$.each(retData, function(i,rec){
             var date=new Date(rec.date);
-            var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,5)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
+            var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,6)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
             if (rec.status == 4) {
                $('#oweyou tr:last').after(outp);
                $('#oweyou').show();
@@ -1187,8 +1188,7 @@ function getOdds (sport){
             var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             if (tmpDate > prevDate)
                outp += '<tr class="modal-primary"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
-
-            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button type="button" '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
             prevDate = tmpDate;
             gameNum++;
          });
@@ -1207,8 +1207,36 @@ $(document).ready(function() {
    // }
    // $("#wrapper").css('margin-left', '0px');
    doorBell();
+   test();
 });
 
+function test() {
+   var list = [{
+         team1: 'ATL',
+         team2: 'NO',
+         odds: 3
+      },{
+         team1: 'BAL',
+         team2: 'PIT',
+         odds: 1
+      },{
+         team1: 'NE',
+         team2: 'MIA',
+         odds: -7
+      }
+   ];
+   var outp = '<table class="table">'
+   $.each(list, function(i, rec){
+      outp += '<tr><td><button class="btn logoBtn">';
+      outp += '<table class="bg-warning"><tr><td rowspan="2"><img class="logo-md" src="images/nfl_logo_sprite_medium.png"></td><td>'+rec.team1+'</td></tr><tr><td>'+rec.odds+'</td></tr></table>';
+      outp += '</button></td><td><button class="btn logoBtn">';
+      outp += '<table class="bg-warning"><tr><td>'+rec.team2+'</td><td rowspan="2"><img class="logo-md" src="images/nfl_logo_sprite_medium.png"></td></tr><tr><td>'+rec.odds+'</td></tr></table>';
+   });
+   outp += '</table>';
+   $('#displayArea').prepend(outp);
+   
+   // $('img.logo-md').css('object-position', '0px -150px');//teamInfo.ATL.sprite);
+}
 var username,
    urls = [
    '/',
@@ -1223,6 +1251,133 @@ var username,
    winChart, // declared global so that charts can be updated between functions
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-   nflColors = {
-   ATL: '#A71930', ARZ: '#97233F', CAR: '#0085CA', CHI: '#0B162A', DAL: '#002244', DET: '#005A8B', GB: '#203731', MIN: '#4F2683', NO: '#9F8958', NYG: '#0B2265', PHI: '#004953', SEA: '#69BE28', SF: '#AA0000', LA: '#B3995D', TB: '#D50A0A', WAS: '#773141', BAL: '#241773', BUF: '#00338D', CIN: '#FB4F14', CLE: '#FB4F14', DEN: '#FB4F14', HOU: '#03202F', KC: '#E31837', JAC: '#006778', IND: '#002C5F', MIA: '#008E97', NE: '#002244', NYJ: '#203731', OAK: '#A5ACAF', PIT: '#FFB612', SD: '#0073CF', TEN: '#4B92DB'
-};
+   teamInfo = {
+      ATL:{
+         color: '#A71930',
+         sprite: '0px 0px'
+      },
+      ARZ: {
+         color: '#97233F',
+         sprite: '-35px -0px'
+      },
+      CAR: {
+         color: '#0085CA',
+         sprite: '-70px -0px'
+      },
+      CHI: {
+         color: '#0B162A',
+         sprite: '-105px -0px'
+      },
+      DAL: {
+         color: '#002244',
+         sprite: '-140px -0px'
+      },
+      DET: {
+         color: '#005A8B',
+         sprite: '-175px -0px'
+      },
+      GB: {
+         color: '#203731',
+         sprite: '-25px 0px'
+      },
+      MIN: {
+         color: '#4F2683',
+         sprite: '-35px -25px'
+      },
+      NO: {
+         color: '#9F8958',
+         sprite: '-70px -25px'
+      },
+      NYG: {
+         color: '#0B2265',
+         sprite: '-105px -25px'
+      },
+      PHI: {
+         color: '#004953',
+         sprite: '-140px -25px'
+      },
+      SEA: {
+         color: '#69BE28',
+         sprite: '-175px -25px'
+      },
+      SF: {
+         color: '#AA0000',
+         sprite: '-0px -50px'
+      },
+      LAR: {
+         color: '#B3995D',
+         sprite: '-35px -50px'
+      },
+      TB: {
+         color: '#D50A0A',
+         sprite: '-70px -50px'
+      },
+      WAS: {
+         color: '#773141',
+         sprite: '-105px -50px'
+      },
+      BAL: {
+         color: '#241773',
+         sprite: '-140px -50px'
+      },
+      BUF: {
+         color: '#00338D',
+         sprite: '-175px -50px'
+      },
+      CIN: {
+         color: '#FB4F14',
+         sprite: '-0px -75px',
+      },
+      CLE: {
+         color: '#FB4F14',
+         sprite: '-35px -75px',
+      },
+      DEN: {
+         color: '#FB4F14',
+         sprite: '-70px -75px',
+      },
+      HOU: {
+         color: '#03202F',
+         sprite: '-105px -75px',
+      },
+      KC: {
+         color: '#E31837',
+         sprite: '-140px -75px',
+      },
+      JAC: {
+         color: '#006778',
+         sprite: '-175px -75px',
+      },
+      IND: {
+         color: '#002C5F',
+         sprite: '-0px -100px',
+      },
+      MIA: {
+         color: '#008E97',
+         sprite: '-35px -100px',
+      },
+      NE: {
+         color: '#002244',
+         sprite: '-70px -100px',
+      },
+      NYJ: {
+         color: '#203731',
+         sprite: '-105px -100px',
+      },
+      OAK: {
+         color: '#A5ACAF',
+         sprite: '-140px -100px',
+      },
+      PIT: {
+         color: '#FFB612',
+         sprite: '-175px -100px',
+      },
+      SD: {
+         color: '#0073CF',
+         sprite: '-0px -125px',
+      },
+      TEN: {
+         color: '#4B92DB',
+         sprite: '-35px -125px',
+      }
+   };
