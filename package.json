@@ -18,7 +18,7 @@
   "homepage": "https://github.com/jarma4/jarnigan.com#readme",
   "dependencies": {
     "body-parser": "^1.14.1",
-    "cheerio": "^0.19.0",
+    "cheerio": "^0.22.0",
     "client-sessions": "^0.7.0",
     "compression": "^1.6.1",
     "express": "^4.13.1",
@@ -26,7 +26,6 @@
     "jade": "^1.11.0",
     "mongoose": "^4.1.11",
     "node-crontab": "0.0.8",
-    "plivo": "^0.3.3",
     "promise": "^7.1.1",
     "request": "^2.61.0",
     "serve-static": "^1.10.0"
@@ -35,9 +34,9 @@
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-cssnano": "^2.1.0",
-    "gulp-nodemon": "^2.0.6",
+    "gulp-nodemon": "^2.2.1",
     "gulp-plumber": "^1.0.1",
     "gulp-sass": "^2.1.1",
-    "gulp-uglify": "^1.5.1"
+    "gulp-uglify": "^2.0.0"
   }
 }

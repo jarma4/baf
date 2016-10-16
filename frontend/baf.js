@@ -1160,7 +1160,8 @@ function getOdds (sport){
          var outp = '<table class="table">';
          if (sport == 'nfl') {
             window.nflDb = retData.games;
-            $('#nflWeek').text(' NFL Week '+retData.week+' ');
+            $('#nfl').css('object-position', spritePosition('NFL'));
+            $('#nflWeek').text(' Week '+retData.week+' ');
             sportColor = 'warning';
          } else {
             window.nbaDb = retData.games;
@@ -1171,8 +1172,8 @@ function getOdds (sport){
 
             // gray out and disable if game already started
             if (date > new Date()) {
-               btnColor1 = sportColor;
-               btnColor2 = 'primary';
+               btnColor1 = 'primary';
+               btnColor2 = 'default';
             } else {
                checkDisabled = 'disabled ';
                btnColor1 = 'default';
@@ -1187,13 +1188,21 @@ function getOdds (sport){
             // draw date row if needed
             var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             if (tmpDate > prevDate)
-               outp += '<tr class="modal-primary"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
-            outp += '<tr><td class="td-odds">'+rec.team1+'<br/><button type="button" '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+rec.spread+'</button></td><td class="td-odds td-middle">'+((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td><td class="td-odds">'+rec.team2+'<br/><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'">'+(0-rec.spread)+'</button></td></tr>';
+               outp += '<tr class="modal-warning"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
+            outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="bg-primary"><tr><td rowspan="2"><img id="tm1_'+i+'" class="logo-md" src="images/nfl_logo_sprite_medium.png"></td><td class="center">'+rec.team1+'</td></tr><tr><td class="center">'+rec.spread+'</td></tr></table></button></td>';
+            // +((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')
+            outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
+
+            outp += '<td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="bg-primary"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-md" src="images/nfl_logo_sprite_medium.png"></td><td class="center">'+rec.team2+'</td></tr><tr><td class="center">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
             prevDate = tmpDate;
             gameNum++;
          });
          outp += '</table>';
          document.getElementById(sport+'Odds'+Math.ceil(gameNum/listCount)).innerHTML = outp;
+         $.each(retData.games, function(i, rec){
+            $('#tm1_'+i).css('object-position', spritePosition(rec.team1));
+            $('#tm2_'+i).css('object-position', spritePosition(rec.team2.substr(1)));
+         });
          $('#'+sport+'Timestamp').text('updated:'+retData.time);
       },
 		error: function(retData){
@@ -1207,36 +1216,15 @@ $(document).ready(function() {
    // }
    // $("#wrapper").css('margin-left', '0px');
    doorBell();
-   test();
 });
 
-function test() {
-   var list = [{
-         team1: 'ATL',
-         team2: 'NO',
-         odds: 3
-      },{
-         team1: 'BAL',
-         team2: 'PIT',
-         odds: 1
-      },{
-         team1: 'NE',
-         team2: 'MIA',
-         odds: -7
-      }
-   ];
-   var outp = '<table class="table">'
-   $.each(list, function(i, rec){
-      outp += '<tr><td><button class="btn logoBtn">';
-      outp += '<table class="bg-warning"><tr><td rowspan="2"><img class="logo-md" src="images/nfl_logo_sprite_medium.png"></td><td>'+rec.team1+'</td></tr><tr><td>'+rec.odds+'</td></tr></table>';
-      outp += '</button></td><td><button class="btn logoBtn">';
-      outp += '<table class="bg-warning"><tr><td>'+rec.team2+'</td><td rowspan="2"><img class="logo-md" src="images/nfl_logo_sprite_medium.png"></td></tr><tr><td>'+rec.odds+'</td></tr></table>';
-   });
-   outp += '</table>';
-   $('#displayArea').prepend(outp);
-   
-   // $('img.logo-md').css('object-position', '0px -150px');//teamInfo.ATL.sprite);
+function spritePosition (team) {
+   var width = 56, height = 40, cols = 6;
+   var teams = ['ATL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN', 'NFL'];
+   var index = teams.indexOf(team);
+   return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
 }
+
 var username,
    urls = [
    '/',
