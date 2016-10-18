@@ -10,7 +10,7 @@ var gulp = require('gulp'),
 gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
-//      .pipe(uglify())
+      .pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 
@@ -32,7 +32,7 @@ gulp.task('start', function () {
       script: 'app.js',
       ext: 'js',
       ignore: ['frontend/*', 'public/*'],
-      env: { 'NODE_ENV': 'development' }
+      env: { 'NODE_ENV': 'production' }
    });
 });
 

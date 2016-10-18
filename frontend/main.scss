@@ -59,11 +59,14 @@ tr .heading {
 }
 .center{
 	text-align: center;
-	float: none;
+// 	float: none;
 }
 .right{
 	float: right;
 	margin-top:-5px;
+}
+.bold {
+   font-weight: bold;
 }
 img.logo-sm {
 	object-fit: none;

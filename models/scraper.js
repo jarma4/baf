@@ -160,7 +160,7 @@ module.exports = {
 
    refreshOddsInfo: function() {
       getOdds('nfl');
-      // getOdds('nba');
+      getOdds('nba');
    },
 
    checkScores: function(sport) {
@@ -278,7 +278,7 @@ module.exports = {
                      } else if ((singleBet.type == 'under' && game.score1+game.score2 > singleBet.odds) ||
                         (singleBet.type == 'over' && game.score1+game.score2 < singleBet.odds)) {
                         updateBet(singleBet.id,{status:5});
-   							updateWinnerLoser(singleBet.user1,singleBet.user2,0);
+   							updateWinnerLoser(singleBet.user2,singleBet.user1,0);
                      } else {
                         updateBet(singleBet.id,{status:6});
                         updateWinnerLoser(singleBet.user1,singleBet.user2,1);

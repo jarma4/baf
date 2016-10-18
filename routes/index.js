@@ -9,8 +9,8 @@ router.get('/', function(req, res) {
    res.render('nfl', {pagename:'NFL'});  // pagename not used now
 });
 
-router.get('/nfl', function(req, res) {
-   res.render('nfl', {pagename:'NFL'});  // pagename not used now
+router.get('/nba', function(req, res) {
+   res.render('nba', {pagename:'NBA'});  // pagename not used now
 });
 
 router.get('/bets', function(req, res) {
