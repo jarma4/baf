@@ -13,7 +13,7 @@ Bets = require('../models/dbschema').Bets,
 Scores = require('../models/dbschema').Scores,
 Messages = require('../models/dbschema').Messages,
 Props = require('../models/dbschema').Props,
-Standings = require('../models/dbschema').Standings,
+Ougame = require('../models/dbschema').Ougame,
 mongoose = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1/baf');
 
@@ -76,7 +76,9 @@ router.post('/makebet', requireLogin, function (req, res) {
       today = new Date();
    // console.log(today.setDate(today.getDate()+7*24*60*60*1000))
    if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.later) {
-      Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
+      Users.find({$and: [
+                     {_id: {$nin:[req.session.user._id,'testuser']}},
+                     (req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
          users.forEach(function(single) {
             new Bets({
                date: today,
@@ -258,7 +260,7 @@ router.post('/changebet', requireLogin, function(req,res){
                console.log(err);
             else {
                if (bet.user2 == 'EVERYONE') {
-                  Users.find({_id: {$nin:[req.session.user._id,'testuser']}, pref_include_everyone: true}, {_id: 1}, function(err, users){
+                  Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, (req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
                      users.forEach(function(single) {
                         new Bets({
                            date: new Date(),
@@ -318,7 +320,7 @@ router.post('/changebet', requireLogin, function(req,res){
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
-   Bets.find({$and:[{year:2016}, {week: req.body.week},{status: {$in:[4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{year:2016}, {week: req.body.week},{status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -518,7 +520,7 @@ router.post('/getscores', requireLogin, function(req,res){
          }
       });
    else {
-      Scores.find({$and: [{sport:'nba'}, {date:{$gt:new Date(req.body.period).setHours(0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}, function(err,scores){
+      Scores.find({$and: [{sport:'nba'}, {date:{$gt:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}, function(err,scores){
          if(err){
             console.log(err);
          } else {
@@ -553,7 +555,7 @@ router.get('/getprops', requireLogin, function(req,res){
 });
 
 router.get('/getstandings', requireLogin, function(req,res){
-   Standings.find({}, function(err,standings){
+   Ougame.find({}, function(err,standings){
       if (err)
          console.log(err);
       else
@@ -573,7 +575,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 });
 
 router.get('/getprefs',function(req,res){
-   Users.findOne({_id: req.session.user}, {_id:1,  pref_include_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1, slack: 1}, function(err,user){
+   Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1, slack: 1}, function(err,user){
       res.json(user);
    });
 });

@@ -47,26 +47,30 @@ $('#betModal').on('show.bs.modal', function (event) {
 });
 
 $('#betSubmit').on('click', function() {
-   $.ajax({
-		type: 'POST',
-		url: '/api/makebet',
-		data: {
-         'user2': $('#userList').val(),
-		   'amount': $('#betAmount').val(),
-		   'odds': Number($('#betChange').val()),
-         'type': $('#betType').val(),
-		   'team1': $('#betTeam1').val(),
-         'team2': $('#betTeam2').val(),
-         'sport': $('#betSport').val(),
-         'gametime': $('#betGametime').val()
-		},
-		success:function(retData){
-         alert(retData.type, retData.message);
-		},
-		error: function(retData){
-         alert(retData.type, retData.message);
-		}
-	});
+   var sendPending = false;
+   if (!sendPending)
+      $.ajax({
+   		type: 'POST',
+   		url: '/api/makebet',
+   		data: {
+            'user2': $('#userList').val(),
+   		   'amount': $('#betAmount').val(),
+   		   'odds': Number($('#betChange').val()),
+            'type': $('#betType').val(),
+   		   'team1': $('#betTeam1').val(),
+            'team2': $('#betTeam2').val(),
+            'sport': $('#betSport').val(),
+            'gametime': $('#betGametime').val()
+   		},
+   		success:function(retData){
+            sendPending = true;
+            alert(retData.type, retData.message);
+   		},
+   		error: function(retData){
+            sendPending = true;
+            alert(retData.type, retData.message);
+   		}
+   	});
 });
 
 $('#betSave').on('click', function(){
@@ -206,12 +210,19 @@ $('#rescindSend').on('click', function(){
 	});
 });
 
+$('#acceptedBets').on('click', '.tt', function(event){
+    var that = $(this);
+    that.popover('show');
+    setTimeout(function(){
+        that.popover('hide');
+    }, 3000);
+});
 
-//below displays 4 panels on bets page; each has it's own quirks so not so DRY
+//below displays 4 panels on bets page
 function showBets () {
+   getBets(2, 'acceptedBets');
    getBets(0, 'waitingYou', 'accept');
    getBets(1, 'waitingThem', 'rescind');
-   getBets(2, 'acceptedBets');
    getBets(3, 'refusedBets');
 
    //next dislplay accepted bets of other for info sake
@@ -226,14 +237,15 @@ function showBets () {
       success:function(retData){
          if(retData.length){
             // first need to create div since not present/overwritten in #acceptBets
-            // var  otherBetsDiv = document.getElementById("acceptedBets").appendChild(document.createElement('div'));
-            // otherBetsDiv.id = 'otherBets';
+            var  otherBetsDiv = document.getElementById("acceptedBets").appendChild(document.createElement('div'));
+            otherBetsDiv.id = 'otherBets';
             // now go ahead and populate
+            // $('#acceptedBets').empty();
             var numBets = [];
             var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
                   if (!numBets[rec.user1])
                      numBets[rec.user1] = 0;
                   if (!numBets[rec.user2])
@@ -242,10 +254,17 @@ function showBets () {
                   numBets[rec.user2] += 1;
             });
             outp += '</table>';
-            $('#acceptedBets').append(outp);
-            $('#acceptedBets').addClass('in');
-            $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
-            $('[data-toggle="popover"]').popover();   //this is for comments that might be on bets
+            $('#otherBets').append(outp);
+            // check title where icon stores whether pane should be open or closed
+            if ($('#acceptedBetsTitle span.collapseIcon').hasClass('hidden')) {
+               $('#acceptedBetsTitle').addClass('open'); //actually opens/uncollapses pane
+               $('#acceptedBets').addClass('in'); //actually opens/uncollapses pane
+               $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+               $('[data-toggle="popover"]').popover();
+            }
+            // $('#otherBets').addClass('in');
+            // $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
+            // $('[data-toggle="popover"]').popover();   //this is for comments that might be on bets
             // $('#otherBets').show();  //show display div
          }
       },
@@ -272,16 +291,17 @@ function getBets(status, target, addButton) {
                outp += '<th>Act</th>';
             $.each(retData, function(i,rec){
                outp +='</tr><tr>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a href="#" data-toggle="popover" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td><td>'+rec.amount+'</td>';
                if (addButton)
                   outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'savedModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-'+((addButton=='accept')?'hand-left':(addButton=='rescind')?'remove':'send')+'"></span></button></td>';
                outp += '</tr>';
             });
             outp += '</table>';
             $('#'+target).prepend(outp);
+            // check title where icon stores whether pane should be open or closed
             if ($('#'+target+'Title').children().hasClass('open'))
-               $('#'+target).addClass('in');
-            $('#'+target+'Title span.collapseIcon').removeClass('hidden');
+               $('#'+target).addClass('in'); //actually opens/uncollapses pane
+            $('#'+target+'Title span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
             $('[data-toggle="popover"]').popover();
          }
       },
@@ -350,20 +370,28 @@ function weeklyStats(wk) {
          $('#weeklyStats').empty();
          if(retData.length){
             var weeklyRecords = {},
-               // initialize detail and summart output tables
+               // initialize Detail and Summary output tables
                outp = '<table class="table table-condensed"><tr><th>Winner</th><th>Odds</th><th>Loser</th><th>$</th></tr>',
-               outp2 = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th></tr>';
+               outp2 = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td'+((rec.status != 6)?' class="heading-success">':'>')+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/>':'<img class="icon" src="images/basketball.png"/>')+((rec.status == 5)?rec.team2.replace('@','')+' ('+rec.user2.slice(0,6):rec.team1.replace('@','')+' ('+rec.user1.slice(0,6))+')</td><td>'+((rec.status == 5)?((rec.odds<0)?Math.abs(rec.odds):-Math.abs(rec.odds)):rec.odds)+'</td><td'+((rec.status != 6)?' class="heading-danger">':'>')+((rec.status == 5)?rec.team1.replace('@','')+' ('+rec.user1.slice(0,6):rec.team2.replace('@','')+' ('+rec.user2.slice(0,6))+')</td><td>'+rec.amount+'</td></tr>';
+               if (rec.status != 2)  // process finsished games for Detail table
+                  outp += '<tr><td'+((rec.status != 6)?' class="heading-success">':'>')+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/>':'<img class="icon" src="images/basketball.png"/>')+((rec.status == 5)?rec.team2.replace('@','')+' ('+rec.user2.slice(0,6):rec.team1.replace('@','')+' ('+rec.user1.slice(0,6))+')</td><td>'+((rec.status == 5)?((rec.odds<0)?Math.abs(rec.odds):-Math.abs(rec.odds)):rec.odds)+'</td><td'+((rec.status != 6)?' class="heading-danger">':'>')+((rec.status == 5)?rec.team1.replace('@','')+' ('+rec.user1.slice(0,6):rec.team2.replace('@','')+' ('+rec.user2.slice(0,6))+')</td><td>'+rec.amount+'</td></tr>';
+               // open collapsed panel if not already open
                if ($('#weeklyStatsTitle').children().hasClass('open'))
                   $('#weeklyStats').addClass('in');
                $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
 
+               // for Summary table; create structure if first time user seen
                if (!weeklyRecords[rec.user1])
-                  weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0};
+                  weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
                if (!weeklyRecords[rec.user2])
-                  weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0};
+                  weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0, tbd: 0};
+               // increment proper counter
                switch  (rec.status) {
+                  case 2:
+                     weeklyRecords[rec.user1].tbd += 1;
+                     weeklyRecords[rec.user2].tbd += 1;
+                     break;
                   case 4:
                      weeklyRecords[rec.user1].wins += 1;
                      weeklyRecords[rec.user2].losses += 1;
@@ -381,7 +409,7 @@ function weeklyStats(wk) {
             outp += '</table>';
             // build Summary table
             for (var player in weeklyRecords) {
-               outp2 += '<tr><td>'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td></tr>';
+               outp2 += '<tr><td>'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td><td>'+weeklyRecords[player].tbd+'</td></tr>';
             }
             outp2 += '</table>';
             // check whether Detail or Summary screen
@@ -401,13 +429,25 @@ function weeklyStats(wk) {
 	});
 }
 
-// switch overall stats
-$('#statsSport').change('click', function(){
-      overallStats();
+// switch season stats
+$('#statsSport').on('click', function(){
+   if ($('#statsSport').text()=='NFL') {
+      $('#statsSport').text('NBA');
+      $('#statsSport').removeClass('btn-warning').addClass('btn-info');
+   } else {
+      $('#statsSport').text('NFL');
+      $('#statsSport').removeClass('btn-info').addClass('btn-warning');
+   }
+   overallStats();
 });
 
-$('#statsYear').change('click', function(){
-      overallStats();
+$('#statsYear').on('click', function(){
+   if ($('#statsYear').text()=='2016') {
+      $('#statsYear').text('2015');
+   } else {
+      $('#statsYear').text('2016');
+   }
+   overallStats();
 });
 
 // get overall stats and graph
@@ -416,8 +456,8 @@ function overallStats() {
 		type: 'POST',
 		url: '/api/overallstats',
       data: {
-         'sport': $('#statsSport').val().toLowerCase(),
-         'year': $('#statsYear').val()
+         'sport': $('#statsSport').text().toLowerCase(),
+         'year': $('#statsYear').text()
       },
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
@@ -470,8 +510,8 @@ function drawChart(days, update) {
       data: {
          user: 'ALL',
          days: days,
-         sport: $('#statsSport').val().toLowerCase(),
-         year: $('#statsYear').val()
+         sport: $('#statsSport').text().toLowerCase(),
+         year: $('#statsYear').text()
       },
       success: function(retData){
          chartData.labels = retData.xaxis;
@@ -519,7 +559,7 @@ function getUserStats (user, sport, year) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), $('#statsSport').val().toLowerCase(), $('#statsYear').val()).success(function(retData) {
+   getUserStats(button.data('user'), $('#statsSport').text().toLowerCase(), $('#statsYear').text()).success(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -738,7 +778,7 @@ $('.scoresInc').on('click', function(event){
       if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 21 && $(this).val()=='1'))
          showScores('nfl', Number(tmp[1])+$(this).val()*1);
    } else {
-      showScores('nba', new Date(Number(new Date($('#scoresDate').val()))+$(this).val()*(24*60*60*1000)));
+      showScores('nba', new Date(Number(new Date($('#scoresPeriod').text()+' 2016'))+$(this).val()*(24*60*60*1000)));
    }
 });
 
@@ -818,37 +858,39 @@ function showProps() {
 }
 
 // Update status of special over/under wager these guys have
-// function showStandings() {
-//    $.ajax({
-// 		type: 'GET',
-// 		url: '/api/getstandings',
-// 		success:function(retData){
-//          var outp,
-//          eric = 0,
-//          john = 0,
-//          russell = 0,
-//          aaron = 0;
-//          outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th></tr>';
-//
-// 			$.each(retData, function(i,rec){
-// 				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,3)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td></tr>';
-//
-//             eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
-//             john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
-//             russell += (rec.russell.slice(0,1) == rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
-//             aaron += (rec.aaron.slice(0,1) == rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
-// 			});
-// 			outp += '</table>';
-// 			document.getElementById("standingsArea").innerHTML = outp;
-//          outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th><th>Aaron</th></tr>';
-//          outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td><td>'+aaron+'</td></tr></table>';
-//          document.getElementById("ouPicks").innerHTML = outp;
-// 		},
-// 		error: function(retData){
-// 			alert(retData.type, retData.message);
-// 		}
-// 	});
-// }
+function showStandings() {
+   $.ajax({
+		type: 'GET',
+		url: '/api/getstandings',
+		success:function(retData){
+         var outp,
+         eric = 0,
+         john = 0,
+         russell = 0,
+         sergio = 0,
+         tony = 0,
+         aaron = 0;
+         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th></tr>';
+
+			$.each(retData, function(i,rec){
+				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td></tr>';
+
+            eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
+            john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
+            russell += (rec.russell.slice(0,1) == rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
+            aaron += (rec.aaron.slice(0,1) == rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
+			});
+			outp += '</table>';
+			document.getElementById("standingsArea").innerHTML = outp;
+         outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th><th>Aaron</th></tr>';
+         outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td><td>'+aaron+'</td></tr></table>';
+         document.getElementById("ouPicks").innerHTML = outp;
+		},
+		error: function(retData){
+			alert(retData.type, retData.message);
+		}
+	});
+}
 
 // Preferences stuff
 $('#prefSave').on('click', function(e){
@@ -858,7 +900,8 @@ $('#prefSave').on('click', function(e){
    		url: '/api/setprefs',
          data: {
             'sms': $('#changeSMS').val(),
-            'pref_include_everyone': $('#prefIncludeEveryone').is(":checked"),
+            'pref_nfl_everyone': $('#prefNflEveryone').is(":checked"),
+            'pref_nba_everyone': $('#prefNbaEveryone').is(":checked"),
             'pref_text_receive': $('#prefTextReceive').is(":checked"),
             'pref_text_accept': $('#prefTextAccept').is(":checked")
          },
@@ -878,7 +921,8 @@ function getPrefs() {
 		success:function(retData){
          $('#username').text('Preferences for '+retData._id);
          $('#changeSMS').val(retData.sms);
-         $('#prefIncludeEveryone').prop('checked', retData.pref_include_everyone);
+         $('#prefNflEveryone').prop('checked', retData.pref_nfl_everyone);
+         $('#prefNbaEveryone').prop('checked', retData.pref_nba_everyone);
          $('#prefTextReceive').prop('checked', retData.pref_text_receive);
          $('#prefTextAccept').prop('checked', retData.pref_text_accept);
          $('#changeSlack').val(retData.slack);
@@ -1221,8 +1265,8 @@ $(document).ready(function() {
 
 function spritePosition (sport, team) {
    var width = 56, height = 40, cols = 6, index,
-      nfl_teams = ['ATL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN', 'NFL'];
-      nba_teams = ['ATL', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOH','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'NBA', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN', 'ATL'];
+      nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOH','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
    if (sport == 'nfl')
       index = nfl_teams.indexOf(team);
    else
@@ -1233,10 +1277,12 @@ function spritePosition (sport, team) {
 var username,
    urls = [
    '/',
+   '/nba',
    '/bets',
    '/stats',
    '/scores',
    '/futures',
+   '/overunder',
    '/props',
    '/messageboard',
    '/options'

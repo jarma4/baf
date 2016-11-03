@@ -6,7 +6,8 @@ var usersSchema = new mongoose.Schema({
    sms : String,
    bets : Number,
    debts : Number,
-   pref_include_everyone: Boolean,
+   pref_nfl_everyone: Boolean,
+   pref_nba_everyone: Boolean,
    pref_text_receive: Boolean,
    pref_text_accept: Boolean,
    slack: String
@@ -68,7 +69,7 @@ var propsSchema = new mongoose.Schema({
    odds: Number
 });
 
-var standingsSchema = new mongoose.Schema({
+var ougameSchema = new mongoose.Schema({
    team : String,
    win : Number,
    loss : Number,
@@ -79,21 +80,23 @@ var standingsSchema = new mongoose.Schema({
    eric: String,
    russell: String,
    aaron: String,
-});
+   tony: String,
+   sergio: String
+},{collection:'ougame'});
 
 // mongoose.model('Users', usersSchema);
 // mongoose.model('Bets', betsSchema);
 // mongoose.model('Scores', scoresSchema);
 // mongoose.model('Messages', msgSchema);
 // mongoose.model('Props', propsSchema);
-// mongoose.model('Standings', standingsSchema);
+// mongoose.model('Ougame', standingsSchema);
 var Users = mongoose.model('Users', usersSchema);
 var Records = mongoose.model('Records', recordsSchema);
 var Bets = mongoose.model('Bets', betsSchema);
 var Scores = mongoose.model('Scores', scoresSchema);
 var Messages = mongoose.model('Messages', msgSchema);
 var Props = mongoose.model('Props', propsSchema);
-var Standings = mongoose.model('Standings', standingsSchema);
+var Ougame = mongoose.model('Ougame', ougameSchema);
 
 module.exports = {
    Users: Users,
@@ -102,5 +105,5 @@ module.exports = {
    Scores: Scores,
    Messages: Messages,
    Props: Props,
-   Standings: Standings
+   Ougame: Ougame
 };

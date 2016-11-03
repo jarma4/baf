@@ -41,8 +41,8 @@ router.get('/props', function(req, res) {
    res.render('props', {pagename:'Prop Bets'});
 });
 
-router.get('/standings', function(req, res) {
-   res.render('standings', {pagename:''});
+router.get('/overunder', function(req, res) {
+   res.render('overunder', {pagename:''});
 });
 
 router.get('/options', function(req, res) {

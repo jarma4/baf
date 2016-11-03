@@ -1,11 +1,50 @@
 extends base
-//- block head
-//-    link(href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css", rel="stylesheet")
+
 block content
-   strong.lead &nbspLogos
-   #displayArea
-   img.logo-md(src='images/nfl_logo_sprite_medium.png')
+   strong.lead &nbspOptions
+   .panel-group
+      .panel.panel-primary
+         #username.panel-heading
+         .panel-body
+            form
+               label(for='changeSMS') Phone# for Notifications:
+               input#changeSMS.form-control
+               .checkbox
+                  label
+                     input#prefNflEveryone(type='checkbox')
+                     | Include in NFL "EVERYONE" betting group               
+               .checkbox
+                     label
+                        input#prefNbaEveryone(type='checkbox')
+                        | Include in NBA "EVERYONE" betting group
+               .checkbox
+                  label
+                     input#prefTextReceive(type='checkbox')
+                     | Text me when I receive bet
+               .checkbox
+                  label
+                     input#prefTextAccept(type='checkbox')
+                     | Text me when someone accepts my bet
+               label(for='changeSlack') Slack Username:
+               input#changeSlack.form-control
+               button#prefSave.btn.btn-success(type='submit', name='status', value='1', data-dismiss="modal") Save
+   a.btn.btn-primary.btn-lg.btn-block(type='button', data-toggle='modal', data-target='#changePasswordModal') Change Password
+   a.btn.btn-primary.btn-lg.btn-block(type='button', href='/admin/logout') Logout
 
-block modals
-
+   block modals
+      #changePasswordModal.modal.fade
+         .modal-dialog
+            .modal-content
+               .modal-header
+                  button.close(type='button', data-dismiss='modal') #[span &times;]
+                  h4 Change Password:
+               .modal-body
+                  form
+                     label(for='changePassword') New Password
+                     input#changePassword.form-control(type='password', required)
+                     label(for='changePassword2') Retype New Password
+                     input#changePassword2.form-control(type='password', required)
+               .modal-footer
+                     button#changeSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
 block scripts
+   script(type='text/javascript') getPrefs()

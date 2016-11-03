@@ -20,12 +20,10 @@ block content
                .panel-heading
                   | Season
                   a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-                  select#statsSport.btn.btn-sm.btn-primary.right
-                     option NBA
-                     option NFL
-                  select#statsYear.btn.btn-sm.btn-primary.right
-                     option 2015
-                     option 2016
+                  button#statsYear.btn.btn-sm.btn-default.right 2016
+                     //- option 2015
+                     //- option 2016
+                  button#statsSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
                #overallStats.panel-collapse.collapse.in
             //- #statCarousel.carousel.slide(data-ride='carousel', data-interval='0')
             //-    .carousel-inner(role='listbox')
@@ -67,7 +65,7 @@ block modals
 block scripts
    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js')
    script(type='text/javascript').
-      $('#statsSport').val('NFL');
-      $('#statsYear').val('2016');
+      //- $('#statsSport').val('NFL');
+      //- $('#statsYear').val('2016');
       weeklyStats(getWeek(new Date()))
       overallStats()

@@ -4,22 +4,17 @@ var request = require('request'),
 var mongoose = require('mongoose'),
    // Players = require('./models/dbschema').Players,
    // Bets = require('./models/dbschema').Bets,
-   Records = require('./models/dbschema').Records;
+   // Scores = require('./models/dbschema').Scores;
 //    fs = require('fs'),
 // Messages = require('./models/dbschema').Messages,
 // Promise = require('promise'),
-// OUGame = require('./models/dbschema').OUGame,
+   Ougame = require('./models/dbschema').Ougame;
+
 mongoose.connect('mongodb://localhost/baf');
 
-function spritePosition (team) {
-   var width = 70, height = 50, cols = 6;
-   var teams = ['ATL', 'ARZ', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN'];
-   var index = teams.indexOf(team);
-   return index%cols*width*-1+' '+Math.floor(index/cols)*height*-1;
-}
-
-console.log(spritePosition('3x3'));
-
+Ougame.find({}, function(err, rec) {
+   console.log(rec);
+});
 //how to remove juice
 // var ml = [-500, 350];
 // var implied_odds, total = 0, nojuice = [];
