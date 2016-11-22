@@ -19,7 +19,7 @@ for (var i=0;i<numWeeks;i++){
 }
 
 var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARI', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Green Bay': 'GB', 'Minnesota': 'MIN', 'New Orleans': 'NO', 'NY Giants': 'NYG', 'Philadelphia': 'PHI', 'Seattle': 'SEA', 'San Francisco': 'SF', 'Los Angelas': 'LAR', 'Tampa Bay': 'TB', 'Washington': 'WAS', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Cincinatti': 'CIN', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Kansas City': 'KC', 'Jacksonville': 'JAC', 'Indianapolis': 'IND', 'Miami': 'MIA', 'New England': 'NE', 'NY Jets': 'NYJ', 'Oakland': 'OAK', 'Pittsburgh': 'PIT', 'San Diego': 'SD', 'Tennessee': 'TEN'},
-   nbaTeams = {'Atlanta': 'ATL', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Minnesota': 'MIN', 'New Orleans': 'NOH', 'New York': 'NY', 'Brooklyn': 'BKN', 'Philadelphia': 'PHI', 'Oklahoma City': 'OKC', 'L.A. Clippers': 'LAC','L.A. Lakers': 'LAL', 'Washington': 'WAS', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Indiana': 'IND', 'Miami': 'MIA', 'Boston': 'BOS', 'Golden St.': 'GS', 'San Antonio': 'SAN', 'Sacramento': 'SAC', 'Portland': 'POR', 'Orlando': 'ORL', 'Charlotte': 'CHR', 'Phoenix': 'PHO', 'Toronto': 'TOR', 'Milwaukee': 'MIL', 'Utah': 'UTA', 'Memphis': 'MEM'};
+   nbaTeams = {'Atlanta': 'ATL', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Minnesota': 'MIN', 'New Orleans': 'NOH', 'New York': 'NY', 'Brooklyn': 'BKN', 'Philadelphia': 'PHI', 'Oklahoma City': 'OKC', 'L.A. Clippers': 'LAC','L.A. Lakers': 'LAL', 'Washington': 'WAS', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Indiana': 'IND', 'Miami': 'MIA', 'Boston': 'BOS', 'Golden St.': 'GS', 'Golden State': 'GS', 'San Antonio': 'SAN', 'Sacramento': 'SAC', 'Portland': 'POR', 'Orlando': 'ORL', 'Charlotte': 'CHR', 'Phoenix': 'PHO', 'Toronto': 'TOR', 'Milwaukee': 'MIL', 'Utah': 'UTA', 'Memphis': 'MEM'};
 
 function getOdds(sport) {
    var url = 'http://www.oddsshark.com/'+sport+'/odds';
@@ -65,7 +65,7 @@ function getOdds(sport) {
             'week':  module.exports.getWeek(now),
             'games': games};
          if (games.length) { // only write if something was found
-            var success = fs.writeFileSync(sport+'_info.json',JSON.stringify(sendData));
+            var success = fs.writeFileSync('json/'+sport+'_info.json',JSON.stringify(sendData));
          }
       }
    });
@@ -195,6 +195,9 @@ module.exports = {
    checkScores: function(sport) {
       // console.log('checking scores ...');
       var url, today = new Date();
+      // for late games, checking after midnight need to look at previous day
+      if (today.getHours() === 0)
+         today.setHours(today.getHours()-1);
       if (sport=='nfl') {
          wk = module.exports.getWeek(new Date());
          url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2016';
@@ -224,10 +227,6 @@ module.exports = {
                      tm2 =nbaTeams[ $(this).parent().siblings('.homeTeam').children().children().next().children().text().split('(')[0]];
                      sc2 = $(this).parent().siblings('.homeTeam').children('.finalScore').text();
                   }
-                  // if (Number(sc1) > Number(sc2))
-                  //    wnr = 1;
-                  // else
-                  //    wnr = 2;
                   Scores.update({$and:[{sport:sport},
                                        {team1:tm1},
                                        {team2:tm2},
@@ -281,7 +280,7 @@ module.exports = {
       // console.log('tallying bets ...');
       Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
-            console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2);
+            // console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2);
             Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
                               {winner:{$ne: 0}},
                               {$or:[{$and:[{team1: singleBet.team1.replace('@','')},
@@ -295,7 +294,7 @@ module.exports = {
    				if(err)
    					console.log('tallyBets error: '+err);
    				else if (game) {
-                  console.log('found score');
+                  // console.log('found score');
                   if (singleBet.type == 'spread') {
    						if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
    						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {

@@ -3,18 +3,47 @@ var request = require('request'),
    cheerio = require('cheerio');
 var mongoose = require('mongoose'),
    // Players = require('./models/dbschema').Players,
-   // Bets = require('./models/dbschema').Bets,
+   Bets = require('./models/dbschema').Bets,
    // Scores = require('./models/dbschema').Scores;
 //    fs = require('fs'),
 // Messages = require('./models/dbschema').Messages,
 // Promise = require('promise'),
+   fs = require('fs'),
    Ougame = require('./models/dbschema').Ougame;
 
 mongoose.connect('mongodb://localhost/baf');
 
-Ougame.find({}, function(err, rec) {
-   console.log(rec);
+var debtList = {};
+Bets.find({$and:[{paid:false},{$or:[{status:4},{status:5}]}]}, function(err, bets){
+   bets.forEach(function(bet){
+      if (!debtList[bet.user1]){
+         debtList[bet.user1] = {owe: {}, owed: {}};
+      }
+      if (bet.status == 4) {
+         if (!debtList[bet.user1].owed[bet.user2]) {
+            debtList[bet.user1].owed[bet.user2] = 1;
+         } else {
+            debtList[bet.user1].owed[bet.user2] += 1;
+         }
+      } else {
+         if (!debtList[bet.user1].owe[bet.user2]){
+            debtList[bet.user1].owe[bet.user2] = 1;
+         }else{
+            debtList[bet.user1].owe[bet.user2] += 1;
+         }
+      }
+   });
+   console.log(debtList);
+   for (var user1 in debtList) {
+      for (var user2 in debtList[user1].owe) {
+         if (debtList[user2] && debtList[user2].owed[user1]) {
+            console.log(user1+' owes '+user2+' '+debtList[user1].owe[user2]);
+            console.log(user2+' owes '+user1+' '+debtList[user2].owe[user1]);
+         }
+      }
+   }
 });
+
 //how to remove juice
 // var ml = [-500, 350];
 // var implied_odds, total = 0, nojuice = [];
@@ -26,7 +55,7 @@ Ougame.find({}, function(err, rec) {
 //       implied_odds = 100 / (ml[i] + 100);
 //    nojuice.push(implied_odds);
 //    total += implied_odds;
-//    console.log('implied_odds for '+i+' is '+ implied_odds);
+//    console.log('implied_odds for '+ml[i]+' is '+ implied_odds);
 // }
 // console.log('nojuice is '+nojuice[0]/total*100+'% and '+nojuice[1]/total*100+'%');
 

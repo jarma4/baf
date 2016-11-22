@@ -196,7 +196,7 @@ router.post('/changebet', requireLogin, function(req,res){
                if(err) {
                   console.log(err);
                   reject();
-               } else {
+               } else if (singleBet){
                   if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
                      changeUser(singleBet.user2, 'bets', -1);
                   }
@@ -319,8 +319,9 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
+   // console.log(getWeek(new Date(req.body.date));
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
-   Bets.find({$and:[{year:2016}, {week: req.body.week},{status: {$in:[2,4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{year:2016}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -463,7 +464,12 @@ router.post('/graphstats', requireLogin, function(req,res){
 });
 
 router.post('/userstats', requireLogin, function(req,res){
-   Bets.find({$and:[{$or:[{user1: req.body.user},{user2: req.body.user}], sport: req.body.sport, year: req.body.year}, {status:{$in:[4,5,6]}}, (req.body.sport)?{sport:req.body.sport}:{}]}, function(err,bets){
+   Bets.find({$and:[{$or:[{user1: req.body.user},
+                          {user2: req.body.user}],
+                    sport: req.body.sport,
+                    year: req.body.year},
+                    {status:{$in:[4,5,6]}},
+                    (req.body.week)?{week:req.body.week}:{}]}, function(err,bets){
       if (err)
          console.log(err);
       else
@@ -643,15 +649,15 @@ router.post('/getfutureoffers', requireLogin, function(req,res){
 });
 
 router.get('/nflodds', function (req, res) {
-   res.sendFile('./nfl_info.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/nfl_info.json', {'root':__dirname+'/..'});
 });
 
 router.get('/nbaodds', function (req, res) {
-   res.sendFile('./nba_info.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/nba_info.json', {'root':__dirname+'/..'});
 });
 
 router.get('/getfutures', function (req, res) {
-   res.sendFile('./futures.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list
@@ -678,18 +684,29 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   var msgPromise = new Promise(function (resolve, reject) {
+   // var msgPromise = new Promise(function (resolve, reject) {
+   //    var today = new Date();
+   //    Messages.findOne({date: {$gte: today.setDate(today.getDate()-2)}}, function(err, message) {
+   //       if (err)
+   //          reject(err);
+   //       if (message) {
+   //          answer.msgboard = true;
+   //       }
+   //       resolve();
+   //    });
+   // });
+   var futuresPromise = new Promise(function (resolve, reject) {
       var today = new Date();
-      Messages.findOne({date: {$gte: today.setDate(today.getDate()-2)}}, function(err, message) {
+      Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {
          if (err)
             reject(err);
-         if (message) {
-            answer.msgboard = true;
+         if (future) {
+            answer.futures = true;
          }
          resolve();
       });
    });
-   Promise.all([betsPromise, msgPromise]).then(function(values){
+   Promise.all([betsPromise, futuresPromise]).then(function(values){
       res.send(answer);
    });
 });

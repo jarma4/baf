@@ -6,57 +6,57 @@ module.exports = router;
 
 // Main page renderings
 router.get('/', function(req, res) {
-   res.render('nfl', {pagename:'NFL'});  // pagename not used now
+   res.render('odds', {pagename:'odds'});  // pagename not used now
 });
 
-router.get('/nba', function(req, res) {
-   res.render('nba', {pagename:'NBA'});  // pagename not used now
-});
+// router.get('/nba', function(req, res) {
+//    res.render('nba', {pagename:'NBA'});  // pagename not used now
+// });
 
 router.get('/bets', function(req, res) {
-   res.render('bets', {pagename:'Bets'});
+   res.render('bets', {pagename:'bets'});
 });
 
 router.get('/nfl2', function(req, res) {
-   res.render('nfl2', {pagename:'NFL'});  // pagename not used now
+   res.render('nfl2', {pagename:'nfl'});  // pagename not used now
 });
 
 router.get('/bets2', function(req, res) {
-   res.render('bets2', {pagename:'Bets'});
+   res.render('bets2', {pagename:'bets'});
 });
 
 router.get('/stats', function(req, res) {
-   res.render('stats', {pagename:'Stats'});
+   res.render('stats', {pagename:'stats'});
 });
 
 router.get('/messageboard', function(req, res) {
-   res.render('msg', {pagename:'MshBoard'});
+   res.render('msg', {pagename:'msgboard'});
 });
 
 router.get('/scores', function(req, res) {
-   res.render('scores', {pagename:'Scores'});
+   res.render('scores', {pagename:'scores'});
 });
 
 router.get('/props', function(req, res) {
-   res.render('props', {pagename:'Prop Bets'});
+   res.render('props', {pagename:'props'});
 });
 
 router.get('/overunder', function(req, res) {
-   res.render('overunder', {pagename:''});
+   res.render('overunder', {pagename:'overunder'});
 });
 
 router.get('/options', function(req, res) {
-   res.render('options', {pagename:''});
+   res.render('options', {pagename:'options'});
 });
 
 router.get('/futures', function(req, res) {
-   res.render('futures', {pagename:''});
+   res.render('futures', {pagename:'futures'});
 });
 
 router.get('/login', function(req, res) {
-   res.render('login', {pagename:''});
+   res.render('login', {pagename:'login'});
 });
 
 router.get('/test', function(req, res) {
-   res.render('test', {pagename:''});
+   res.render('test', {pagename:'test'});
 });

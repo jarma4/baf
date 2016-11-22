@@ -1,14 +1,27 @@
-extends base 
+extends base
 
 block content
-   strong.lead &nbspStandings
-   .panel-group
-      .panel.panel-success
-         .panel-heading Over Under Picks
-         #ouPicks.panel-body
-      .panel.panel-primary
-         .panel-heading Standings
-         #standingsArea.panel-body
+   strong.lead &nbspOver/Under Game
+   .container-fluid
+      .row.no-gutters
+         .col-md-3
+            .panel.panel-success
+               .panel-heading 
+                  | Current Tally
+                  a(data-toggle='collapse', href='#ouPicks')#ouPicksTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #ouPicks.panel-collapse.collapse
+            .panel.panel-primary
+               .panel-heading
+                  | Player Picks
+                  a(data-toggle='collapse', href='#picksArea')#picksAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #picksArea.panel-collapse.collapse
+            .panel.panel-info
+               .panel-heading
+                  | NBA Standings
+                  a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #standingsArea.panel-collapse.collapse
+         .col-md-3
+            
 block scripts
    script(type='text/javascript') showStandings()
             

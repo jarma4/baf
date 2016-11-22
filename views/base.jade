@@ -18,33 +18,35 @@ html
 					li.sidebar-brand
 						img(src="images/2db_sm.png")
 					li
-						a.toggleSidebar(href='/') #[img(src="images/football.png").nav-icon] NFL
-					li
-						a#nbaPage.toggleSidebar(href='/nba') #[img(src="images/basketball.png").nav-icon] NBA
+						a.toggleSidebar(href='/') #[span.glyphicon.glyphicon-star] Games
+					//- li
+					//- 	a#nbaPage.toggleSidebar(href='/nba') #[img(src="images/basketball.png").nav-icon] NBA
 					li
 						a.toggleSidebar(href='/bets') #[span.iconspan.glyphicon.glyphicon-usd] Bets
 					li
 						a.toggleSidebar(href='/stats') #[span.glyphicon.glyphicon-stats] Stats
 					li
-						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-large] Scores
+						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-list] Scores
 					li
 						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-eye-open] Futures
 					li
-						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-list-alt] OverUnder
+						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-retweet] OverUnder
 					li
 						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
-					li
-						a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
+					//- li
+					//- 	a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
 					li
 						a.toggleSidebar(href='/options') #[span.iconspan.glyphicon.glyphicon-cog] Options
 			#page-content-wrapper
 				button.toggleSidebar.btn.btn-default.btn-lg
 					span.glyphicon.glyphicon-menu-hamburger
-				a.right(href='/bets')
+				a.right.statusIcon(href='#', data-toggle='modal', data-target='#helpModal')
+					span.glyphicon.glyphicon-question-sign.text-muted
+				a.right.statusIcon(href="/bets")
 					span#notify1.glyphicon
-				a.right(href='#', data-toggle='modal', data-target='#debtsModal')
+				a.right.statusIcon(href='#', data-toggle='modal', data-target='#debtsModal')
 					span#notify2.glyphicon
-				a.right(href='/messageboard')
+				a.right.statusIcon(href='/futures')
 					span#notify3.glyphicon
 				block content
 
@@ -54,7 +56,7 @@ html
 				.modal-content
 					.modal-header
 						button.close(type='button', data-dismiss='modal') #[span &times;]
-						h4#betTitle
+						h4.text-center#betTitle
 					.modal-body
 						form
 							.form-group
@@ -68,14 +70,14 @@ html
 									input#betAmount.small-inputbox(value='2', min='1', type='number')
 									button.btn-increment.btn.btn-primary(value="1")
 										span.glyphicon.glyphicon-plus
-								.form-group#oddsMod
-									label(for='betChange') Change Odds:
-									.input-group
-										button.btn-increment.btn.btn-primary(value="0")
-											span.glyphicon.glyphicon-minus
-										input#betChange.small-inputbox(type='number')
-										button.btn-increment.btn.btn-primary(value="1")
-											span.glyphicon.glyphicon-plus
+								//- .form-group#oddsMod
+								//- 	label(for='betChange') Change Odds:
+								//- 	.input-group
+								//- 		button.btn-increment.btn.btn-primary(value="0")
+								//- 			span.glyphicon.glyphicon-minus
+								//- 		input#betChange.small-inputbox(type='number')
+								//- 		button.btn-increment.btn.btn-primary(value="1")
+								//- 			span.glyphicon.glyphicon-plus
 								input#betUser2.nodisplay
 								input#betOdds.nodisplay
 								input#betType.nodisplay
@@ -103,6 +105,7 @@ html
 				.modal-content
 					.modal-body
 						button.close(type='button', data-dismiss='modal') #[span &times;]
+						h4.text-center Debts
 						table#oweyou.table
 							tr.heading
 								th.heading-success(colspan=4) Owed to You:
@@ -119,7 +122,7 @@ html
 								th Game
 								th Who
 								th Paid
-						//- input#debtHolder.nodisplay
+						input#debtHolder.nodisplay
 		#paidModal.modal.fade
 			.modal-dialog
 				.modal-content
@@ -130,6 +133,32 @@ html
 						button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
 						button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
 						input#paidId.nodisplay
+		#helpModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-body
+						button.close(type='button', data-dismiss='modal') #[span.text-primary &times;]
+						h4.text-center Help
+						p.msg-user Icons
+						h4 #[span.glyphicon.glyphicon-flag.text-danger] Bets are waiting for you
+						h4 #[span.glyphicon.glyphicon-usd.text-success] Show debts owed to you/others
+						h4 #[span.glyphicon.glyphicon-eye-open.text-info] Futures being offered
+						h4 #[span.glyphicon.glyphicon-chevron-right] #[span.glyphicon.glyphicon-chevron-down] Open/close panel
+						if pagename == "bets"
+							h4 #[span.glyphicon.glyphicon-hourglass] First to act bet
+							h4 #[span.glyphicon.glyphicon-comment] Comment attached
+						br
+						case pagename
+							when 'odds'
+								p.msg-user Games
+								h4 - 'Save for Later' means the bet will not be sent immediately and stored for later review
+							when 'bets'
+								p.msg-user Bets
+								h4 - Over/under bets from others show your side in odds column, team name doesn't matter.
+							when 'futures'
+								p.msg-user Futures
+								h4 - Possible futures are listed in separate panels.  If a person 'Gives' an offer, they will pay the odds listed to whomever 'Takes' the other offer.  A person can choose either side and will wait until his 'offer' is accepted by someone else.
+								h4 - When submitting future offer, default time expiration of 7 days is added but can be modified.
 		#alertModal.modal.fade
 			.modal-dialog
 				.modal-content#alertBody

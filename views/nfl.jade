@@ -1,20 +1,24 @@
 extends base
 
 block content
-   img.logo-md#nfl(src="images/nfl_logo_sprite_medium.png")
-   stron.lead#nflWeek
+   a#sportNfl.sportPick.dropped(href='#')
+      img.logo-md(src="images/nfl_logo_sprite_medium.png")
+   //- span.glyphicon.glyphicon-resize-horizontal
+   a#sportNba.sportPick.dimmed(href='#')
+      img.logo-md(src="images/nba_logo_sprite_medium.png")
+   //- strong.lead#nflWeek
    .container-fluid
       .row.no-gutters
          .col-md-3
-            em#nflTimestamp.right
+            em#timestamp.right
             #savedBets
-            #nflOdds1
+            #odds1
          .col-md-3
-            #nflOdds2
+            #odds2
          .col-md-3
-            #nflOdds3
+            #odds3
          .col-md-3
-            #nflOdds4
+            #odds4
    
    
 block scripts
