@@ -747,6 +747,8 @@ function showScores(period) {
    var sport = document.cookie.split('=')[1];
    if (sport !== 'nba' && sport !== 'nfl')
       sport = ($('#sportNfl').hasClass('dropped'))?'nfl':'nba';
+   if (sport == 'nba' && $('#sportNfl').hasClass('dropped'))
+      period = new Date();
    toggleSport(sport);
    $.ajax({
 		type: 'POST',
@@ -757,10 +759,11 @@ function showScores(period) {
          'period': period
       },
 		success:function(retData){
-         if ($('#sportNfl').hasClass('dropped'))
+         if ($('#sportNfl').hasClass('dropped')) {
             $('#scoresPeriod').text('Week '+period);
-         else
+         } else {
             $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());
+         }
 			var outp = '<table class="table"><tr><th>Away</th><th>Score</th><th>Home</th><th>Score</th></tr>';
 			$.each(retData, function(i,rec){
 				outp += '<tr><td>'+rec.team1+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec.score2+'</td></tr>';

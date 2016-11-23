@@ -16,20 +16,33 @@ mongoose.connect('mongodb://localhost/baf');
 var debtList = {};
 Bets.find({$and:[{paid:false},{$or:[{status:4},{status:5}]}]}, function(err, bets){
    bets.forEach(function(bet){
+      // if (bet.user1 == 'jarma4' || bet.user2 == 'jarma4')
+      //    console.log(bet.user1+' '+bet.user2);
       if (!debtList[bet.user1]){
          debtList[bet.user1] = {owe: {}, owed: {}};
+      }
+      if (!debtList[bet.user2]){
+         debtList[bet.user2] = {owe: {}, owed: {}};
       }
       if (bet.status == 4) {
          if (!debtList[bet.user1].owed[bet.user2]) {
             debtList[bet.user1].owed[bet.user2] = 1;
+         }
+         if (!debtList[bet.user2].owe[bet.user1]) {
+            debtList[bet.user2].owe[bet.user1] = 1;
          } else {
             debtList[bet.user1].owed[bet.user2] += 1;
+            debtList[bet.user2].owe[bet.user1] += 1;
          }
       } else {
          if (!debtList[bet.user1].owe[bet.user2]){
             debtList[bet.user1].owe[bet.user2] = 1;
-         }else{
+         }
+         if (!debtList[bet.user2].owed[bet.user1]){
+            debtList[bet.user2].owed[bet.user1] = 1;
+         } else{
             debtList[bet.user1].owe[bet.user2] += 1;
+            debtList[bet.user2].owed[bet.user1] += 1;
          }
       }
    });

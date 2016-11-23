@@ -636,7 +636,7 @@ router.get('/getdebts', requireLogin, function(req,res){
          sortedBets.push(single);
       });
       res.json(sortedBets);
-   }).sort({date: -1}).limit(20);
+   }).sort({date: -1});
 });
 
 router.post('/getfutureoffers', requireLogin, function(req,res){
