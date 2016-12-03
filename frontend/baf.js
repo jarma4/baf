@@ -86,7 +86,8 @@ $('#betSubmit').on('click', function(event) {
 		   'team1': $('#betTeam1').val(),
          'team2': $('#betTeam2').val(),
          'sport': $('#betSport').val(),
-         'gametime': $('#betGametime').val()
+         'gametime': $('#betGametime').val(),
+         'serial': Math.random()
 		},
 		success:function(retData){
          alert(retData.type, retData.message);
