@@ -50,6 +50,7 @@ Bets.find({$and:[{paid:false},{$or:[{status:4},{status:5}]}]}, function(err, bet
    for (var user1 in debtList) {
       for (var user2 in debtList[user1].owe) {
          if (debtList[user2] && debtList[user2].owed[user1]) {
+            console.log('=================');
             console.log(user1+' owes '+user2+' '+debtList[user1].owe[user2]);
             console.log(user2+' owes '+user1+' '+debtList[user2].owe[user1]);
          }

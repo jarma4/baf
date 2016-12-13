@@ -112,6 +112,7 @@ router.post('/makebet', requireLogin, function (req, res) {
    var result, today = new Date();
    // console.log(today.setDate(today.getDate()+7*24*60*60*1000))
 
+   // check stack if bet has already come through, exit if so
    if (betStack.indexOf(req.body.serial) != -1) {
       console.log('previous bet found with serial#'+req.body.serial);
       return;
@@ -119,13 +120,16 @@ router.post('/makebet', requireLogin, function (req, res) {
 
    // add bet serial# to stack to check for duplicates later
    betStack.push(req.body.serial);
+   // remove after 10 seconds
    setTimeout(function(){
       betStack.splice(betStack.indexOf(req.body.serial),1);
    }, 10000);
 
-   // check if first to act bet, if not zero serial which fta uses later
+   // check if first to act bet, if not zero serial whcih get copied to fta and used later
    if (req.body.user2 !== 'EVERYONE2')
       req.body.serial = 0;
+
+   // if EVERYONE bet, need to go through user db and send to each
    if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.later) {
       Users.find({$and: [
                      {_id: {$nin:[req.session.user._id,'testuser']}},
@@ -133,68 +137,10 @@ router.post('/makebet', requireLogin, function (req, res) {
          users.forEach(function(single) {
             req.body.user2 = single;
             saveBet(req);
-
-            // new Bets({
-            //    week: getWeek(today),
-            //    year: today.getFullYear(),
-            //    gametime: req.body.gametime,
-            //    date: today,
-            //    user1: req.session.user._id,
-            //    user2: single,
-            //    odds: req.body.odds,
-            //    type: req.body.type,
-            //    team1: req.body.team1,
-            //    team2: req.body.team2,
-            //    amount: req.body.amount,
-            //    sport: req.body.sport,
-            //    paid: false,
-            //    status: 0,
-            //    fta: (req.body.user2 == 'EVERYONE2')?req.body.serial:0,
-            // }).save(function(err){
-            //    if(err) {
-            //       console.log('Trouble adding bet: '+err);
-            //       res.send({'type':'danger', 'message':'Trouble adding bet'});
-            //    } else {
-            //       console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount+((req.body.user2 == 'EVERYONE2')?'(fta)':''));
-            //    }
-            // });
-            // if (!req.body.later) {
-            //    changeUser (single, 'bets', 1);
-            //    textUser(single, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from '+req.session.user._id);
-            // }
          });
-         // res.send({'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Sent'});
       });
    } else {
       saveBet(req);
-      // new Bets({
-      //    week: getWeek(today),
-      //    year: today.getFullYear(),
-      //    gametime: req.body.gametime,
-      //    date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
-      //    user1: req.session.user._id,
-      //    user2: req.body.user2,
-      //    odds: req.body.odds,
-      //    type: req.body.type,
-      //    team1: req.body.team1,
-      //    team2: req.body.team2,
-      //    amount: req.body.amount,
-      //    sport: req.body.sport,
-      //    paid: false,
-      //    status: (req.body.later)?((req.body.sport=='nfl')?-1:-2):0
-      // }).save(function(err){
-      //    if(err) {
-      //       console.log('Trouble adding bet: '+err);
-      //       res.send({'type':'danger', 'message':'Trouble adding bet'});
-      //    } else {
-      //       console.log('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds+" amount=$"+req.body.amount);
-      //       res.send({'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Saved'});
-      //    }
-      // });
-      // if (!req.body.later && req.body.type != 'give' && req.body.type != 'take') {
-      //    changeUser (req.body.user2, 'bets', 1);
-      //    textUser(req.body.user2, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from '+req.session.user._id);
-      // }
    }
    res.send({'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Saved'});
 });

@@ -4,11 +4,11 @@ function toggleSport(sport) {
    if (sport == 'nba') {
       $('#sportNba').removeClass('dimmed').addClass('dropped');
       $('#sportNfl').removeClass('dropped').addClass('dimmed');
-      document.cookie = 'sport=nba;max-age=8640';
+      document.cookie = 'sport=nba;max-age=43200';
    } else {
       $('#sportNfl').removeClass('dimmed').addClass('dropped');
       $('#sportNba').removeClass('dropped').addClass('dimmed');
-      document.cookie = 'sport=nfl;max-age=8640';
+      document.cookie = 'sport=nfl;max-age=43200';
    }
 }
 
