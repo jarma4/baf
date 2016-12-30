@@ -104,7 +104,7 @@ function saveBet (req){
    });
    if (!req.body.later && req.body.type != 'give' && req.body.type != 'take') {
       changeUser (req.body.user2, 'bets', 1);
-      textUser(req.body.user2, req.session.user._id, 'You have a new '+((req.body.sport=='nfl')?'NFL':'NBA')+' bet from '+req.session.user._id);
+      textUser(req.body.user2, req.session.user._id, ((req.body.sport=='nfl')?'NFL':'NBA')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
    }
 }
 
@@ -287,7 +287,7 @@ router.post('/changebet', requireLogin, function(req,res){
                            }
                         });
                         changeUser (single, 'bets', 1);
-                        textUser(single, req.session.user._id, 'You have a new bet from '+req.session.user._id);
+                        textUser(single, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
                      });
                   });
                   Bets.remove({_id:req.body.id}, function(err){
@@ -306,7 +306,7 @@ router.post('/changebet', requireLogin, function(req,res){
                               console.log(err);
                            else {
                               changeUser(bet.user2, 'bets', 1);
-                              textUser(bet.user2, req.session.user._id, 'You have a new bet from '+req.session.user._id);
+                              textUser(bet.user2, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
                            }
                         });
                      }
@@ -681,8 +681,8 @@ router.get('/doorbell', requireLogin, function(req,res){
          if (user){
             answer.bets = user.bets;
             answer.debts = user.debts;
+            resolve();
          }
-         resolve();
       });
    });
    // var msgPromise = new Promise(function (resolve, reject) {
@@ -703,8 +703,8 @@ router.get('/doorbell', requireLogin, function(req,res){
             reject(err);
          if (future) {
             answer.futures = true;
+            resolve();
          }
-         resolve();
       });
    });
    Promise.all([betsPromise, futuresPromise]).then(function(values){
@@ -727,7 +727,7 @@ function textUser(to, from, message, pref2){
          console.log(err);
       } else {
          if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-            sinchSms.sendMessage('+1'+user.sms, '2DB - ' + message + ' - http://2dollarbets.com/bets');
+            sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
 
          // sms.send_message({
          //    src: '+16622193664',

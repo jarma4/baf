@@ -49,7 +49,11 @@ var express = require('express'),
 
 // enable middleware
 app.use(compression());
-app.use('/', express.static(__dirname + '/public'));
+// app.use('/', express.static(__dirname + '/public'));
+app.use('/js', express.static(__dirname + '/public/js'));
+app.use('/css', express.static(__dirname + '/public/css'));
+app.use('/images', express.static(__dirname + '/public/images', {maxage: '1y'}));
+app.use('/fonts', express.static(__dirname + '/public/fonts', {maxage: '1y'}));
 app.set('view engine', 'jade');
 app.set('views', './views');
 
@@ -67,10 +71,10 @@ var scraper = require('./models/scraper');
 // schedule worker jobs
 var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    // oddsId2 = crontab.scheduleJob("*/10 9-22 * * 0", scraper.refreshOddsInfo),
-   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-19,22-23 * * 0,1,4", scraper.checkScores,['nfl']),
-   checkScoresNbaCron = crontab.scheduleJob("*/6 0,21-23 * * *", scraper.checkScores,['nba']),
-   tallyBetsNflCron = crontab.scheduleJob("*/10 0,15-19,21-23 * * 0,1,4", scraper.tallyBets,['nfl']),
-   tallyBetsNbaCron = crontab.scheduleJob("*/6 0,21-23 * * *", scraper.tallyBets,['nba']),
+   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-19,22-23 * * 0,1", scraper.checkScores,['nfl']),
+   checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
+   tallyBetsNflCron = crontab.scheduleJob("*/10 0,15-19,21-23 * * 0,1", scraper.tallyBets,['nfl']),
+   tallyBetsNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
    updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);

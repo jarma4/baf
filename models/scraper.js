@@ -1,6 +1,7 @@
 var request = require('request'),
 fs = require('fs'),
 cheerio = require('cheerio'),
+Promise = require('promise'),
 Users = require('./dbschema').Users,
 Bets = require('./dbschema').Bets,
 Records = require('./dbschema').Records,
@@ -41,7 +42,7 @@ function getOdds(sport) {
                else {
                   var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
                   var temptime = $(this).parent().prev().text().split(':');
-                  matchup.date = new Date(tempdate+' 2016 '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
+                  matchup.date = new Date(tempdate+' '+((tempdate.split(' ')[1] == 'Jan')?'2017':'2016')+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
                   matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
                }
             });
@@ -89,25 +90,46 @@ function updatePct (user, sport) {
    });
 }
 
+function updateRecord(user, category, sport, year) {
+   return new Promise(function(resolve, reject){
+      var temp = {};
+      temp[category] = 1;
+      Records.update({'user': user, 'sport': sport, 'year': year},{$inc: temp}, function(err){
+   		if (err) {
+   			console.log(user+' had trouble updating wins - '+new Date());
+            reject();
+   		} else {
+   			console.log(user+' had a '+category+' - '+new Date());
+            resolve();
+         }
+   	});
+   });
+}
+
 function updateWinnerLoser(winner, loser, push, sport){
-	Records.update({user: winner, sport: sport, year: 2016},(push)?{$inc:{push:1}}:{$inc:{win:1}}, function(err){
-		if (err)
-			console.log(user+' had trouble updating wins - '+new Date());
-		else if (!push)
-			console.log(winner+' is winner - '+new Date());
-      else
-         console.log('push - '+new Date());
-	});
-   Records.update({user: loser, sport: sport, year: 2016},(push)?{$inc:{push:1}}:{$inc:{loss:1}},function(err){
-		if (err)
-			console.log(_id+' had trouble updating loser - '+new Date());
-		else if (!push)
-			console.log(loser+' is loser - '+new Date());
-      else
-         console.log('push - '+new Date());
-	});
-	updatePct(winner, sport);
-	updatePct(loser, sport);
+	// Records.update({user: winner, sport: sport, year: 2016},(push)?{$inc:{push:1}}:{$inc:{win:1}}, function(err){
+	// 	if (err)
+	// 		console.log(user+' had trouble updating wins - '+new Date());
+	// 	else if (!push)
+	// 		console.log(winner+' is winner - '+new Date());
+   //    else
+   //       console.log('push - '+new Date());
+	// });
+   // Records.update({user: loser, sport: sport, year: 2016},(push)?{$inc:{push:1}}:{$inc:{loss:1}},function(err){
+	// 	if (err)
+	// 		console.log(_id+' had trouble updating loser - '+new Date());
+	// 	else if (!push)
+	// 		console.log(loser+' is loser - '+new Date());
+   //    else
+   //       console.log('push - '+new Date());
+	// });
+   updateRecord(winner, (push)?'push':'win', sport, 2016).then(function(){
+      updatePct(winner, sport);
+   });
+   updateRecord(loser, (push)?'push':'loss', sport, 2016).then(function(){
+      updatePct(loser, sport);
+   });
+   // update debt counters
    if (!push) {
       Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
          if (err)
