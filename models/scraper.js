@@ -24,7 +24,7 @@ var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARI', 'Carolina': 'CAR', 'Chicago'
 
 function getOdds(sport) {
    var url = 'http://www.oddsshark.com/'+sport+'/odds';
-   // console.log('refeshing '+sport+' odds - '+new Date());
+   console.log('refeshing '+sport+' odds - '+new Date());
    request(url, function (err, response, body) {
       if(!err && response.statusCode == 200) {
          var $ = cheerio.load(body);
@@ -61,6 +61,13 @@ function getOdds(sport) {
             games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
             games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
          });
+         // add special game bets
+         if(fs.existsSync('json/extra.json') && sport == 'nfl') {
+            var extraGames = JSON.parse(fs.readFileSync('json/extra.json','utf8'));
+            extraGames.games.forEach(function(game){
+               games.unshift(game);
+            });
+         }
          var now = new Date();
          var sendData = {'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
             'week':  module.exports.getWeek(now),

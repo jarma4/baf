@@ -681,8 +681,8 @@ router.get('/doorbell', requireLogin, function(req,res){
          if (user){
             answer.bets = user.bets;
             answer.debts = user.debts;
-            resolve();
          }
+         resolve();
       });
    });
    // var msgPromise = new Promise(function (resolve, reject) {
@@ -703,8 +703,8 @@ router.get('/doorbell', requireLogin, function(req,res){
             reject(err);
          if (future) {
             answer.futures = true;
-            resolve();
          }
+         resolve();
       });
    });
    Promise.all([betsPromise, futuresPromise]).then(function(values){
