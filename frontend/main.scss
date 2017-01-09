@@ -1,6 +1,15 @@
 @import '_slate';
 @import '_sidebar';
 
+#sportNba {
+	margin-left: -10px;
+	// margin-right: -5px;
+}
+#sportNcaa {
+	img {
+		height: 40px;
+	}
+}
 // everywhere
 .panel-heading {
 	font-weight: bold;

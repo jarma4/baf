@@ -71,10 +71,10 @@ var scraper = require('./models/scraper');
 // schedule worker jobs
 var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    // oddsId2 = crontab.scheduleJob("*/10 9-22 * * 0", scraper.refreshOddsInfo),
-   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-19,22-23 * * 0,1", scraper.checkScores,['nfl']),
+   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0,6", scraper.checkScores,['nfl']),
    checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
-   tallyBetsNflCron = crontab.scheduleJob("*/10 0,15-19,21-23 * * 0,1", scraper.tallyBets,['nfl']),
-   tallyBetsNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.tallyBets,['nba']),
+   tallyBetsNflCron = crontab.scheduleJob("*/10 0,15-23 * * 0,6", scraper.tallyBets,['nfl']),
+   tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
    updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings);
@@ -91,9 +91,9 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
 // });
 
 // backup mongo datbases
-var backupDbCron = crontab.scheduleJob('0 1 * * 4', function () {
+var backupDbCron = crontab.scheduleJob('0 1 * * *', function () {
    var now = new Date();
-   var cmd = exec('mongodump -d baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
+   var cmd = exec('mongodump -dbaf -ubaf -p$BAF_MONGO -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr)
          console.log(error);
          console.log(stderr);

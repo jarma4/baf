@@ -16,7 +16,7 @@ var usersSchema = new mongoose.Schema({
 var recordsSchema = new mongoose.Schema({
    user : String,
    sport : String,
-   year : Number,
+   season : Number,
    loss: Number,
    win: Number,
    push: Number,
@@ -25,7 +25,7 @@ var recordsSchema = new mongoose.Schema({
 
 var betsSchema = new mongoose.Schema({
    date: Date,
-   year : Number,
+   season : Number,
    user1 : String,
    user2 : String,
    amount : Number,
@@ -57,7 +57,7 @@ var scoresSchema = new mongoose.Schema({
    winner: Number,
    week : Number,
    sport : String,
-   year: Number
+   season: Number
 });
 
 var propsSchema = new mongoose.Schema({

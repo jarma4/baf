@@ -1,5 +1,6 @@
 var express = require('express'),
 bodyParser = require('body-parser'),
+fs = require('fs'),
 // Auth = require('./auth'),
 session = require('client-sessions'),
 // session = require('express-session'),
@@ -15,13 +16,13 @@ Messages = require('../models/dbschema').Messages,
 Props = require('../models/dbschema').Props,
 Ougame = require('../models/dbschema').Ougame,
 mongoose = require('mongoose');
-mongoose.connect('mongodb://127.0.0.1/baf');
+mongoose.connect('mongodb://127.0.0.1/baf', {user:'baf', pass: process.env.BAF_MONGO});
 
 // var sms = plivo.RestAPI({
 //   authId: 'MANJRMMDLJYME1MMYYOG',
 //   authToken: 'ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw'
 // });
-var auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', 'nhnHg5UWKECMfk59XBSIjw==');
+var auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
 
 router = express.Router();
 
@@ -30,7 +31,7 @@ module.exports = router;
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(session({
   cookieName: 'session',
-  secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
+  secret: process.env.BAF_SESSION,
   duration: 14 * 24 * 60 * 60 * 1000,
   activeDuration: 5 * 60 * 1000,
 }));
@@ -79,7 +80,7 @@ function saveBet (req){
 
    new Bets({
       week: getWeek(today),
-      year: today.getFullYear(),
+      season: 2016, //today.getFullYear(),
       gametime: req.body.gametime,
       date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
       user1: req.session.user._id,
@@ -274,7 +275,7 @@ router.post('/changebet', requireLogin, function(req,res){
                            amount: bet.amount,
                            paid: false,
                            status: 0,
-                           year: new Date().getFullYear(),
+                           season: 2016, //new Date().getFullYear(),
                            week: getWeek(new Date()),
                            gametime: bet.gametime,
                            sport: bet.sport
@@ -322,7 +323,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
    // console.log(getWeek(new Date(req.body.date));
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
-   Bets.find({$and:[{year:2016}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{season:2016}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -353,7 +354,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
 
 router.post('/overallstats', requireLogin, function(req,res){
    var stats = [];
-   Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, year: req.body.year}, function(err,records){
+   Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season}, function(err,records){
       if (err)
          console.log(err);
       else
@@ -364,7 +365,7 @@ router.post('/overallstats', requireLogin, function(req,res){
                   for (var i=0; i < sports.length; i++) {
                      new Records({
                         user: user,
-                        year: new Date().getFullYear(),
+                        season: new Date().getFullYear(),
                         sport: sports[i],
                         win: 0,
                         loss: 0,
@@ -409,14 +410,14 @@ router.post('/graphstats', requireLogin, function(req,res){
    if (Number(req.body.days)) {  // if a number of days are given, go back from today that many
       startDate.setDate(startDate.getDate() - req.body.days);
    } else { // else start at the begining of the season
-         startDate = (req.body.sport == 'nfl')?1:new Date(req.body.year, 9, 25);
+         startDate = (req.body.sport == 'nfl')?1:new Date(req.body.season, 9, 25);
    }
    // find all valid bets during period, keep numBets and process
    Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
                                                       {user2: req.body.user}]},
                      {status:{$in: [4,5,6]}},
                      {sport: req.body.sport},
-                     {year: req.body.year},
+                     {season: req.body.season},
                      (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err,bets){
       if (err) {
          console.log(err);
@@ -468,7 +469,7 @@ router.post('/userstats', requireLogin, function(req,res){
    Bets.find({$and:[{$or:[{user1: req.body.user},
                           {user2: req.body.user}],
                     sport: req.body.sport,
-                    year: req.body.year},
+                    season: req.body.season},
                     {status:{$in:[4,5,6]}},
                     (req.body.week)?{week:req.body.week}:{}]}, function(err,bets){
       if (err)
@@ -519,7 +520,7 @@ router.get('/msgboard', requireLogin, function(req,res){
 
 router.post('/getscores', requireLogin, function(req,res){
    if (req.body.sport=='nfl')
-      Scores.find({sport:'nfl', week: req.body.period, year: Number(req.body.year)}, function(err,scores){
+      Scores.find({sport:'nfl', week: req.body.period, season: Number(req.body.season)}, function(err,scores){
          if(err){
             console.log(err);
          } else {
@@ -657,6 +658,10 @@ router.get('/nbaodds', function (req, res) {
    res.sendFile('./json/nba_info.json', {'root':__dirname+'/..'});
 });
 
+router.get('/ncaaodds', function (req, res) {
+   res.sendFile('./json/ncaa.json', {'root':__dirname+'/..'});
+});
+
 router.get('/getfutures', function (req, res) {
    res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
 });
@@ -674,6 +679,8 @@ router.get('/doorbell', requireLogin, function(req,res){
       type: 'message',
       // username: req.session.user._id
       };
+   if (fs.existsSync('json/ncaa.json'))
+      answer.ncaa = true;
    var betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){
          if (err)

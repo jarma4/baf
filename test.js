@@ -11,52 +11,68 @@ var mongoose = require('mongoose'),
    fs = require('fs'),
    Ougame = require('./models/dbschema').Ougame;
 
-mongoose.connect('mongodb://localhost/baf');
+mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
+nbaTeams2 = {'Hawks': 'ATL', 'Bulls': 'CHI', 'Mavericks': 'DAL', 'Pistons': 'DET', 'Timberwolves': 'MIN', 'Pelicans': 'NOH', 'Knicks': 'NY', 'Nets': 'BKN', '76ers': 'PHI', 'Thunder': 'OKC', 'Clippers': 'LAC','Lakers': 'LAL', 'Wizards': 'WAS', 'Cavaliers': 'CLE', 'Nuggets': 'DEN', 'Rockets': 'HOU', 'Pacers': 'IND', 'Heat': 'MIA', 'Celtics': 'BOS', 'Warriors': 'GS', 'Golden State': 'GS', 'Spurs': 'SAN', 'Kings': 'SAC', 'Trail Blazers': 'POR', 'Magic': 'ORL', 'Hornets': 'CHR', 'Suns': 'PHO', 'Raptors': 'TOR', 'Bucks': 'MIL', 'Jazz': 'UTA', 'Grizzlies': 'MEM'};
 
-var debtList = {};
-Bets.find({$and:[{paid:false},{$or:[{status:4},{status:5}]}]}, function(err, bets){
-   bets.forEach(function(bet){
-      // if (bet.user1 == 'jarma4' || bet.user2 == 'jarma4')
-      //    console.log(bet.user1+' '+bet.user2);
-      if (!debtList[bet.user1]){
-         debtList[bet.user1] = {owe: {}, owed: {}};
-      }
-      if (!debtList[bet.user2]){
-         debtList[bet.user2] = {owe: {}, owed: {}};
-      }
-      if (bet.status == 4) {
-         if (!debtList[bet.user1].owed[bet.user2]) {
-            debtList[bet.user1].owed[bet.user2] = 1;
-         }
-         if (!debtList[bet.user2].owe[bet.user1]) {
-            debtList[bet.user2].owe[bet.user1] = 1;
-         } else {
-            debtList[bet.user1].owed[bet.user2] += 1;
-            debtList[bet.user2].owe[bet.user1] += 1;
-         }
-      } else {
-         if (!debtList[bet.user1].owe[bet.user2]){
-            debtList[bet.user1].owe[bet.user2] = 1;
-         }
-         if (!debtList[bet.user2].owed[bet.user1]){
-            debtList[bet.user2].owed[bet.user1] = 1;
-         } else{
-            debtList[bet.user1].owe[bet.user2] += 1;
-            debtList[bet.user2].owed[bet.user1] += 1;
-         }
-      }
-   });
-   console.log(debtList);
-   for (var user1 in debtList) {
-      for (var user2 in debtList[user1].owe) {
-         if (debtList[user2] && debtList[user2].owed[user1]) {
-            console.log('=================');
-            console.log(user1+' owes '+user2+' '+debtList[user1].owe[user2]);
-            console.log(user2+' owes '+user1+' '+debtList[user2].owe[user1]);
-         }
-      }
+var url = 'http://www.si.com/nba/scoreboard?date=2017-01-08';
+
+request(url, function (err, response, body) {
+   if(!err && response.statusCode === 200) {
+      var $ = cheerio.load(body);
+      // console.log(body);
+      $('.final').each(function(){
+      // $('.game-status.postgame.team').each(function(){
+         console.log($(this).find('.team-name').first().text()+' '+$(this).find('.team-score').first().text().replace(/\s/g,''));
+         console.log($(this).find('.team-name').last().text()+' '+$(this).find('.team-score').last().text().replace(/\s/g,''));
+      });
    }
 });
+// var debtList = {};
+// Bets.find({$and:[{paid:false},{$or:[{status:4},{status:5}]}]}, function(err, bets){
+//    bets.forEach(function(bet){
+//       // if (bet.user1 == 'jarma4' || bet.user2 == 'jarma4')
+//       //    console.log(bet.user1+' '+bet.user2);
+//       if (!debtList[bet.user1]){
+//          debtList[bet.user1] = {debt: {}, credit: {}};
+//       }
+//       if (!debtList[bet.user2]){
+//          debtList[bet.user2] = {debt: {}, credit: {}};
+//       }
+//       if (bet.status == 4) {
+//          if (!debtList[bet.user1].credit[bet.user2]) {
+//             debtList[bet.user1].credit[bet.user2] = 1;
+//          }
+//          if (!debtList[bet.user2].debt[bet.user1]) {
+//             debtList[bet.user2].debt[bet.user1] = 1;
+//          } else {
+//             debtList[bet.user1].credit[bet.user2] += 1;
+//             debtList[bet.user2].debt[bet.user1] += 1;
+//          }
+//       } else {
+//          if (!debtList[bet.user1].debt[bet.user2]){
+//             debtList[bet.user1].debt[bet.user2] = 1;
+//          }
+//          if (!debtList[bet.user2].credit[bet.user1]){
+//             debtList[bet.user2].credit[bet.user1] = 1;
+//          } else{
+//             debtList[bet.user1].debt[bet.user2] += 1;
+//             debtList[bet.user2].credit[bet.user1] += 1;
+//          }
+//       }
+//    });
+//    console.log(debtList);
+//    for (var user1 in debtList) {
+//       for (var user2 in debtList[user1].debt) {
+//          if (debtList[user2] && debtList[user2].credit[user1]) {
+//             console.log('======='+user1+' '+user2+'==========');
+//             // console.log(user1+' debts '+user2+' '+debtList[user1].debt[user2]);
+//             // console.log(user2+' debts '+user1+' '+debtList[user2].debt[user1]);
+//             if (debtList[user1].debt[user2] >= debtList[user2].credit[user1])
+//                console.log(user2+'s '+debtList[user2].debt[user1]+' debts to '+user1+' can be erased');
+//          }
+//       }
+//    }
+// });
 
 //how to remove juice
 // var ml = [-500, 350];

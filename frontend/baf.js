@@ -4,11 +4,18 @@ function toggleSport(sport) {
    if (sport == 'nba') {
       $('#sportNba').removeClass('dimmed').addClass('dropped');
       $('#sportNfl').removeClass('dropped').addClass('dimmed');
+      $('#sportNcaa').removeClass('dropped').addClass('dimmed');
       document.cookie = 'sport=nba;max-age=43200';
-   } else {
+   } else if (sport == 'nfl'){
       $('#sportNfl').removeClass('dimmed').addClass('dropped');
       $('#sportNba').removeClass('dropped').addClass('dimmed');
+      $('#sportNcaa').removeClass('dropped').addClass('dimmed');
       document.cookie = 'sport=nfl;max-age=43200';
+   } else {
+      $('#sportNcaa').removeClass('dimmed').addClass('dropped');
+      $('#sportNfl').removeClass('dropped').addClass('dimmed');
+      $('#sportNba').removeClass('dropped').addClass('dimmed');
+      document.cookie = 'sport=ncaa;max-age=43200';
    }
 }
 
@@ -16,8 +23,11 @@ $('.sportPick').on('click', function(){
    if ($(this).hasClass('dimmed')) {
       if ($(this).is($('#sportNfl')))
          toggleSport('nfl');
-      else
+      else if ($(this).is($('#sportNba')))
          toggleSport('nba');
+      else
+         toggleSport('ncaa');
+      // according to what page you're on, refresh data
       switch (window.location.pathname) {
          case '/':
             getOdds();
@@ -34,29 +44,24 @@ $('.sportPick').on('click', function(){
 
 // prepopulate modal items with data from database
 $('#betModal').on('show.bs.modal', function (event) {
-   var vs1, vs2, odds, gameDb, button = $(event.relatedTarget);
-
-   if (button.data('sport') == 'nfl')
-      gameDb = window.nflDb;
-   else
-      gameDb = window.nbaDb;
+   var vs1, vs2, odds, button = $(event.relatedTarget);
 
    // odds database in certain order, need to order bet elements so that user
    // choice is first before sent
    if (button.data('team') == 1) {
-      vs1 = gameDb[button.data('game')].team1;
-      vs2 = gameDb[button.data('game')].team2;
+      vs1 = window.oddsDb[button.data('game')].team1;
+      vs2 = window.oddsDb[button.data('game')].team2;
       if (button.data('type') == 'spread')
-         odds = gameDb[button.data('game')].spread;
+         odds = window.oddsDb[button.data('game')].spread;
       else
-         odds = gameDb[button.data('game')].over;
+         odds = window.oddsDb[button.data('game')].over;
    } else {
-      vs1 = gameDb[button.data('game')].team2;
-      vs2 = gameDb[button.data('game')].team1;
+      vs1 = window.oddsDb[button.data('game')].team2;
+      vs2 = window.oddsDb[button.data('game')].team1;
       if (button.data('type') == 'spread')
-         odds = 0 - gameDb[button.data('game')].spread;  //odds are for 1st team, need to reverse when taking second
+         odds = 0 - window.oddsDb[button.data('game')].spread;  //odds are for 1st team, need to reverse when taking second
       else
-         odds = gameDb[button.data('game')].over;
+         odds = window.oddsDb[button.data('game')].over;
    }
 
    // now ordered, prepopulate items
@@ -125,7 +130,7 @@ $('#betSave').on('click', function(){
 
 //prepopulate previously saved bet modal
 $('#savedModal').on('show.bs.modal', function (event) {
-   var newodds, tmpDb, button=$(event.relatedTarget);
+   var newodds, button=$(event.relatedTarget);
 
    $('#savedId').val(button.data('id'));
 
@@ -134,13 +139,8 @@ $('#savedModal').on('show.bs.modal', function (event) {
    else
       $('#savedTitle').text('Bet is: '+((button.data('type')=='over')?'Over ':'Under ')+button.data('odds'));
 
-   if (button.data('sport') == 'nfl')
-      tmpDb = window.nflDb;
-   else
-      tmpDb = window.nbaDb;
-
    //go through current odds database to see if odds have changed since saved
-   $.each(tmpDb, function(i, rec){
+   $.each(oddsDb, function(i, rec){
          if (rec.team1 == button.data('team1')) {
             if (button.data('type') == 'spread')
                $('#savedNewOdds').val(rec.spread);
@@ -472,7 +472,7 @@ function overallStats() {
 		url: '/api/overallstats',
       data: {
          'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':'nba',
-         'year': $('#statsYear').text()
+         'season': $('#statsYear').text()
       },
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
@@ -489,14 +489,14 @@ function overallStats() {
 	});
 }
 
-function getUserStats (user, sport, year, week) {
+function getUserStats (user, sport, season, week) {
    return $.ajax({
    	type: 'POST',
    	url: '/api/userstats',
       data: {
          user: user,
          sport: sport,
-         year: year,
+         season: season,
          week: week
       }
    });
@@ -506,7 +506,7 @@ function getUserStats (user, sport, year, week) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('dropped'))?'nfl':'nba', 2016,(button.data('week'))?button.data('week'):'').success(function(retData) {
+   getUserStats(button.data('user'), ($('#sportNfl').hasClass('dropped'))?'nfl':'nba', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').success(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -560,7 +560,7 @@ function drawChart(days, update) {
          user: 'ALL',
          days: days,
          sport: ($('#sportNfl').hasClass('dropped'))?'nfl':'nba',
-         year: $('#statsYear').text()
+         season: $('#statsYear').text()
       },
       success: function(retData){
          chartData.labels = retData.xaxis;
@@ -712,7 +712,7 @@ function getFutures() {
             $('#futuresGroup').append(newPanel);
             document.getElementById('futuresPanel'+i).innerHTML = outp;
             $('#futuresTitle'+i).text(single.event);
-            if (new Date('2016/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
+            if (new Date('2017/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
                $('#futuresTitle'+i).next().next().addClass('heading-danger');
          });
       },
@@ -756,7 +756,7 @@ function showScores(period) {
 		url: '/api/getscores',
       data: {
          'sport': sport,
-         'year': ((period>17)?2017:2016), //too specific to football, needs to fixed
+         'season': 2016, //too specific to football, needs to fixed
          'period': period
       },
 		success:function(retData){
@@ -786,7 +786,7 @@ $('.scoresInc').on('click', function(event){
       if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 21 && $(this).val()=='1'))
          showScores(Number(tmp[1])+$(this).val()*1);
    } else {
-      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2016'))+$(this).val()*(24*60*60*1000)));
+      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2017'))+$(this).val()*(24*60*60*1000)));
    }
 });
 
@@ -1087,33 +1087,33 @@ $('#loginSubmit').on('click', function(){
 	});
 });
 
-$('#registerSubmit').on('click', function(){
-   if (!$('#registerSMS').val() || !$('#registerUsername').val()) {
-      alert('danger', 'You have not completed all the fields');
-      $('#registerModal').modal('show');
-   } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
-      $.ajax({
-         type: 'POST',
-         url: '/admin/register',
-         data: {
-            'username': $('#registerUsername').val(),
-            'sms': $('#registerSMS').val(),
-            'password': $('#registerPassword').val()
-         },
-         success:function(retData){
-            if (retData.type == 'success') {
-               getUsers();
-            }
-            alert(retData.type, retData.message);
-         },
-         error: function(retData){
-            alert(retData.type, retData.message);
-         }
-      });
-   } else {
-      alert('danger', "Passwords don't match, please try again");
-   }
-});
+// $('#registerSubmit').on('click', function(){
+//    if (!$('#registerSMS').val() || !$('#registerUsername').val()) {
+//       alert('danger', 'You have not completed all the fields');
+//       $('#registerModal').modal('show');
+//    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
+//       $.ajax({
+//          type: 'POST',
+//          url: '/admin/register',
+//          data: {
+//             'username': $('#registerUsername').val(),
+//             'sms': $('#registerSMS').val(),
+//             'password': $('#registerPassword').val()
+//          },
+//          success:function(retData){
+//             if (retData.type == 'success') {
+//                getUsers();
+//             }
+//             alert(retData.type, retData.message);
+//          },
+//          error: function(retData){
+//             alert(retData.type, retData.message);
+//          }
+//       });
+//    } else {
+//       alert('danger', "Passwords don't match, please try again");
+//    }
+// });
 
 // below is for swiping action on touchscreens
 function getUrlPos(url){
@@ -1196,9 +1196,9 @@ function doorBell(){
             if (retData.debts) {
                $('#notify2').addClass('glyphicon-usd').addClass('text-success');
             }
-            // if (retData.msgboard) {
-            //    $('#notify3').addClass('glyphicon-bullhorn').css('color', '#6BC6E1').css('font-size','24px').css('margin','10px');
-            // }
+            if (retData.ncaa) {
+               $('#sportNcaa').removeClass('hidden');
+            }
             if (retData.futures) {
                $('#notify3').addClass('glyphicon-eye-open').addClass('text-info');
             }
@@ -1233,8 +1233,8 @@ function getWeek(date){
 
 function getOdds (){
    var sport = document.cookie.split('=')[1];
-   if (sport !== 'nba' && sport !== 'nfl')
-      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':'nba';
+   if (!sport)
+      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa';
    toggleSport(sport);
 	$.ajax({
 		type: 'GET',
@@ -1243,17 +1243,14 @@ function getOdds (){
 		dataType: 'json',
       success:function(retData){
          var sportColor, prevDate=1, gameNum=0, listCount=8;
-         var outp = '<table class="table">';
-         if (sport == 'nfl') {
-            window.nflDb = retData.games;
-            $('#nfl').css('object-position', spritePosition('nfl', 'NFL'));
-            $('#nflWeek').text('Week '+retData.week+' ');
-            sportColor = 'warning';
-         } else {
-            window.nbaDb = retData.games;
-            $('#nba').css('object-position', spritePosition('nba', 'NBA'));
-            sportColor = 'info';
+         // clear remnents of previous screens
+         for (var i = 1; i < 5; i++) {
+            $('#col'+i).empty();
          }
+         // store info globally to be used elsewhere
+         window.oddsDb = retData.games;
+
+         var outp = '<table class="table">';
          $.each(retData.games, function(i,rec){
             var checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
@@ -1266,7 +1263,7 @@ function getOdds (){
                btnColor1 = 'default';
                btnColor2 = 'default';
             }
-
+            // non mobile will see multiple columns so start new if current full
             if (gameNum%listCount === 0 && gameNum/listCount > 0) {
                outp += '</table>';
                document.getElementById('col'+gameNum/listCount).innerHTML = outp;
@@ -1286,6 +1283,7 @@ function getOdds (){
          });
          outp += '</table>';
          document.getElementById('col'+Math.ceil(gameNum/listCount)).innerHTML = outp;
+         // set sprite position for each logo on buttons
          $.each(retData.games, function(i, rec){
             $('#tm1_'+i).css('object-position', spritePosition(sport, rec.team1));
             $('#tm2_'+i).css('object-position', spritePosition(sport, rec.team2.substr(1)));
@@ -1324,144 +1322,110 @@ var username,
 
 function spritePosition (sport, team) {
    var width = 56, height = 40, cols = 6, index,
-      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN', 'ATL', 'CFP'];
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'OAK', 'PIT', 'SD', 'TEN', 'ATL'];
       nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOH','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
    if (sport == 'nfl')
       index = nfl_teams.indexOf(team);
    else
       index = nba_teams.indexOf(team);
    if (index < 0)
-      index = 33;
+      index = 0;
    return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
 }
 
    // teamInfo = {
    //    ATL:{
    //       color: '#A71930',
-   //       sprite: '0px 0px'
-   //    },
    //    ARZ: {
    //       color: '#97233F',
-   //       sprite: '-35px -0px'
-   //    },
    //    CAR: {
    //       color: '#0085CA',
-   //       sprite: '-70px -0px'
    //    },
    //    CHI: {
    //       color: '#0B162A',
-   //       sprite: '-105px -0px'
    //    },
    //    DAL: {
    //       color: '#002244',
-   //       sprite: '-140px -0px'
    //    },
    //    DET: {
    //       color: '#005A8B',
-   //       sprite: '-175px -0px'
    //    },
    //    GB: {
    //       color: '#203731',
-   //       sprite: '-25px 0px'
    //    },
    //    MIN: {
    //       color: '#4F2683',
-   //       sprite: '-35px -25px'
    //    },
    //    NO: {
    //       color: '#9F8958',
-   //       sprite: '-70px -25px'
    //    },
    //    NYG: {
    //       color: '#0B2265',
-   //       sprite: '-105px -25px'
    //    },
    //    PHI: {
    //       color: '#004953',
-   //       sprite: '-140px -25px'
    //    },
    //    SEA: {
    //       color: '#69BE28',
-   //       sprite: '-175px -25px'
    //    },
    //    SF: {
    //       color: '#AA0000',
-   //       sprite: '-0px -50px'
    //    },
    //    LAR: {
    //       color: '#B3995D',
-   //       sprite: '-35px -50px'
    //    },
    //    TB: {
    //       color: '#D50A0A',
-   //       sprite: '-70px -50px'
    //    },
    //    WAS: {
    //       color: '#773141',
-   //       sprite: '-105px -50px'
    //    },
    //    BAL: {
    //       color: '#241773',
-   //       sprite: '-140px -50px'
    //    },
    //    BUF: {
    //       color: '#00338D',
-   //       sprite: '-175px -50px'
    //    },
    //    CIN: {
    //       color: '#FB4F14',
-   //       sprite: '-0px -75px',
    //    },
    //    CLE: {
    //       color: '#FB4F14',
-   //       sprite: '-35px -75px',
    //    },
    //    DEN: {
    //       color: '#FB4F14',
-   //       sprite: '-70px -75px',
    //    },
    //    HOU: {
    //       color: '#03202F',
-   //       sprite: '-105px -75px',
    //    },
    //    KC: {
    //       color: '#E31837',
-   //       sprite: '-140px -75px',
    //    },
    //    JAC: {
    //       color: '#006778',
-   //       sprite: '-175px -75px',
    //    },
    //    IND: {
    //       color: '#002C5F',
-   //       sprite: '-0px -100px',
    //    },
    //    MIA: {
    //       color: '#008E97',
-   //       sprite: '-35px -100px',
    //    },
    //    NE: {
    //       color: '#002244',
-   //       sprite: '-70px -100px',
    //    },
    //    NYJ: {
    //       color: '#203731',
-   //       sprite: '-105px -100px',
    //    },
    //    OAK: {
    //       color: '#A5ACAF',
-   //       sprite: '-140px -100px',
    //    },
    //    PIT: {
    //       color: '#FFB612',
-   //       sprite: '-175px -100px',
    //    },
    //    SD: {
    //       color: '#0073CF',
-   //       sprite: '-0px -125px',
    //    },
    //    TEN: {
    //       color: '#4B92DB',
-   //       sprite: '-35px -125px',
    //    }
    // };
