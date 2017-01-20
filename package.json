@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jarma4/jarnigan.com#readme",
   "dependencies": {
+    "bcrypt": "^1.0.2",
     "body-parser": "^1.14.1",
     "cheerio": "^0.22.0",
     "client-sessions": "^0.7.0",
@@ -26,6 +27,8 @@
     "jade": "^1.11.0",
     "mongoose": "^4.1.11",
     "node-crontab": "0.0.8",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "promise": "^7.1.1",
     "request": "^2.61.0",
     "serve-static": "^1.10.0"

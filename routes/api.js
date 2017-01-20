@@ -3,6 +3,7 @@ bodyParser = require('body-parser'),
 fs = require('fs'),
 // Auth = require('./auth'),
 session = require('client-sessions'),
+bcrypt = require('bcrypt'),
 // session = require('express-session'),
 Promise = require('promise'),
 // plivo = require('plivo'),
@@ -166,7 +167,8 @@ router.post('/getbets', requireLogin, function(req,res){
       } else {
          bets.forEach(function(single){
             // flip response data if someone else instigated bet
-            if (single.user1 != req.session.user._id){
+            if (single.user2 == req.session.user._id){
+               // console.log(single.status+' '+single.user1+' '+single.user2);
                tmp = single.user1;
                tmp2 = single.team1;
                single.user1 = single.user2;
@@ -479,45 +481,6 @@ router.post('/userstats', requireLogin, function(req,res){
    }).sort({date:-1});
 });
 
-router.post('/postmessage', requireLogin, function(req,res){
-   new Messages({
-      date: new Date(),
-      user: req.session.user._id,
-      message: req.body.message
-   }).save(function(err){
-      if(err) {
-         console.log('Trouble adding message');
-         res.send({'type':'danger', 'message':'Trouble adding bet'});
-      } else {
-         console.log('Message from '+req.session.user._id);
-         res.send({'type':'success', 'message':'Message Posted'});
-      }
-   });
-});
-
-router.post('/slack', function(req,res){
-   // console.log(req.body);
-   if (req.body.token === 'gUOpWBCpkeaoxjBUJCbbmeh9') {
-      new Messages({
-         date: new Date(),
-         user: req.body.user_name,
-         message: req.body.text
-      }).save(function(err){
-         if(err) {
-            console.log('Trouble adding message');
-         } else {
-            console.log('Message from Slack');
-         }
-      });
-   }
-});
-
-router.get('/msgboard', requireLogin, function(req,res){
-   Messages.find(function(err,message){
-      res.json(message);
-   }).limit(50).sort({date: -1});
-});
-
 router.post('/getscores', requireLogin, function(req,res){
    if (req.body.sport=='nfl')
       Scores.find({sport:'nfl', week: req.body.period, season: Number(req.body.season)}, function(err,scores){
@@ -562,6 +525,16 @@ router.get('/getprops', requireLogin, function(req,res){
    }).sort({date: -1}).limit(50);
 });
 
+router.post('/acceptprop', requireLogin, function(req,res){
+   console.log(req.body);
+   Props.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
+      if (err)
+         console.log("Prop accept error: "+err);
+      else
+         res.send({'type':'success', 'message':'Prop updated'});
+   });
+});
+
 router.get('/getstandings', requireLogin, function(req,res){
    Ougame.find({}, function(err,standings){
       if (err)
@@ -572,6 +545,9 @@ router.get('/getstandings', requireLogin, function(req,res){
 });
 
 router.post('/setprefs', requireLogin, function(req,res){
+   if (req.body.password) {
+      req.body.password = bcrypt.hashSync(req.body.password, 10);
+   }
    Users.update({_id:req.session.user},req.body, function(err){
       if(err){
          console.log(err);
@@ -588,13 +564,12 @@ router.get('/getprefs',function(req,res){
    });
 });
 
-// assumed only called by winner of bet
-router.post('/setpaid', requireLogin, function(req,res){
-   Bets.findByIdAndUpdate({_id:req.body.id}, {paid: true}, function(err, single){
+function markPaid(betid, user) {
+   Bets.findByIdAndUpdate({_id:betid}, {paid: true}, function(err, single){
       if(err){
          console.log(err);
       } else {    // need to also mark debt flag in user db for notifications
-         if(single.user1 != req.session.user._id){
+         if(single.user1 != user){
             var tmp = single.user1;
             var tmp2 = single.team1;
             single.user1 = single.user2;
@@ -611,10 +586,45 @@ router.post('/setpaid', requireLogin, function(req,res){
             if(err)
                console.log(err);
          });
-         console.log('Bet#'+req.body.id+' marked paid by '+req.session.user._id+' - '+new Date());
-         res.send({'type':'success', 'message':'Bet marked paid'});
+         console.log('Bet#'+betid+' marked paid by '+user+' - '+new Date());
+         return 1;
       }
    });
+}
+
+// assumed only called by winner of bet
+router.post('/debtpaid', requireLogin, function(req,res){
+   if(markPaid(req.body.id, req.session.user._id))
+      res.send({'type':'success', 'message':'Bet marked paid'});
+   else {
+      res.send({'type':'danger', 'message':'Trouble marking bet paid, try again'});
+
+   }
+   // Bets.findByIdAndUpdate({_id:req.body.id}, {paid: true}, function(err, single){
+   //    if(err){
+   //       console.log(err);
+   //    } else {    // need to also mark debt flag in user db for notifications
+   //       if(single.user1 != req.session.user._id){
+   //          var tmp = single.user1;
+   //          var tmp2 = single.team1;
+   //          single.user1 = single.user2;
+   //          single.team1 = single.team2;
+   //          single.user2 = tmp;
+   //          single.team2 = tmp2;
+   //       }
+   //       // below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
+   //       Users.update({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
+   //          if(err)
+   //             console.log(err);
+   //       });
+   //       Users.update({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
+   //          if(err)
+   //             console.log(err);
+   //       });
+   //       console.log('Bet#'+req.body.id+' marked paid by '+req.session.user._id+' - '+new Date());
+   //       res.send({'type':'success', 'message':'Bet marked paid'});
+   //    }
+   // });
 });
 
 //retrieves both bets owed to someone else and someone else owing user
@@ -641,6 +651,59 @@ router.get('/getdebts', requireLogin, function(req,res){
    }).sort({date: -1});
 });
 
+router.post('/resolvefinish', requireLogin, function(req,res){
+   // find and mark other guys wins
+   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 5}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err,bets){
+      bets.forEach(function(bet) {
+         markPaid(bet._id, req.body.name);
+      });
+   }).sort({date: 1}).limit(req.body.num);
+   // find and mark own wins
+   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 5}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 4}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err,bets){
+      bets.forEach(function(bet) {
+         markPaid(bet._id, req.session.user._id);
+      });
+   }).sort({date: 1}).limit(req.body.num);
+   textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+   res.send({'type':'success', 'message':'Offset debts recorded'});
+});
+
+router.get('/resolvedebts', requireLogin, function(req,res){
+   var debtList = {owes: {}, isowed: {}},
+       results = [];
+
+   Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: req.session.user._id}, {user2: req.session.user._id}]}]}, function(err, bets){
+      bets.forEach(function(bet){
+         if ((bet.status == 4 && bet.user1 == req.session.user._id) || (bet.status == 5 && bet.user2 == req.session.user._id)) {
+            // swap users in case the latter above
+            if (bet.user2 == req.session.user._id)
+               bet.user2 = bet.user1;
+            if (!debtList.isowed[bet.user2]) {
+               debtList.isowed[bet.user2] = 1;
+            } else {
+               debtList.isowed[bet.user2] += 1;
+            }
+         } else {
+            // swap users in case the latter above
+            if (bet.user2 == req.session.user._id)
+               bet.user2 = bet.user1;
+            if (!debtList.owes[bet.user2]) {
+               debtList.owes[bet.user2] = 1;
+            } else {
+               debtList.owes[bet.user2] += 1;
+            }
+         }
+      });
+      // find match between 2 lists
+      for (var person in debtList.isowed) {
+         if (debtList.owes[person]) {
+            results.push({name: person, num: Math.min(debtList.owes[person], debtList.isowed[person])});
+         }
+      }
+      res.send(results);
+   });
+});
+
 router.post('/getfutureoffers', requireLogin, function(req,res){
    Bets.find({$and:[{status: req.body.status}, {$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, offers){
       res.json({
@@ -648,6 +711,11 @@ router.post('/getfutureoffers', requireLogin, function(req,res){
          offers: offers
       });
    });
+});
+
+router.get('/getfutures', function (req, res) {
+   if (fs.existsSync('json/futures.json'))
+      res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
 });
 
 router.get('/nflodds', function (req, res) {
@@ -660,10 +728,6 @@ router.get('/nbaodds', function (req, res) {
 
 router.get('/ncaaodds', function (req, res) {
    res.sendFile('./json/ncaa.json', {'root':__dirname+'/..'});
-});
-
-router.get('/getfutures', function (req, res) {
-   res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list
@@ -692,17 +756,6 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   // var msgPromise = new Promise(function (resolve, reject) {
-   //    var today = new Date();
-   //    Messages.findOne({date: {$gte: today.setDate(today.getDate()-2)}}, function(err, message) {
-   //       if (err)
-   //          reject(err);
-   //       if (message) {
-   //          answer.msgboard = true;
-   //       }
-   //       resolve();
-   //    });
-   // });
    var futuresPromise = new Promise(function (resolve, reject) {
       var today = new Date();
       Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {

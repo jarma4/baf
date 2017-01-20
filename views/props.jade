@@ -4,7 +4,7 @@ block content
    strong.lead &nbspProposition Bets
    .panel.panel-primary
       .panel-collapse
-         a.btn.btn-success(type='button', data-toggle='modal', data-target='#propModal') Add Proposition
+         a.btn.btn-primary(type='button', data-toggle='modal', data-target='#propModal') Add Proposition
          #propList
 
 block modals
@@ -12,6 +12,7 @@ block modals
       .modal-dialog
          .modal-content
             .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
                h4 Prop Bet:
             .modal-body
                .form-group
@@ -30,7 +31,17 @@ block modals
                   input#propProp.form-control
             .modal-footer
                   button#propSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
-
+   #propAcceptModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
+               h4#propAcceptText
+            .modal-body
+               .form-group
+                  button#propAcceptSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss="modal") Accept
+                  button.btn.btn-danger.btn-lg.btn-block(type='submit', data-dismiss="modal") Cancel
+               input#propAcceptId.nodisplay
 block scripts
    script(type='text/javascript') getUsers()
    script(type='text/javascript') showProps()

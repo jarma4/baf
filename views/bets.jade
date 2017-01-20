@@ -1,13 +1,14 @@
-extends base 
+extends base
 
 block content
-   strong.lead &nbspBets
+   Bets
    //- .panel-group
+   strong.lead &nbspBets
    .container-fluid
       .row.no-gutters
          .col-md-3
             .panel.panel-primary
-               .panel-heading 
+               .panel-heading
                   | Waiting on You
                   a(data-toggle='collapse', href='#waitingYou')#waitingYouTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #waitingYou.panel-collapse.collapse

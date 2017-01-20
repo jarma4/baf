@@ -542,7 +542,7 @@ $('#graphDays').on('click', function(event){
 // below uses ChartJS library
 function drawChart(days, update) {
    var ctx = document.getElementById("winGraph").getContext("2d"),
-      colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray"],
+      colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray", "teal"],
       chartData = {
          labels: [],
          datasets: []
@@ -731,7 +731,7 @@ function getFutures() {
          username = retData.sessionId; // being returned so buttons can be customized
          var outp = '<table class="table table-condensed">';
          $.each(retData.offers, function(i,rec){
-            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' don\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
+            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' doesn\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
             $('#futuresAccepted').addClass('in');
             $('#futuresAcceptedTitle span.collapseIcon').removeClass('hidden');
          });
@@ -790,42 +790,28 @@ $('.scoresInc').on('click', function(event){
    }
 });
 
-// Messageboard stuff
-$('#msgSubmit').on('click', function(e){
-      e.preventDefault();
-      $.ajax({
-   		type: 'POST',
-   		url: '/api/postmessage',
-   		data: {
-            'message': $('#msgInput').val()
-         },
-   		success:function(retData){
-            $('#msgInput').val('');
-            showMessages();   //refresh page
-   		},
-   		error: function(retData){
-            alert(retData.type, retData.message);
-   		}
-   	});
+$('#propAcceptModal').on('show.bs.modal', function (event) {
+   var button = $(event.relatedTarget);
+   $('#propAcceptText').text('* Proposition: '+button.data('prop'));
+   $('#propAcceptId').val(button.data('id'));
 });
 
-function showMessages() {
+$('#propAcceptSubmit').on('click', function() {
    $.ajax({
-		type: 'GET',
-		url: '/api/msgboard',
+		type: 'POST',
+		url: '/api/acceptprop',
+		data: {
+         'id': $('#propAcceptId').val()
+		},
 		success:function(retData){
-         var date, outp='';
-			$.each(retData, function(i,rec){
-            date = new Date(rec.date);
-				outp += '<span class="msg-user">'+rec.user.slice(0,6)+'</span>: '+rec.message+'  <span class="msg-date text-primary">('+(date.getMonth()+1)+'/'+date.getDate()+' - '+date.getHours()+':'+('0'+date.getMinutes()).slice(-2)+')</span><br/>';
-			});
-			document.getElementById("msgList").innerHTML = outp;
+         alert(retData.type, retData.message);
+         showProps();
 		},
 		error: function(retData){
-			alert(retData.type, retData.message);
+         alert(retData.type, retData.message);
 		}
 	});
-}
+});
 
 $('#propSubmit').on('click', function(e){
       e.preventDefault();
@@ -854,7 +840,9 @@ function showProps() {
 		success:function(retData){
          var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th><th>$</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5)+'</td><td>'+rec.prop+'</td><td>'+rec.amount+'</td></tr>';
+				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td><td>';
+            outp += (rec.user2 == 'OPEN')?'<button class="btn btn-sm btn-success" data-toggle="modal" data-target="#propAcceptModal" data-id="'+rec._id+'" data-prop="'+rec.prop+'"><span class="glyphicon glyphicon-hand-left"></span></button>':((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5);
+            outp += '</td><td>'+rec.prop+'</td><td>'+rec.amount+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("propList").innerHTML = outp;
@@ -977,7 +965,7 @@ $('#changeSubmit').on('click', function() {
    if($('#changePassword').val() && ($('#changePassword').val() == $('#changePassword2').val())) {
       $.ajax({
          type: 'POST',
-         url: '/setprefs',
+         url: '/api/setprefs',
          data: {
             'password': $('#changePassword').val()
          },
@@ -993,6 +981,46 @@ $('#changeSubmit').on('click', function() {
    }
 });
 
+$('#resolveBody').on('click', '.xxx', function(event){
+   $.ajax({
+      type: 'POST',
+      url: '/api/resolvefinish',
+      data: {
+         'name': $(this).data('name'),
+         'num': $(this).data('num')
+      },
+      success:function(retData){
+         alert(retData.type,retData.message);
+      },
+      error: function(retData){
+         alert(retData.type,retData.message);
+      }
+   });
+});
+
+$('#resolveDebts').on('click', function(){
+   $.ajax({
+      type: 'GET',
+      url: '/api/resolvedebts',
+      success:function(retData){
+         var outp='<table class="table"><tr><th>Who</th><th>#Bets</th><th>Dismiss?</th><tr>';
+         if(retData.length){
+            $.each(retData, function(i,rec){
+               outp += '<tr><td>'+rec.name+'</td><td>'+rec.num+'</td><td><button class="xxx btn btn-sm btn-success" data-toggle="modal" data-dismiss="modal" data-name="'+rec.name+'" data-num="'+rec.num+'"><span class="glyphicon glyphicon-ok"></span></button></td></tr>';
+            });
+            outp += '</table>';
+         // } else {
+         //    outp = 'You don\'t seem to have any debts in common with anyone';
+         }
+         document.getElementById("resolveBody").innerHTML = outp;
+         $('#resolveModal').modal('show');
+      },
+      error: function(retData){
+         alert(retData.type, retData.message);
+      }
+   });
+});
+
 // in Debts modal, for paid buttons click
 $('#oweyou').on('click', '.paidBtn', function(){
    // var losses = $('#debtHolder').data('losses');
@@ -1006,7 +1034,7 @@ $('#oweyou').on('click', '.paidBtn', function(){
       $(this).off('click');               // needed so won't be repeated on other button presses
       $.ajax({
          type: 'POST',
-         url: '/api/setpaid',
+         url: '/api/debtpaid',
          data: {
             'id': id
          },
@@ -1151,7 +1179,7 @@ function alert(type, message, pause){
    if (!pause) {
       setTimeout(function(){
          $('#alertModal').modal('hide');
-      }, 2000);
+      }, 3000);
    } else {
       $('#alertOk').removeClass('nodisplay');
       $('#alertCancel').removeClass('nodisplay');
@@ -1166,6 +1194,7 @@ function getUsers (){
 		success:function(retData){
          window.userList = [];
          $('#userList').empty();
+         $('#propUser2').empty().append('<option value="OPEN">OPEN</option>');
 			$.each(retData, function(i,user){
 				$('#userList').append('<option value="'+user._id+'">'+user._id+'</option>');
             $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
@@ -1173,6 +1202,7 @@ function getUsers (){
 			});
          $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
          $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
+         // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
 		},
 		error: function(retData){
 			alert(retData.type,retData.message);

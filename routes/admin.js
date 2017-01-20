@@ -2,6 +2,7 @@ var express = require('express'),
    router = express.Router(),
    bodyParser = require('body-parser'),
    session = require('client-sessions'),
+   bcrypt = require('bcrypt'),
    Records = require('../models/dbschema').Records,
    Users = require('../models/dbschema').Users;
 
@@ -19,15 +20,17 @@ router.post('/login', function(req,res){
          console.log('User '+req.body.username+' not found');
          res.send({'type':'danger', 'message':'No user with that username'});
       } else {
-         if (req.body.password === user.password){
-            req.session.user = user;
-            console.log('User '+req.session.user._id+' password correct');
-            res.send({'type':'success', 'message':'Login Successful'});
-            // res.redirect('/');
-         } else {
-            console.log('Password '+req.body.password+' not correct');
-            res.send({'type':'danger', 'message':'Password incorrect'});
-         }
+         bcrypt.compare(req.body.password, user.password, function(err, result){
+            if (result){
+               req.session.user = user;
+               console.log('User '+req.session.user._id+' password correct');
+               res.send({'type':'success', 'message':'Login Successful'});
+               // res.redirect('/');
+            } else {
+               console.log('Password '+req.body.password+' not correct');
+               res.send({'type':'danger', 'message':'Password incorrect'});
+            }
+         });
       }
    });
 });

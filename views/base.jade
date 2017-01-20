@@ -56,7 +56,9 @@ html
 				.modal-content
 					.modal-body
 						button.close(type='button', data-dismiss='modal') #[span &times;]
-						h4.text-center Debts
+						.title
+							| Debts
+							button#resolveDebts.btn.btn-sm.btn-primary Auto Resolve
 						table#oweyou.table
 							tr.heading
 								th.heading-success(colspan=4) Owed to You:
@@ -83,12 +85,19 @@ html
 						button.actionAction.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Accept
 						button.actionAction.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='3', data-dismiss="modal") Decline
 						input#paidId.nodisplay
+		#resolveModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						button.close(type='button', data-dismiss='modal') #[span &times;]
+						h4 These debts offset and can be dismissed:
+						#resolveBody
 		#helpModal.modal.fade
 			.modal-dialog
 				.modal-content
 					.modal-body
 						button.close(type='button', data-dismiss='modal') #[span.text-primary &times;]
-						h4.text-center Help
+						.title Help
 						p.msg-user Icons
 						h4 #[span.glyphicon.glyphicon-flag.text-danger] Bets are waiting for you
 						h4 #[span.glyphicon.glyphicon-usd.text-success] Show debts owed to you/others
