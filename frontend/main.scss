@@ -35,6 +35,12 @@
 		font-size: 24px;
 	}
 }
+#login_logo {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
 // make more room for panels which already have padding
 .container-fluid {
   padding-right: 0;

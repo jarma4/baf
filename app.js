@@ -54,7 +54,7 @@ app.use('/js', express.static(__dirname + '/public/js'));
 app.use('/css', express.static(__dirname + '/public/css'));
 app.use('/images', express.static(__dirname + '/public/images', {maxage: '1h'}));
 app.use('/fonts', express.static(__dirname + '/public/fonts', {maxage: '1h'}));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 app.set('views', './views');
 
 // load different routes

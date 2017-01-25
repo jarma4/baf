@@ -1,10 +1,10 @@
-extends base 
+extends base
 
 block content
-   a#sportNfl.sportPick.dropped(href='#')
+   a#sportNfl.sportPick.dimmed(href='#')
       img.logo-md(src="images/nfl_logo_sprite_medium.png")
    //- span.glyphicon.glyphicon-resize-horizontal
-   a#sportNba.sportPick.dimmed(href='#')
+   a#sportNba.sportPick.dropped(href='#')
       img.logo-md(src="images/nba_logo_sprite_medium.png")
    //- strong.lead &nbspStats
    .container-fluid
@@ -16,11 +16,11 @@ block content
                   button.statsInc.btn.btn-default.right(value=1)
                      span.glyphicon.glyphicon-chevron-right
                   button.statsInc.btn.btn-default.right(value=-1)
-                     span.glyphicon.glyphicon-chevron-left 
+                     span.glyphicon.glyphicon-chevron-left
                   //- button#statsType.btn.btn-sm.btn-default.btn-scootlft.right Summary
                   a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #weeklyStats.panel-collapse.collapse
-         .col-md-4      
+         .col-md-4
             .panel.panel-success
                .panel-heading
                   | Season
@@ -34,14 +34,14 @@ block content
             //-    .carousel-inner(role='listbox')
             //-       .item.active
             //-          .panel.panel-primary
-            //-             .panel-heading 
+            //-             .panel-heading
             //-                | Last 5 Days
             //-             #carousel1.panel-body
             //-       .item
             //-          .panel.panel-success
             //-             .panel-heading
             //-                | Overall
-            //-                a(data-toggle='collapse', href='#overallStats')#overallStatsTitle 
+            //-                a(data-toggle='collapse', href='#overallStats')#overallStatsTitle
             //-                select#statsSport.btn.btn-sm.btn-primary.right
             //-                   option NBA
             //-                   option NFL
@@ -49,7 +49,7 @@ block content
             //-                   option 2015
             //-                   option 2016
             //-             #carousel2.panel-body
-            //-    a.left.carousel-control(href='#statCarousel', role='button', data-slide='next') 
+            //-    a.left.carousel-control(href='#statCarousel', role='button', data-slide='next')
             //-       span.glyphicon.glyphicon-chevron-left(aria-hidden="true")
             //-       span.sr-only Previous
             //-    a.right.carousel-control(href='#statCarousel', role='button', data-slide='prev')

@@ -1,10 +1,10 @@
 extends base
 
 block content
-   a#sportNfl.sportPick.dropped
+   a#sportNfl.sportPick.dimmed
       img.logo-md(src="images/nfl_logo_sprite_medium.png")
    //- span.glyphicon.glyphicon-resize-horizontal
-   a#sportNba.sportPick.dimmed
+   a#sportNba.sportPick.dropped
       img.logo-md(src="images/nba_logo_sprite_medium.png")
    .container-fluid
       .row.no-gutters
@@ -19,7 +19,6 @@ block content
                   //- button#scoresSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
                   input#scoresDate.nodisplay
                #scoresArea.panel-body
-         
+
 block scripts
    script(type='text/javascript') showScores(getWeek(new Date()))
-            

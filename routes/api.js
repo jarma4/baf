@@ -5,7 +5,7 @@ fs = require('fs'),
 session = require('client-sessions'),
 bcrypt = require('bcrypt'),
 // session = require('express-session'),
-Promise = require('promise'),
+// Promise = require('promise'),
 // plivo = require('plivo'),
 sinchAuth = require('../models/sinch-auth'),
 sinchSms = require('../models/sinch-messaging'),
@@ -127,7 +127,7 @@ router.post('/makebet', requireLogin, function (req, res) {
       betStack.splice(betStack.indexOf(req.body.serial),1);
    }, 10000);
 
-   // check if first to act bet, if not zero serial whcih get copied to fta and used later
+   // check if first to act bet, if not zero serial which gets copied to fta and used later
    if (req.body.user2 !== 'EVERYONE2')
       req.body.serial = 0;
 
@@ -195,7 +195,7 @@ router.post('/getbets', requireLogin, function(req,res){
 router.post('/changebet', requireLogin, function(req,res){
    switch (req.body.status) {           // delete bet
       case '-1':
-         // if not save later bet or future, descement bet flag notice
+         // if not save later bet or future, decrement bet flag notice
          var  tmp = new Promise(function(resolve, reject) {
             Bets.findOne({_id:req.body.id}, function(err, singleBet){
                if(err) {
@@ -226,24 +226,29 @@ router.post('/changebet', requireLogin, function(req,res){
          };
          if (req.body.future)
             updateFields.user2 = req.session.user._id;
-         Bets.findByIdAndUpdate(req.body.id,updateFields, function(err, acceptedBet){
+         // below query has id AND status in case first to act bet was already acted on but other people have been haven't updated locally
+         Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields, function(err, acceptedBet){
             if(acceptedBet){
                console.log('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
-               res.send({'type':'success', 'message':'Reply Sent'});
                changeUser(req.session.user._id, 'bets', -1);
                textUser(acceptedBet.user1, req.session.user._id, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
-            }
-            if (acceptedBet.fta) {
-               Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
-                  otherBets.forEach(function(otherBet) {
-                     changeUser (otherBet.user2, 'bets', -1);
-                     console.log('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
+               // if first to act bet, remove for other people
+               if (acceptedBet.fta) {
+                  Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
+                     otherBets.forEach(function(otherBet) {
+                        changeUser (otherBet.user2, 'bets', -1);
+                        console.log('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
+                     });
+                  }).then(function(){
+                     Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+                        if (err)
+                           console.log(err);
+                     });
                   });
-               });
-               Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
-                  if (err)
-                     console.log(err);
-               });
+               }
+               res.send({'type':'success', 'message':'Bet accepted'});
+            } else {
+               res.send({'type':'danger', 'message':'Bet not accepted, please refresh'});
             }
          });
          break;
@@ -653,17 +658,17 @@ router.get('/getdebts', requireLogin, function(req,res){
 
 router.post('/resolvefinish', requireLogin, function(req,res){
    // find and mark other guys wins
-   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 5}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err,bets){
+   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 5}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err, bets){
       bets.forEach(function(bet) {
          markPaid(bet._id, req.body.name);
       });
-   }).sort({date: 1}).limit(req.body.num);
+   }).sort({date: 1}).limit(Number(req.body.num));
    // find and mark own wins
    Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 5}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 4}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err,bets){
       bets.forEach(function(bet) {
          markPaid(bet._id, req.session.user._id);
       });
-   }).sort({date: 1}).limit(req.body.num);
+   }).sort({date: 1}).limit(Number(req.body.num));
    textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
    res.send({'type':'success', 'message':'Offset debts recorded'});
 });
@@ -785,7 +790,7 @@ function textUser(to, from, message, pref2){
    Users.findOne({_id: to}, function(err,user){
       if (err) {
          console.log(err);
-      } else {
+      } else if (user){
          if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
             sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
 

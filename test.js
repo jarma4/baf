@@ -1,33 +1,25 @@
 var request = require('request'),
 // exec = require('child_process').exec,
    cheerio = require('cheerio'),
-   Promise = require('promise'),
    bcrypt = require('bcrypt'),
-   mongoose = require('mongoose'),
-   // Players = require('./models/dbschema').Players,
-   Users = require('./models/dbschema').Users,
-   // Scores = require('./models/dbschema').Scores;
-//    fs = require('fs'),
-// Messages = require('./models/dbschema').Messages,
-// Promise = require('promise'),
    fs = require('fs'),
+   mongoose = require('mongoose'),
+   Users = require('./models/dbschema').Users,
+   Bets = require('./models/dbschema').Bets,
+   Scores = require('./models/dbschema').Scores,
+   Messages = require('./models/dbschema').Messages,
    Ougame = require('./models/dbschema').Ougame;
 
 mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
-var testuser = 'testuser';
 
-if (0) {
-   Users.find({}, function(err, users){
-      users.forEach(function(user){
-         bcrypt.hash(user.password, 10, function(err, hash) {
-            Users.update({_id: user},{password: hash}, function(err, result) {
-               if(err)
-                  console.log('problem storing new hash');
-            });
-         });
-      });
-   });
-}
+Users.findOneAndUpdate({_id:'jarma44', bets:0}, {}, function(err, record) {
+   if(record)
+      console.log(record);
+   else {
+      console.log('nothing');
+   }
+});
+
 // Users.findById(testuser, function(err, user){
 //    bcrypt.compare('passs', user.password, function(err, result){
 //       console.log(result);
