@@ -70,9 +70,9 @@ var scraper = require('./models/scraper');
 
 // schedule worker jobs
 var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
-   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0", scraper.checkScores,['nfl']),
+   // checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0", scraper.checkScores,['nfl']),
    checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
-   tallyBetsNflCron = crontab.scheduleJob("*/10 17-22 * * 0", scraper.tallyBets,['nfl']),
+   // tallyBetsNflCron = crontab.scheduleJob("*/10 17-22 * * 0", scraper.tallyBets,['nfl']),
    tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
@@ -93,10 +93,11 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
 var backupDbCron = crontab.scheduleJob('0 1 * * *', function () {
    var now = new Date();
    var cmd = exec('mongodump -dbaf -ubaf -p$BAF_MONGO -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
-      if (error || stderr)
+      if (error || stderr) {
          console.log(error);
          console.log(stderr);
-      });
+      }
+   });
    console.log('DB backup - '+now);
 });
 

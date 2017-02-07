@@ -33,8 +33,9 @@ var betsSchema = new mongoose.Schema({
    team2 : String,
    odds: Number,
    type: String,
-   status: Number,  //0-1=open,2=accepted,3=declined,4=win,5=loss,6=push, -1=saved nfl, -2=saved nba
+   status: Number,  //0-1=open,2=accepted,3=declined,4=win,5=loss,6=push, -1=watch nfl, -2=watch nba
    fta: Number,
+   watch: Number,   // 1=watching, hasn't been seen; 2=watching has been seen and reported
    week: Number,
    gametime: Date,
    sport: String,

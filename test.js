@@ -1,5 +1,6 @@
 var request = require('request'),
 // exec = require('child_process').exec,
+   scraper = require('./models/scraper'),
    cheerio = require('cheerio'),
    bcrypt = require('bcrypt'),
    fs = require('fs'),
@@ -12,19 +13,17 @@ var request = require('request'),
 
 mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
 
-Users.findOneAndUpdate({_id:'jarma44', bets:0}, {}, function(err, record) {
-   if(record)
-      console.log(record);
-   else {
-      console.log('nothing');
-   }
-});
+scraper.addNbaGames(new Date('2017 Feb 12 18:30:00'), new Date('2017 April 12 18:30:00'));
 
-// Users.findById(testuser, function(err, user){
-//    bcrypt.compare('passs', user.password, function(err, result){
-//       console.log(result);
-//    });
+// scraper.addNbaGame(new Date('2017 Feb 7'));
+// Users.findOneAndUpdate({_id:'jarma44', bets:0}, {}, function(err, record) {
+//    if(record)
+//       console.log(record);
+//    else {
+//       console.log('nothing');
+//    }
 // });
+
 //how to remove juice
 // var ml = [-500, 350];
 // var implied_odds, total = 0, nojuice = [];

@@ -74,7 +74,7 @@ function getOdds(sport) {
             'games': games};
          if (games.length) { // only write if something was found
             //console.log(games);
-            var success = fs.writeFileSync('json/'+sport+'_info.json',JSON.stringify(sendData));
+            var success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
          }
       }
    });
@@ -162,21 +162,22 @@ function addNflGame (wk, yr, sprt) {
 }
 
 function addNbaGame(date) {
-   var url = 'http://www.cbssports.com/nba/scoreboard/'+date.getFullYear()+('0'+(date.getMonth()+1)).slice(-2)+('0'+date.getDate()).slice(-2);
+   var url = 'http://www.si.com/nba/scoreboard?date='+date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
+       dateCopy = new Date(date);
    console.log(url);
    request(url, function (err, response, body) {
       if(!err && response.statusCode === 200) {
          var $ = cheerio.load(body);
-         $('.teamInfo.awayTeam').each(function(){
+         $('.game').each(function(){
             var tmp = new Scores({
                score1: 0,
                score2: 0,
                winner: 0,
                season: 2016,
                sport: 'nba',
-               date: date,
-               team1: nbaTeams[$(this).children().children().next().children().text().split('(')[0]],
-               team2: nbaTeams[$(this).next().children().children().next().children().text().split('(')[0]]
+               date: dateCopy,
+               team1: nbaTeams2[$(this).find('.team-name').first().text()],
+               team2: nbaTeams2[$(this).find('.team-name').last().text()]
             }).save(function(err){
                if(err) {
                   console.log('Trouble adding game');
@@ -372,4 +373,10 @@ module.exports = {
          }
       });
    },
+   addNbaGames: function(startDate, endDate) {
+      while (startDate <= endDate) {
+         addNbaGame(startDate);
+         startDate.setDate(startDate.getDate()+1);
+      }
+   }
 };

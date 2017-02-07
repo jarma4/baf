@@ -28,7 +28,7 @@ html
 					li
 						a.toggleSidebar(href='/scores') #[span.glyphicon.glyphicon-th-list] Scores
 					li
-						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-eye-open] Futures
+						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-time] Futures
 					li
 						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-retweet] OverUnder
 					li
@@ -101,7 +101,7 @@ html
 						p.msg-user Icons
 						h4 #[span.glyphicon.glyphicon-flag.text-danger] Bets are waiting for you
 						h4 #[span.glyphicon.glyphicon-usd.text-success] Show debts owed to you/others
-						h4 #[span.glyphicon.glyphicon-eye-open.text-info] Futures being offered
+						h4 #[span.glyphicon.glyphicon-time.text-info] Futures being offered
 						h4 #[span.glyphicon.glyphicon-chevron-right] #[span.glyphicon.glyphicon-chevron-down] Open/close panel
 						if pagename == "bets"
 							h4 #[span.glyphicon.glyphicon-hourglass] First to act bet
@@ -165,7 +165,7 @@ html
 						h2 Coming Soon ...
 		block modals
 
-		script(src='https://code.jquery.com/jquery-2.2.4.min.js')
+		script(src='http://code.jquery.com/jquery-2.2.4.min.js')
 		script(src='js/jquery.mobile.custom.min.js')
 		script(src='js/bootstrap.min.js')
 		script(src='js/baf.js')
