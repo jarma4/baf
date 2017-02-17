@@ -1,29 +1,21 @@
 var express = require('express'),
-bodyParser = require('body-parser'),
-fs = require('fs'),
-// Auth = require('./auth'),
-session = require('client-sessions'),
-bcrypt = require('bcrypt'),
-// session = require('express-session'),
-// Promise = require('promise'),
-// plivo = require('plivo'),
-sinchAuth = require('../models/sinch-auth'),
-sinchSms = require('../models/sinch-messaging'),
-Users = require('../models/dbschema').Users,
-Records = require('../models/dbschema').Records,
-Bets = require('../models/dbschema').Bets,
-Scores = require('../models/dbschema').Scores,
-Messages = require('../models/dbschema').Messages,
-Props = require('../models/dbschema').Props,
-Ougame = require('../models/dbschema').Ougame,
-mongoose = require('mongoose');
-mongoose.connect('mongodb://127.0.0.1/baf', {user:'baf', pass: process.env.BAF_MONGO});
+   bodyParser = require('body-parser'),
+   fs = require('fs'),
+   // Auth = require('./auth'),
+   session = require('client-sessions'),
+   bcrypt = require('bcrypt'),
+   // session = require('express-session'),
+   Util = require('../models/util'),
+   Users = require('../models/dbschema').Users,
+   Records = require('../models/dbschema').Records,
+   Bets = require('../models/dbschema').Bets,
+   Scores = require('../models/dbschema').Scores,
+   Messages = require('../models/dbschema').Messages,
+   Props = require('../models/dbschema').Props,
+   Ougame = require('../models/dbschema').Ougame,
+   mongoose = require('mongoose');
 
-// var sms = plivo.RestAPI({
-//   authId: 'MANJRMMDLJYME1MMYYOG',
-//   authToken: 'ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw'
-// });
-var auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
+mongoose.connect('mongodb://127.0.0.1/baf', {user:'baf', pass: process.env.BAF_MONGO});
 
 router = express.Router();
 
@@ -80,7 +72,7 @@ function saveBet (req){
    var today = new Date();
 
    new Bets({
-      week: getWeek(today),
+      week: Util.getWeek(today, req.body.sport),
       season: 2016, //today.getFullYear(),
       gametime: req.body.gametime,
       date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
@@ -94,7 +86,8 @@ function saveBet (req){
       sport: req.body.sport,
       fta: req.body.serial,
       paid: false,
-      status: (req.body.watch === 'true')?((req.body.sport=='nfl')?-1:-2):0
+      status: (req.body.watch === 'true')?((req.body.sport=='nfl')?10:11):0,
+      watch: (req.body.watch === 'true')?1:''
    }).save(function(err){
       if(err) {
          console.log('Trouble adding bet: '+err);
@@ -104,9 +97,9 @@ function saveBet (req){
          // return {'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Saved'};
       }
    });
-   if (!req.body.watch && req.body.type != 'give' && req.body.type != 'take') {
+   if (req.body.watch=='false' && req.body.type != 'give' && req.body.type != 'take') {
       changeUser (req.body.user2, 'bets', 1);
-      textUser(req.body.user2, req.session.user._id, ((req.body.sport=='nfl')?'NFL':'NBA')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
+      Util.textUser(req.body.user2, ((req.body.sport=='nfl')?'NFL':'NBA')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
    }
 }
 
@@ -132,7 +125,7 @@ router.post('/makebet', requireLogin, function (req, res) {
       req.body.serial = 0;
 
    // if EVERYONE bet, need to go through user db and send to each
-   if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && !req.body.watch) {
+   if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && req.body.watch=='false') {
       Users.find({$and: [
                      {_id: {$nin:[req.session.user._id,'testuser']}},
                      (req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
@@ -144,7 +137,6 @@ router.post('/makebet', requireLogin, function (req, res) {
    } else {
       saveBet(req);
    }
-   console.log(req.body);
    res.send({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
 });
 
@@ -194,7 +186,7 @@ router.post('/getbets', requireLogin, function(req,res){
 });
 
 router.post('/changebet', requireLogin, function(req,res){
-   console.log(req.body);
+   // console.log(req.body);
    switch (req.body.action) {
       case 'delete':  // delete bet
          // if not save later bet or future, decrement bet flag notice
@@ -233,7 +225,7 @@ router.post('/changebet', requireLogin, function(req,res){
             if(acceptedBet){
                console.log('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
                changeUser(req.session.user._id, 'bets', -1);
-               textUser(acceptedBet.user1, req.session.user._id, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
+               Utils.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
                // if first to act bet, remove for other people
                if (acceptedBet.fta) {
                   Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
@@ -303,7 +295,7 @@ router.post('/changebet', requireLogin, function(req,res){
       //                      }
       //                   });
       //                   changeUser (single, 'bets', 1);
-      //                   textUser(single, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
+      //                   Utils.textUser(single, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
       //                });
       //             });
       //             Bets.remove({_id:req.body.id}, function(err){
@@ -322,7 +314,7 @@ router.post('/changebet', requireLogin, function(req,res){
       //                         console.log(err);
       //                      else {
       //                         changeUser(bet.user2, 'bets', 1);
-      //                         textUser(bet.user2, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
+      //                         Utils.textUser(bet.user2, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
       //                      }
       //                   });
       //                }
@@ -676,7 +668,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
          markPaid(bet._id, req.session.user._id);
       });
    }).sort({date: 1}).limit(Number(req.body.num));
-   textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+   Utils.textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
    res.send({'type':'success', 'message':'Offset debts recorded'});
 });
 
@@ -795,44 +787,4 @@ function changeUser(user, key, inc) {
       if(err)
          console.log('Trouble with changing user '+key);
    });
-}
-
-function textUser(to, from, message, pref2){
-   Users.findOne({_id: to}, function(err,user){
-      if (err) {
-         console.log(err);
-      } else if (user){
-         if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-            sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
-
-         // sms.send_message({
-         //    src: '+16622193664',
-         //    dst: '+1'+user.sms,
-         //    text: 'B.A.F. - ' + message + from + ' - http://2dollarbets.com/bets'
-         // }, function (status, response) {
-         //    console.log('API Response:\n', response);
-         // });
-         }
-      }
-   });
-}
-
-var seasonStart = new Date(2016,8,7);
-var nflWeeks = [];
-var dst = 0;
-for (var i=0;i<22;i++){
-   if (i > 7)
-      dst = 3600000;
-   nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
-}
-
-function getWeek(date){
-   var wk;
-   for (var i=0;i<22;i++){
-      if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
-         wk = i+1;
-         break;
-      }
-   }
-   return wk;
 }

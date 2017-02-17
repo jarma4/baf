@@ -31,7 +31,7 @@ $('.sportPick').on('click', function(){
       switch (window.location.pathname) {
          case '/':
             getOdds();
-            getBets(($('#sportNfl').hasClass('dropped'))?-1:-2,'watchBets', 'watch');
+            getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets', 'watch');
             break;
          case '/stats':
             getStats();
@@ -42,6 +42,20 @@ $('.sportPick').on('click', function(){
       }
    }
 });
+
+function postApi(page, obj) {
+   $.ajax({
+		type: 'POST',
+		url: '/api/'+page,
+		data: obj,
+		success:function(retData){
+         alert(retData.type, retData.message);
+		},
+		error: function(retData){
+         alert(retData.type, retData.message);
+		}
+	});
+}
 
 // prepopulate modal items with data from database
 $('#betModal').on('show.bs.modal', function (event) {
@@ -78,25 +92,12 @@ $('#betModal').on('show.bs.modal', function (event) {
       $('#betTitle').text('You want: '+vs1+' '+odds+' vs '+vs2);
    else
       $('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
+   resetOddsWatch();
 });
-
-function postApi(page, obj) {
-   $.ajax({
-		type: 'POST',
-		url: '/api/'+page,
-		data: obj,
-		success:function(retData){
-         alert(retData.type, retData.message);
-		},
-		error: function(retData){
-         alert(retData.type, retData.message);
-		}
-	});
-}
 
 $('#betSubmit').on('click', function(event) {
    postApi('makebet', {
-         'user2': $('#userList').val(),
+         'user2': ($('#oddsWatch').is(":checked"))?'':$('#userList').val(),
 		   'amount': $('#betAmount').val(),
 		   'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
          'type': $('#betType').val(),
@@ -108,6 +109,13 @@ $('#betSubmit').on('click', function(event) {
          'watch': $('#oddsWatch').is(":checked")
 		});
    });
+
+function resetOddsWatch(){
+   $('#betUserlist').removeClass('nodisplay');
+   $('#oddsMod').addClass('nodisplay');
+   $('#betSubmit').text('Send Bet');
+   $('#oddsWatch').prop('checked', false);
+}
 
 // change bet modal according to checkbox
 $('#oddsWatch').on('click', function(event) {
@@ -125,6 +133,7 @@ $('#watchModal').on('show.bs.modal', function (event) {
 
    $('#watchId').val(button.data('id'));
    $('#watchOddsNew').val(button.data('odds'));
+   $('#watchDeactivated').prop('checked', button.data('deactivated'));
    $('#watchTitle').text('Watch for: '+button.data('team1')+' '+button.data('odds')+' vs '+button.data('team2'));
 });
 
@@ -132,7 +141,7 @@ $('#watchDelete').on('click', function(){
    postApi('changebet',{
          'id': $('#watchId').val(),
          'action': 'delete'});
-   getBets(($('#sportNfl').hasClass('dropped'))?-1:-2, 'watchBets', 'watch');
+   getBets(($('#sportNfl').hasClass('dropped'))?10:11, 'watchBets', 'watch');
 });
 
 $('#watchModify').on('click', function(){
@@ -141,7 +150,7 @@ $('#watchModify').on('click', function(){
          'id': $('#watchId').val(),
          'odds': $('#watchOddsNew').val()});
          // 'status': ($('#sportNfl').hasClass('dropped'))?-1:-2});
-   getBets(($('#sportNfl').hasClass('dropped'))?-1:-2, 'watchBets', 'watch');
+   getBets(($('#sportNfl').hasClass('dropped'))?10:11, 'watchBets', 'watch');
 });
 
 //bet modal has +/- to increment/decrement values
@@ -259,9 +268,9 @@ function getBets(status, target, addButton) {
                outp += '<th>Edit</th>';
             $.each(retData, function(i,rec){
                outp +='</tr><tr>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+((rec.watch)?' <span class="glyphicon glyphicon-eye-open text-info"></span>':'')+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
                if (addButton)
-                  outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'watchModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'"><span class="glyphicon glyphicon-'+((addButton=='rescind')?'remove':'hand-left')+'"></span></button></td>';
+                  outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'watchModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'" data-deactivated="'+((rec.watch==2)?true:false)+'"><span class="glyphicon glyphicon-'+((addButton=='rescind')?'remove':'hand-left')+'"></span></button></td>';
                outp += '</tr>';
             });
             outp += '</table>';
@@ -713,11 +722,11 @@ function showProps() {
 		type: 'GET',
 		url: '/api/getprops',
 		success:function(retData){
-         var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th><th>$</th></tr>';
+         var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td><td>';
-            outp += (rec.user2 == 'OPEN')?'<button class="btn btn-sm btn-success" data-toggle="modal" data-target="#propAcceptModal" data-id="'+rec._id+'" data-prop="'+rec.prop+'"><span class="glyphicon glyphicon-hand-left"></span></button>':((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5);
-            outp += '</td><td>'+rec.prop+'</td><td>'+rec.amount+'</td></tr>';
+				outp += '<tr>'+((rec.winner)?(rec.winner == 1)?'<td class="heading-success">':'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>';
+            outp += (rec.user2 == 'OPEN')?'<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#propAcceptModal" data-id="'+rec._id+'" data-prop="'+rec.prop+'"><span class="glyphicon glyphicon-hand-left"></span></button>':((rec.winner)?(rec.winner == 1)?'<td class="heading-danger">':'<td class="heading-success">':'<td>')+rec.user2.slice(0,5);
+            outp += '</td><td>'+rec.prop+'</td></tr>';
 			});
 			outp += '</table>';
 			document.getElementById("propList").innerHTML = outp;
@@ -898,12 +907,6 @@ $('#resolveDebts').on('click', function(){
 
 // in Debts modal, for paid buttons click
 $('#oweyou').on('click', '.paidBtn', function(){
-   // var losses = $('#debtHolder').data('losses');
-   // for(var loss in losses) {
-   //    if (losses[loss].user2 == $(this).data('user2')) {
-   //       alert('success', 'found a debt to same person', null, true);
-   //    }
-   // }
    var id = $(this).data('id');
    $('#alertOk').on('click', function(){  // attach event to OK button to update debt
       $(this).off('click');               // needed so won't be repeated on other button presses
@@ -1077,6 +1080,7 @@ function getUsers (){
 			});
          $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
          $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
+         $('#userList option[value="EVERYONE"]').attr("selected", "selected");
          // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
 		},
 		error: function(retData){
@@ -1121,25 +1125,13 @@ function doorBell(){
 	});
 }
 
-function getWeek(date){
-   var wk = 1,
-      dst=0,
-      seasonStart = new Date(2016,8,7),
-      nflWeeks = [];
-   for (var i=0; i<23; i++){
-      if (i > 7)
-         dst = 3600000;
-      nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dst));
-   }
-   if (date > nflWeeks[0]) {
-      for (i=0; i<23; i++){
-         if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
-            wk = i+1;
-            break;
-         }
-      }
-   }
-   return wk;
+function getWeek(date, sport){
+   var seasonStart = {
+         nfl: new Date(2016,8,7),
+         nba: new Date(2016,9,20)
+      },
+      dayTicks = 24 * 60 * 60 * 1000;
+   return Math.ceil((date - ((sport=='nba')?seasonStart.nba:seasonStart.nfl)) / dayTicks / 7);
 }
 
 function getOdds (){

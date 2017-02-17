@@ -1,22 +1,13 @@
 var request = require('request'),
-fs = require('fs'),
-cheerio = require('cheerio'),
-Users = require('./dbschema').Users,
-Bets = require('./dbschema').Bets,
-Records = require('./dbschema').Records,
-Scores = require('./dbschema').Scores,
-Ougame = require('./dbschema').Ougame,
-mongoose = require('mongoose');
-
-var seasonStart = new Date(2016,8,8),
-   nflWeeks = [],
-   numWeeks = 22,
-   daylight_savings_offset = 0;
-for (var i=0;i<numWeeks;i++){
-   if (i > 7)
-      daylight_savings_offset = 3600000;
-   nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+daylight_savings_offset));
-}
+   fs = require('fs'),
+   cheerio = require('cheerio'),
+   Util = require('./util'),
+   Users = require('./dbschema').Users,
+   Bets = require('./dbschema').Bets,
+   Records = require('./dbschema').Records,
+   Scores = require('./dbschema').Scores,
+   Ougame = require('./dbschema').Ougame,
+   mongoose = require('mongoose');
 
 var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARI', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Green Bay': 'GB', 'Minnesota': 'MIN', 'New Orleans': 'NO', 'NY Giants': 'NYG', 'Philadelphia': 'PHI', 'Seattle': 'SEA', 'San Francisco': 'SF', 'Los Angelas': 'LAR', 'Tampa Bay': 'TB', 'Washington': 'WAS', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Cincinatti': 'CIN', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Kansas City': 'KC', 'Jacksonville': 'JAC', 'Indianapolis': 'IND', 'Miami': 'MIA', 'New England': 'NE', 'NY Jets': 'NYJ', 'Oakland': 'OAK', 'Pittsburgh': 'PIT', 'San Diego': 'SD', 'Tennessee': 'TEN'},
    nbaTeams = {'Atlanta': 'ATL', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Minnesota': 'MIN', 'New Orleans': 'NOH', 'New York': 'NY', 'Brooklyn': 'BKN', 'Philadelphia': 'PHI', 'Oklahoma City': 'OKC', 'L.A. Clippers': 'LAC','L.A. Lakers': 'LAL', 'Washington': 'WAS', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Indiana': 'IND', 'Miami': 'MIA', 'Boston': 'BOS', 'Golden St.': 'GS', 'Golden State': 'GS', 'San Antonio': 'SAN', 'Sacramento': 'SAC', 'Portland': 'POR', 'Orlando': 'ORL', 'Charlotte': 'CHR', 'Phoenix': 'PHO', 'Toronto': 'TOR', 'Milwaukee': 'MIL', 'Utah': 'UTA', 'Memphis': 'MEM'},
@@ -61,6 +52,32 @@ function getOdds(sport) {
             games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
             games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
          });
+         // go through odds Watches and act if necessary
+         Bets.find({status:(sport == 'nfl')?10:11, watch: 1}, function(err, watches){
+            watches.forEach(function(watch){
+               // if home team was chosen, reverse things so they match current odds
+               if(watch.team1.slice(0,1)=='@') {
+                  var tmp = watch.team1;
+                  watch.team1 = watch.team2;
+                  watch.team2 = tmp;
+                  watch.odds = 0 - watch.odds;
+               }
+               // watch found, look through current odds for match
+               games.forEach(function(game) {
+                  if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
+                     // save watch as seen
+                     Bets.update({_id: watch._id}, {watch: 2}, function(err){
+                        if(err)
+                           console.log('trouble updating watch');
+                     });
+                     console.log('*** Odds watch of '+watch.odds+' hit for'+watch.team1+' vs '+watch.team2);
+                     Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
+
+                  }
+               });
+            });
+         });
+
          // add special game bets
          // if(fs.existsSync('json/extra.json') && sport == 'nfl') {
          //    var extraGames = JSON.parse(fs.readFileSync('json/extra.json','utf8'));
@@ -69,8 +86,9 @@ function getOdds(sport) {
          //    });
          // }
          var now = new Date();
-         var sendData = {'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
-            'week':  module.exports.getWeek(now),
+         var sendData = {
+            'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
+            'week':  Util.getWeek(now, sport),
             'games': games};
          if (games.length) { // only write if something was found
             //console.log(games);
@@ -191,23 +209,8 @@ function addNbaGame(date) {
 }
 
 module.exports = {
-   getWeek: function(date){
-      var wk=0;
-      for (i=0;i<numWeeks;i++){
-         if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
-            wk = i+1;
-            break;
-         }
-      }
-      return wk;
-   },
-
-   test: function() {
-      getOdds('ncaaf');
-   },
-
    refreshOddsInfo: function() {
-      getOdds('nfl');
+      // getOdds('nfl');
       getOdds('nba');
    },
 
@@ -217,7 +220,7 @@ module.exports = {
       if (today.getHours() === 0)
          today.setHours(today.getHours()-1);
       if (sport=='nfl') {
-         wk = module.exports.getWeek(new Date());
+         wk = Util.getWeek(new Date(), sport);
          url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2016';
       } else {
          url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
@@ -263,7 +266,7 @@ module.exports = {
 
    clearUnactedBets: function(){
       // below searches for unacted bets and marks refused after game starts; '-' are saved
-      Bets.find({status:{$lte:0}}, function(err, bets){
+      Bets.find({status:{$in:[0,10,11]}}, function(err, bets){
       	bets.forEach(function(single){
             if (single.gametime < new Date()) {
                Bets.update({_id:single._id},{status:3}, function(err){
@@ -298,7 +301,7 @@ module.exports = {
       // console.log('tallying bets ...');
       Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
-            // console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2+ ' '+singleBet.season);
+            console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2+ ' '+singleBet.season);
             // console.log(singleBet);
             Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
                               {winner:{$ne: 0}},
@@ -373,6 +376,7 @@ module.exports = {
          }
       });
    },
+
    addNbaGames: function(startDate, endDate) {
       while (startDate <= endDate) {
          addNbaGame(startDate);

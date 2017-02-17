@@ -4,6 +4,7 @@ var request = require('request'),
    cheerio = require('cheerio'),
    bcrypt = require('bcrypt'),
    fs = require('fs'),
+   Util = require('./models/util'),
    mongoose = require('mongoose'),
    Users = require('./models/dbschema').Users,
    Bets = require('./models/dbschema').Bets,
@@ -13,9 +14,37 @@ var request = require('request'),
 
 mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
 
-scraper.addNbaGames(new Date('2017 Feb 12 18:30:00'), new Date('2017 April 12 18:30:00'));
+function getWeek(date, sport){
+   var seasonStart = {
+      nfl: new Date(2016,8,7),
+      nba: new Date(2016,9,25)
+   },
+   dayTicks = 24 * 60 * 60 * 1000;
+   return Math.ceil((date - ((sport=='nba')?seasonStart.nba:seasonStart.nfl)) / dayTicks / 7);
+}
 
-// scraper.addNbaGame(new Date('2017 Feb 7'));
+console.log(getWeek(new Date(2016,9,29),'nba'));
+// console.log(getWeek(now));
+function getWeekOld(date){
+   var wk = 1,
+      dstFlag=0,
+      seasonStart = new Date(2016,8,7),
+      nflWeeks = [];
+   for (var i=0; i<23; i++){
+      if (i > 7)
+         dstFlag = 3600000;
+      nflWeeks.push(new Date(seasonStart.valueOf()+i*7*86400000+dstFlag));
+   }
+   if (date > nflWeeks[0]) {
+      for (i=0; i<23; i++){
+         if (date > nflWeeks[i] && date < nflWeeks[i+1]) {
+            wk = i+1;
+            break;
+         }
+      }
+   }
+   return wk;
+}
 // Users.findOneAndUpdate({_id:'jarma44', bets:0}, {}, function(err, record) {
 //    if(record)
 //       console.log(record);
@@ -38,37 +67,3 @@ scraper.addNbaGames(new Date('2017 Feb 12 18:30:00'), new Date('2017 April 12 18
 //    console.log('implied_odds for '+ml[i]+' is '+ implied_odds);
 // }
 // console.log('nojuice is '+nojuice[0]/total*100+'% and '+nojuice[1]/total*100+'%');
-
-// Players.find({}, function(err, players) {
-//    players.forEach(function(rec){
-//       var score = rec.r_yards/10+rec.p_yards/10+rec.r_tds*6+rec.p_tds*6;
-//       console.log(rec.player+' '+score);
-//       Players.findByIdAndUpdate(rec._id, {points: score}, function(err, single){
-//          if (err)
-//             console.log('error');
-//       });
-//    });
-// });
-// var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARZ', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Green Bay': 'GB', 'Minnesota': 'MIN', 'New Orleans': 'NO', 'NY Giants': 'NYG', 'Philadelphia': 'PHI', 'Seattle': 'SEA', 'San Francisco': 'SF', 'Los Angeles': 'LA', 'Tampa Bay': 'TB', 'Washington': 'WAS', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Cincinnati': 'CIN', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Kansas City': 'KC', 'Jacksonville': 'JAC', 'Indianapolis': 'IND', 'Miami': 'MIA', 'New England': 'NE', 'NY Jets': 'NYJ', 'Oakland': 'OAK', 'Pittsburgh': 'PIT', 'San Diego': 'SD', 'Tennessee': 'TEN'};
-// var sports = ['nfl', 'nba'];
-// for (var i=0; i < sports.length; i++) {
-//    console.log(sports[i]);
-// }
-
-
-//       var teams = ['Golden State','LA Clippers','San Antonio','Oklahoma City','Cleveland','Houston','Memphis','Atlanta','Chicago','New Orleans','Miami','Washington','Toronto','Milwaukee','Boston','Utah','Indiana','Phoenix','Detroit','Dallas','Sacramento','Orlando','Charlotte','New York','LA Lakers','Minnesota','Brooklyn','Portland','Denver','Philadelphia'];
-//
-//       teams.forEach(function(name){
-//          var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
-//          var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*82;
-//          OUGame.findOne({team: name}, function(err, rec) {
-//             OUGame.update({team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
-//                if (err)
-//                   console.log('error');
-//                if (resp.n)
-//                   console.log('updated '+name+' record');
-//             });
-//          });
-//       });
-//    }
-// });
