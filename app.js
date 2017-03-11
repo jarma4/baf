@@ -49,7 +49,7 @@ var express = require('express'),
 
 // enable middleware
 app.use(compression());
-// app.use('/', express.static(__dirname + '/public'));
+app.use('/', express.static(__dirname + '/public'));
 app.use('/js', express.static(__dirname + '/public/js'));
 app.use('/css', express.static(__dirname + '/public/css'));
 app.use('/images', express.static(__dirname + '/public/images', {maxage: '1h'}));

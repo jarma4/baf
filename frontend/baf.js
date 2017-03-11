@@ -321,7 +321,7 @@ function getStats() {
    if (sport !== 'nba' && sport !== 'nfl')
       sport = ($('#sportNfl').hasClass('dropped'))?'nfl':'nba';
    toggleSport(sport);
-   weeklyStats(getWeek(new Date()));
+   weeklyStats(getWeek(new Date(), sport));
    overallStats();
    drawChart(0);
 }

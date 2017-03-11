@@ -225,7 +225,7 @@ router.post('/changebet', requireLogin, function(req,res){
             if(acceptedBet){
                console.log('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
                changeUser(req.session.user._id, 'bets', -1);
-               Utils.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
+               Util.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
                // if first to act bet, remove for other people
                if (acceptedBet.fta) {
                   Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
@@ -668,7 +668,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
          markPaid(bet._id, req.session.user._id);
       });
    }).sort({date: 1}).limit(Number(req.body.num));
-   Utils.textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+   Util.textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
    res.send({'type':'success', 'message':'Offset debts recorded'});
 });
 

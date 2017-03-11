@@ -33,7 +33,7 @@ function getOdds(sport) {
                else {
                   var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
                   var temptime = $(this).parent().prev().text().split(':');
-                  matchup.date = new Date(tempdate+' '+((tempdate.split(' ')[1] == 'Jan' || tempdate.split(' ')[1] == 'Feb')?'2017':'2016')+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
+                  matchup.date = new Date(tempdate+' '+'2017'+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
                   matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
                }
             });
@@ -301,7 +301,7 @@ module.exports = {
       // console.log('tallying bets ...');
       Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
          acceptedBets.forEach(function(singleBet){				//go through each bet
-            console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2+ ' '+singleBet.season);
+            // console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2+ ' '+singleBet.season);
             // console.log(singleBet);
             Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
                               {winner:{$ne: 0}},

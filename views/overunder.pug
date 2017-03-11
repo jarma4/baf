@@ -1,12 +1,12 @@
 extends base
 
 block content
-   strong.lead &nbspOver/Under Game
+   span.title Over/Under Game
    .container-fluid
       .row.no-gutters
          .col-md-3
             .panel.panel-success
-               .panel-heading 
+               .panel-heading
                   | Current Tally
                   a(data-toggle='collapse', href='#ouPicks')#ouPicksTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #ouPicks.panel-collapse.collapse
@@ -21,7 +21,6 @@ block content
                   a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #standingsArea.panel-collapse.collapse
          .col-md-3
-            
+
 block scripts
    script(type='text/javascript') showStandings()
-            
