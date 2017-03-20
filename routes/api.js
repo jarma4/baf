@@ -29,13 +29,6 @@ router.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
-// router.use(session({
-//   name: 'session',
-//   secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
-//   saveUninitialized: true,
-//   resave: true,
-// }));
-
 router.use(function (req, res, next) {
   if (req.session && req.session.user) {
     Users.findOne({ _id: req.session.user._id }, function (err, user) {
@@ -268,60 +261,6 @@ router.post('/changebet', requireLogin, function(req,res){
          });
          break;
 
-      //          if (bet.user2 == 'EVERYONE') {
-      //             Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, (req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
-      //                users.forEach(function(single) {
-      //                   new Bets({
-      //                      date: new Date(),
-      //                      user1: req.session.user._id,
-      //                      user2: single,
-      //                      odds: req.body.newodds,
-      //                      type: bet.type,
-      //                      team1: bet.team1,
-      //                      team2: bet.team2,
-      //                      amount: bet.amount,
-      //                      paid: false,
-      //                      status: 0,
-      //                      season: 2016, //new Date().getFullYear(),
-      //                      week: getWeek(new Date()),
-      //                      gametime: bet.gametime,
-      //                      sport: bet.sport
-      //                   }).save(function(err){
-      //                      if(err) {
-      //                         console.log('Trouble adding bet');
-      //                         res.send({'type':'danger', 'message':'Trouble adding bet'});
-      //                      } else {
-      //                         console.log('Bet added: user1='+req.session.user._id+" user2="+single+" picks="+bet.team1+" odds="+bet.odds+" amount=$"+bet.amount);
-      //                      }
-      //                   });
-      //                   changeUser (single, 'bets', 1);
-      //                   Utils.textUser(single, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
-      //                });
-      //             });
-      //             Bets.remove({_id:req.body.id}, function(err){
-      //                if(err)
-      //                   console.log(err);
-      //             });
-      //          } else {
-      //             Bets.update({_id: req.body.id},{status: req.body.status, odds: req.body.newodds}, function(err) {
-      //                if(err){
-      //                   console.log(err);
-      //                } else {
-      //                   console.log('Bet _id='+req.body.id+' changed to '+req.body.status);
-      //                   res.send({'type':'success', 'message':'Reply Sent'});
-      //                   Bets.findOne({_id: req.body.id}, function(err, bet) {
-      //                      if(err)
-      //                         console.log(err);
-      //                      else {
-      //                         changeUser(bet.user2, 'bets', 1);
-      //                         Utils.textUser(bet.user2, req.session.user._id, ((bet.sport=='nfl')?'NFL':'NBA')+' bet: you='+bet.team2+', '+req.session.user._id+'='+bet.team1);
-      //                      }
-      //                   });
-      //                }
-      //             });
-      //          }
-      //       }
-      //    });
    }
 });
 
@@ -604,31 +543,6 @@ router.post('/debtpaid', requireLogin, function(req,res){
       res.send({'type':'danger', 'message':'Trouble marking bet paid, try again'});
 
    }
-   // Bets.findByIdAndUpdate({_id:req.body.id}, {paid: true}, function(err, single){
-   //    if(err){
-   //       console.log(err);
-   //    } else {    // need to also mark debt flag in user db for notifications
-   //       if(single.user1 != req.session.user._id){
-   //          var tmp = single.user1;
-   //          var tmp2 = single.team1;
-   //          single.user1 = single.user2;
-   //          single.team1 = single.team2;
-   //          single.user2 = tmp;
-   //          single.team2 = tmp2;
-   //       }
-   //       // below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
-   //       Users.update({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
-   //          if(err)
-   //             console.log(err);
-   //       });
-   //       Users.update({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
-   //          if(err)
-   //             console.log(err);
-   //       });
-   //       console.log('Bet#'+req.body.id+' marked paid by '+req.session.user._id+' - '+new Date());
-   //       res.send({'type':'success', 'message':'Bet marked paid'});
-   //    }
-   // });
 });
 
 //retrieves both bets owed to someone else and someone else owing user
@@ -731,7 +645,7 @@ router.get('/nbaodds', function (req, res) {
 });
 
 router.get('/ncaaodds', function (req, res) {
-   res.sendFile('./json/ncaa.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list
@@ -751,7 +665,7 @@ router.get('/doorbell', requireLogin, function(req,res){
       answer.nfl = true;
    if (fs.existsSync('json/nba_odds.json'))
       answer.nba = true;
-   if (fs.existsSync('json/ncaa_odds.json'))
+   if (fs.existsSync('json/ncaab_odds.json'))
       answer.ncaa = true;
    var betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){

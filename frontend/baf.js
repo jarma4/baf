@@ -318,8 +318,8 @@ $('.statsInc').on('click', function(event){
 
 function getStats() {
    var sport = document.cookie.split('=')[1];
-   if (sport !== 'nba' && sport !== 'nfl')
-      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':'nba';
+   if (!sport)
+      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa';
    toggleSport(sport);
    weeklyStats(getWeek(new Date(), sport));
    overallStats();
@@ -332,7 +332,7 @@ function weeklyStats(date) {
 		url: '/api/weeklystats',
       data: {
          'date': date,
-         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':'nba'
+         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa'
       },
 		success:function(retData){
          $('#weeklyStats').empty();
@@ -405,14 +405,16 @@ function overallStats() {
 		type: 'POST',
 		url: '/api/overallstats',
       data: {
-         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':'nba',
+         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa',
          'season': $('#statsYear').text()
       },
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-				outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
-            $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
+            if (rec.pct){
+	            outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
+               $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
+            }
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
@@ -493,7 +495,7 @@ function drawChart(days, update) {
       data: {
          user: 'ALL',
          days: days,
-         sport: ($('#sportNfl').hasClass('dropped'))?'nfl':'nba',
+         sport: ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa',
          season: $('#statsYear').text()
       },
       success: function(retData){
@@ -1128,10 +1130,11 @@ function doorBell(){
 function getWeek(date, sport){
    var seasonStart = {
          nfl: new Date(2016,8,7),
-         nba: new Date(2016,9,20)
+         nba: new Date(2016,9,20),
+         ncaa: new Date(2017,2,16)
       },
       dayTicks = 24 * 60 * 60 * 1000;
-   return Math.ceil((date - ((sport=='nba')?seasonStart.nba:seasonStart.nfl)) / dayTicks / 7);
+   return Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
 }
 
 function getOdds (){
@@ -1176,7 +1179,7 @@ function getOdds (){
             var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             if (tmpDate > prevDate)
                outp += '<tr class="modal-warning"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
-            outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btn-'+btnColor1+'"><tr><td rowspan="2"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
+            outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btn-'+btnColor1+'"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
             // +((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')
             outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
 

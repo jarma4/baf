@@ -210,7 +210,7 @@ function addNbaGame(date) {
 
 module.exports = {
    refreshOddsInfo: function() {
-      // getOdds('nfl');
+      getOdds('ncaab');
       getOdds('nba');
    },
 

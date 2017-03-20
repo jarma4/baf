@@ -37,10 +37,11 @@ module.exports = {
    getWeek: function(date, sport){
       var seasonStart = {
             nfl: new Date(2016,8,7),
-            nba: new Date(2016,9,20)
+            nba: new Date(2016,9,20),
+            ncaa: new Date(2017,2,16)
          },
          dayTicks = 24 * 60 * 60 * 1000;
-      return Math.ceil((date - ((sport=='nba')?seasonStart.nba:seasonStart.nfl)) / dayTicks / 7);
+      return Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
    }
 
 };
