@@ -10,11 +10,39 @@
 		height: 40px;
 	}
 }
+#sportMenu {
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+	}
+	li {
+		margin: 0;
+		padding: 10px 15px 10px 15px;
+		float: left;
+	}
+	a {
+		// display: block;
+		text-decoration: none;
+	}
+	.selected {
+		padding-top: 5px;
+		border-top: solid 5px white;
+	}
+}
+span.glyphicon-menu-hamburger {
+    font-size: 2em;
+	//  margin-right: 20px;
+	 padding: 10px;
+	//  background-color: yellow;
+}
 // everywhere
 .title {
-	margin-left: 10px;
-	margin-bottom: 20px;
-   font-size: 150%;
+	position: absolute;
+	top: 20;
+	// background-color: blue;
+	display: inline-block;
+   font-size: 1.5em;
 	font-weight: bold;
 	font-style: italic;
 	text-shadow: 1px 1px 1px rgba(128, 128, 128, 1);
@@ -127,13 +155,6 @@ tr .heading {
 	color: $theme-danger;
 	font-style: italic;
 }
-// message page deprecated
-.msg-user{
-	// font-size: 18px;
-	font-weight: bold;
-	font-style: italic;
-	color: $theme-info;
-}
 // utilitarion
 .nodisplay{
 	display: none;
@@ -144,7 +165,7 @@ tr .heading {
 }
 .right{
 	float: right;
-	margin-top:-5px;
+	// margin-top:-5px;
 }
 .bold {
    font-weight: bold;
@@ -174,10 +195,6 @@ tr .heading {
 // button on panel title bar
 // .btn-scootlft{
 // 	margin-right: 30px;
-// }
-// .msg-date{
-// 	font-size: 85%;
-// 	color: $theme-primary;
 // }
 
 // .row.no-gutters {

@@ -1,18 +1,22 @@
 extends base
 
 block content
-   a#sportNfl.sportPick.dimmed.hidden
-      img.logo-md(src="images/nfl_logo_sprite_medium.png")
-   //- span.glyphicon.glyphicon-resize-horizontal
-   a#sportNba.sportPick.dropped.hidden
-      img.logo-md(src="images/nba_logo_sprite_medium.png")
-   a#sportNcaa.sportPick.dimmed.hidden
-      img(src="images/ncaa.svg")
+   span.title Games
    //- strong.lead#nflWeek
    .container-fluid
       .row.no-gutters
+         .col-md-12
+            #sportMenu
+               ul
+                  li#sportNfl.sportPick
+                     a NFL
+                     li#sportNba.sportPick.selected
+                        a NBA
+                        li#sportNcaa.sportPick
+                           a NCAA            
+               em#timestamp.right
+      .row.no-gutters
          .col-md-3
-            em#timestamp.right
             #watchBets
             #col1
          .col-md-3

@@ -18,8 +18,6 @@ html
 						img(src="images/2db_sm.png")
 					li
 						a.toggleSidebar(href='/') #[span.glyphicon.glyphicon-star] Games
-					//- li
-					//- 	a#nbaPage.toggleSidebar(href='/nba') #[img(src="images/basketball.png").nav-icon] NBA
 					li
 						a.toggleSidebar(href='/bets') #[span.iconspan.glyphicon.glyphicon-usd] Bets
 					li
@@ -32,13 +30,10 @@ html
 						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-retweet] OverUnder
 					li
 						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
-					//- li
-					//- 	a.toggleSidebar(href='/messageboard') #[span.glyphicon.glyphicon-bullhorn] MsgBoard
 					li
 						a.toggleSidebar(href='/options') #[span.iconspan.glyphicon.glyphicon-cog] Options
 			#page-content-wrapper
-				button.toggleSidebar.btn.btn-default.btn-lg
-					span.glyphicon.glyphicon-menu-hamburger
+				span.toggleSidebar.glyphicon.glyphicon-menu-hamburger.bigger
 				a.right.statusIcon(href='#', data-toggle='modal', data-target='#helpModal')
 					span.glyphicon.glyphicon-question-sign.text-muted
 				a.right.statusIcon(href="/bets")

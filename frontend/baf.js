@@ -1,26 +1,67 @@
 // "use strict";
 
+// function toggleSport(sport) {
+//    if (sport == 'nba') {
+//       $('#sportNba').removeClass('dimmed').addClass('dropped');
+//       $('#sportNfl').removeClass('dropped').addClass('dimmed');
+//       $('#sportNcaa').removeClass('dropped').addClass('dimmed');
+//       document.cookie = 'sport=nba;max-age=43200';
+//    } else if (sport == 'nfl'){
+//       $('#sportNfl').removeClass('dimmed').addClass('dropped');
+//       $('#sportNba').removeClass('dropped').addClass('dimmed');
+//       $('#sportNcaa').removeClass('dropped').addClass('dimmed');
+//       document.cookie = 'sport=nfl;max-age=43200';
+//    } else {
+//       $('#sportNcaa').removeClass('dimmed').addClass('dropped');
+//       $('#sportNfl').removeClass('dropped').addClass('dimmed');
+//       $('#sportNba').removeClass('dropped').addClass('dimmed');
+//       document.cookie = 'sport=ncaa;max-age=43200';
+//    }
+// }
 function toggleSport(sport) {
    if (sport == 'nba') {
-      $('#sportNba').removeClass('dimmed').addClass('dropped');
-      $('#sportNfl').removeClass('dropped').addClass('dimmed');
-      $('#sportNcaa').removeClass('dropped').addClass('dimmed');
+      $('#sportNba').addClass('selected');
+      $('#sportNfl').removeClass('selected');
+      $('#sportNcaa').removeClass('selected');
       document.cookie = 'sport=nba;max-age=43200';
    } else if (sport == 'nfl'){
-      $('#sportNfl').removeClass('dimmed').addClass('dropped');
-      $('#sportNba').removeClass('dropped').addClass('dimmed');
-      $('#sportNcaa').removeClass('dropped').addClass('dimmed');
+      $('#sportNfl').addClass('selected');
+      $('#sportNba').removeClass('selected');
+      $('#sportNcaa').removeClass('selected');
       document.cookie = 'sport=nfl;max-age=43200';
    } else {
-      $('#sportNcaa').removeClass('dimmed').addClass('dropped');
-      $('#sportNfl').removeClass('dropped').addClass('dimmed');
-      $('#sportNba').removeClass('dropped').addClass('dimmed');
+      $('#sportNcaa').addClass('selected');
+      $('#sportNfl').removeClass('selected');
+      $('#sportNba').removeClass('selected');
       document.cookie = 'sport=ncaa;max-age=43200';
    }
 }
+// $('.sportPick').on('click', function(){
+//    if ($(this).hasClass('dimmed')) {
+//       if ($(this).is($('#sportNfl')))
+//          toggleSport('nfl');
+//       else if ($(this).is($('#sportNba')))
+//          toggleSport('nba');
+//       else
+//          toggleSport('ncaa');
+//       // according to what page you're on, refresh data
+//       switch (window.location.pathname) {
+//          case '/':
+//             getOdds();
+//             getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets', 'watch');
+//             break;
+//          case '/stats':
+//             getStats();
+//             break;
+//          case '/scores':
+//             showScores(($('#sportNfl').hasClass('dropped'))?getWeek(new Date()):new Date());
+//             break;
+//       }
+//    }
+// });
 
 $('.sportPick').on('click', function(){
-   if ($(this).hasClass('dimmed')) {
+   if (!$(this).hasClass('selected')) {
       if ($(this).is($('#sportNfl')))
          toggleSport('nfl');
       else if ($(this).is($('#sportNba')))
@@ -31,13 +72,13 @@ $('.sportPick').on('click', function(){
       switch (window.location.pathname) {
          case '/':
             getOdds();
-            getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets', 'watch');
+            getBets(($('#sportNfl').hasClass('selected'))?10:11,'watchBets', 'watch');
             break;
          case '/stats':
             getStats();
             break;
          case '/scores':
-            showScores(($('#sportNfl').hasClass('dropped'))?getWeek(new Date()):new Date());
+            showScores(($('#sportNfl').hasClass('selected'))?getWeek(new Date()):new Date());
             break;
       }
    }
@@ -141,7 +182,7 @@ $('#watchDelete').on('click', function(){
    postApi('changebet',{
          'id': $('#watchId').val(),
          'action': 'delete'});
-   getBets(($('#sportNfl').hasClass('dropped'))?10:11, 'watchBets', 'watch');
+   getBets(($('#sportNfl').hasClass('selected'))?10:11, 'watchBets', 'watch');
 });
 
 $('#watchModify').on('click', function(){
@@ -150,7 +191,7 @@ $('#watchModify').on('click', function(){
          'id': $('#watchId').val(),
          'odds': $('#watchOddsNew').val()});
          // 'status': ($('#sportNfl').hasClass('dropped'))?-1:-2});
-   getBets(($('#sportNfl').hasClass('dropped'))?10:11, 'watchBets', 'watch');
+   getBets(($('#sportNfl').hasClass('selected'))?10:11, 'watchBets', 'watch');
 });
 
 //bet modal has +/- to increment/decrement values
@@ -319,7 +360,7 @@ $('.statsInc').on('click', function(event){
 function getStats() {
    var sport = document.cookie.split('=')[1];
    if (!sport)
-      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa';
+      sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
    toggleSport(sport);
    weeklyStats(getWeek(new Date(), sport));
    overallStats();
@@ -332,7 +373,7 @@ function weeklyStats(date) {
 		url: '/api/weeklystats',
       data: {
          'date': date,
-         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa'
+         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa'
       },
 		success:function(retData){
          $('#weeklyStats').empty();
@@ -405,7 +446,7 @@ function overallStats() {
 		type: 'POST',
 		url: '/api/overallstats',
       data: {
-         'sport': ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa',
+         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
          'season': $('#statsYear').text()
       },
 		success:function(retData){
@@ -442,7 +483,7 @@ function getUserStats (user, sport, season, week) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('dropped'))?'nfl':'nba', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').success(function(retData) {
+   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':'nba', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').success(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -495,7 +536,7 @@ function drawChart(days, update) {
       data: {
          user: 'ALL',
          days: days,
-         sport: ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa',
+         sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
          season: $('#statsYear').text()
       },
       success: function(retData){
@@ -653,8 +694,8 @@ function getFutures() {
 function showScores(period) {
    var sport = document.cookie.split('=')[1];
    if (sport !== 'nba' && sport !== 'nfl')
-      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':'nba';
-   if (sport == 'nba' && $('#sportNfl').hasClass('dropped'))
+      sport = ($('#sportNfl').hasClass('selected'))?'nfl':'nba';
+   if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
       period = new Date();
    toggleSport(sport);
    $.ajax({
@@ -666,7 +707,7 @@ function showScores(period) {
          'period': period
       },
 		success:function(retData){
-         if ($('#sportNfl').hasClass('dropped')) {
+         if ($('#sportNfl').hasClass('selected')) {
             $('#scoresPeriod').text('Week '+period);
          } else {
             $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());
@@ -1140,7 +1181,7 @@ function getWeek(date, sport){
 function getOdds (){
    var sport = document.cookie.split('=')[1];
    if (!sport)
-      sport = ($('#sportNfl').hasClass('dropped'))?'nfl':($('#sportNba').hasClass('dropped'))?'nba':'ncaa';
+      sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
    toggleSport(sport);
 	$.ajax({
 		type: 'GET',

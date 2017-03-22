@@ -1,18 +1,21 @@
 extends base
 
 block content
-   a#sportNfl.sportPick.dimmed
-      img.logo-md(src="images/nfl_logo_sprite_medium.png")
-   //- span.glyphicon.glyphicon-resize-horizontal
-   a#sportNba.sportPick.dropped
-      img.logo-md(src="images/nba_logo_sprite_medium.png")
-   a#sportNcaa.sportPick.dimmed.hidden
-      img(src="images/ncaa.svg")
-   //- strong.lead#nflWeek
+   span.title Games
    .container-fluid
       .row.no-gutters
+         .col-md-12
+            #sportMenu
+               ul
+                  li#sportNfl.sportPick2
+                     a NFL
+                     li#sportNba.sportPick2.selected
+                        a NBA
+                        li#sportNcaa.sportPick2
+                           a NCAA            
+               em#timestamp.right
+      .row.no-gutters
          .col-md-3
-            em#timestamp.right
             #watchBets
             #col1
          .col-md-3
@@ -29,13 +32,9 @@ block content
                h4.text-center#betTitle
             .modal-body
                form
-                  .form-group
+                  #betUserlist.form-group
                      label(for='userList') Send Bet To:
                      select#userList.form-control(autofocus)
-                  .checkbox
-                     label
-                        input#oddsWatch(type='checkbox')
-                        | Set Odds Watch
                   #oddsMod.form-group.nodisplay
                      label(for='betAmount') Notify when odds reach:
                      .input-group
@@ -44,6 +43,10 @@ block content
                         input#betOddsNew.small-inputbox(type='number')
                         button.btn-increment.btn.btn-primary(value="1")
                            span.glyphicon.glyphicon-plus
+                  .checkbox
+                     label
+                        input#oddsWatch(type='checkbox')
+                        | Set Odds Watch
                   input#betUser2.nodisplay
                   input#betOdds.nodisplay
                   input#betType.nodisplay
@@ -61,13 +64,25 @@ block content
                button.close(type='button', data-dismiss='modal') #[span &times;]
                h4#watchTitle
             .modal-body
-               h4#oddsText
-               button#watchSend.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='1', data-dismiss="modal") Send with current odds
+               h4#watchText
+               #oddsMod.form-group
+                  label(for='watchOddsNew') Notify when odds reach:
+                  .input-group
+                     button.btn-increment.btn.btn-primary(value="0")
+                        span.glyphicon.glyphicon-minus
+                     input#watchOddsNew.small-inputbox(type='number')
+                     button.btn-increment.btn.btn-primary(value="1")
+                        span.glyphicon.glyphicon-plus
+                  .checkbox
+                     label
+                        input#watchDeactivated(type='checkbox')
+                        | Deactivated
+               button#watchModify.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='1', data-dismiss="modal") Modify odds
                button#watchDelete.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Delete
                input#watchId.nodisplay
-               input#watchNewOdds.nodisplay
+               input#watchModOdds.nodisplay
 
 block scripts
    script(type='text/javascript') getOdds()
    script(type='text/javascript') getUsers()
-   script(type='text/javascript') getBets(($('#sportNfl').hasClass('dropped'))?-1:-2,'watchBets',1);
+   script(type='text/javascript') getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets','watch');
