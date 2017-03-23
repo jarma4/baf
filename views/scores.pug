@@ -7,20 +7,20 @@ block content
          .col-md-12
             #sportMenu
                ul
-                  li#sportNfl.sportPick
+                  li#sportNfl.sportPick.dimmed
                      a NFL
-                     li#sportNba.sportPick.selected
-                        a NBA
-                        li#sportNcaa.sportPick
-                           a NCAA            
+                  li#sportNba.sportPick.selected
+                     a NBA
+                  li#sportNcaa.sportPick.dimmed
+                     a NCAA            
       .row.no-gutters
          .col-md-3
             .panel.panel-primary
                .panel-heading
                   span#scoresPeriod
-                  button.scoresInc.btn.btn-default.right(value=1)
+                  button.scoresInc.btn.btn-default.right.pushUp(value=1)
                      span.glyphicon.glyphicon-chevron-right
-                  button.scoresInc.btn.btn-default.right(value=-1)
+                  button.scoresInc.btn.btn-default.right.pushUp(value=-1)
                      span.glyphicon.glyphicon-chevron-left
                   //- button#scoresSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
                   input#scoresDate.nodisplay

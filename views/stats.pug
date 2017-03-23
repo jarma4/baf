@@ -9,18 +9,18 @@ block content
                ul
                   li#sportNfl.sportPick
                      a NFL
-                     li#sportNba.sportPick.selected
-                        a NBA
-                        li#sportNcaa.sportPick
-                           a NCAA            
+                  li#sportNba.sportPick.selected
+                     a NBA
+                  li#sportNcaa.sportPick
+                     a NCAA            
       .row
          .col-md-4
             .panel.panel-primary
                .panel-heading
                   span#statsPeriod
-                  button.statsInc.btn.btn-default.right(value=1)
+                  button.statsInc.btn.btn-default.right.pushUp(value=1)
                      span.glyphicon.glyphicon-chevron-right
-                  button.statsInc.btn.btn-default.right(value=-1)
+                  button.statsInc.btn.btn-default.right.pushUp(value=-1)
                      span.glyphicon.glyphicon-chevron-left
                   //- button#statsType.btn.btn-sm.btn-default.btn-scootlft.right Summary
                   a(data-toggle='collapse', href='#weeklyStats')#weeklyStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
@@ -30,7 +30,7 @@ block content
                .panel-heading
                   | Season
                   a(data-toggle='collapse', href='#overallStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-                  button#statsYear.btn.btn-sm.btn-default.right 2016
+                  button#statsYear.btn.btn-sm.btn-default.right.pushUp 2016
                      //- option 2015
                      //- option 2016
                   //- button#statsSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL

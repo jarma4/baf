@@ -1,23 +1,5 @@
 // "use strict";
 
-// function toggleSport(sport) {
-//    if (sport == 'nba') {
-//       $('#sportNba').removeClass('dimmed').addClass('dropped');
-//       $('#sportNfl').removeClass('dropped').addClass('dimmed');
-//       $('#sportNcaa').removeClass('dropped').addClass('dimmed');
-//       document.cookie = 'sport=nba;max-age=43200';
-//    } else if (sport == 'nfl'){
-//       $('#sportNfl').removeClass('dimmed').addClass('dropped');
-//       $('#sportNba').removeClass('dropped').addClass('dimmed');
-//       $('#sportNcaa').removeClass('dropped').addClass('dimmed');
-//       document.cookie = 'sport=nfl;max-age=43200';
-//    } else {
-//       $('#sportNcaa').removeClass('dimmed').addClass('dropped');
-//       $('#sportNfl').removeClass('dropped').addClass('dimmed');
-//       $('#sportNba').removeClass('dropped').addClass('dimmed');
-//       document.cookie = 'sport=ncaa;max-age=43200';
-//    }
-// }
 function toggleSport(sport) {
    if (sport == 'nba') {
       $('#sportNba').addClass('selected');
@@ -36,32 +18,9 @@ function toggleSport(sport) {
       document.cookie = 'sport=ncaa;max-age=43200';
    }
 }
-// $('.sportPick').on('click', function(){
-//    if ($(this).hasClass('dimmed')) {
-//       if ($(this).is($('#sportNfl')))
-//          toggleSport('nfl');
-//       else if ($(this).is($('#sportNba')))
-//          toggleSport('nba');
-//       else
-//          toggleSport('ncaa');
-//       // according to what page you're on, refresh data
-//       switch (window.location.pathname) {
-//          case '/':
-//             getOdds();
-//             getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets', 'watch');
-//             break;
-//          case '/stats':
-//             getStats();
-//             break;
-//          case '/scores':
-//             showScores(($('#sportNfl').hasClass('dropped'))?getWeek(new Date()):new Date());
-//             break;
-//       }
-//    }
-// });
 
 $('.sportPick').on('click', function(){
-   if (!$(this).hasClass('selected')) {
+   if (!$(this).hasClass('selected') && !$(this).hasClass('dimmed')) {
       if ($(this).is($('#sportNfl')))
          toggleSport('nfl');
       else if ($(this).is($('#sportNba')))
@@ -224,7 +183,8 @@ $('#rescindSend').on('click', function(){
    getBets(1, 'waitingThem', 'rescind');
 });
 
-$('#acceptedBets').on('click', '.tt', function(event){
+// since .comment class is not in html(added by js), need to attach to higher id
+$('#page-content-wrapper').on('click', '.comment', function(event){
     var that = $(this);
     that.popover('show');
     setTimeout(function(){
@@ -263,7 +223,7 @@ function showBets () {
             var outp = '<table class="table table-condensed"><tr class="heading-danger">';
             outp += '<th colspan=3>Others</th></tr>';
             $.each(retData, function(i,rec){
-               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
+               outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="comment" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
                   if (!numBets[rec.user1])
                      numBets[rec.user1] = 0;
                   if (!numBets[rec.user2])
@@ -278,7 +238,7 @@ function showBets () {
                $('#acceptedBetsTitle').addClass('open'); //actually opens/uncollapses pane
                $('#acceptedBets').addClass('in'); //actually opens/uncollapses pane
                $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-               $('[data-toggle="popover"]').popover();
+               // $('[data-toggle="popover"]').popover();
             }
             // $('#otherBets').addClass('in');
             // $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
@@ -309,7 +269,7 @@ function getBets(status, target, addButton) {
                outp += '<th>Edit</th>';
             $.each(retData, function(i,rec){
                outp +='</tr><tr>';
-               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="tt" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
+               outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="comment" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
                if (addButton)
                   outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'watchModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'" data-deactivated="'+((rec.watch==2)?true:false)+'"><span class="glyphicon glyphicon-'+((addButton=='rescind')?'remove':'hand-left')+'"></span></button></td>';
                outp += '</tr>';
@@ -320,7 +280,7 @@ function getBets(status, target, addButton) {
             if ($('#'+target+'Title').children().hasClass('open'))
                $('#'+target).addClass('in'); //actually opens/uncollapses pane
             $('#'+target+'Title span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-            $('[data-toggle="popover"]').popover();
+            // $('[data-toggle="popover"]').popover();
          }
       },
       error: function(retData){
