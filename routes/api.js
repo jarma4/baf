@@ -79,15 +79,15 @@ function saveBet (req){
       sport: req.body.sport,
       fta: req.body.serial,
       paid: false,
-      status: (req.body.watch === 'true')?((req.body.sport=='nfl')?10:11):0,
-      watch: (req.body.watch === 'true')?1:''
+      status: (req.body.watch === 'true')?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
+      watch: (req.body.watch === 'true')?(req.body.watchsend === 'true')?2:1:''
    }).save(function(err){
       if(err) {
          console.log('Trouble adding bet: '+err);
-         // return {'type':'danger', 'message':'Trouble adding bet'};
+         return ({'type':'danger', 'message':'Trouble adding bet'});
       } else {
          console.log('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
-         // return {'type':'success', 'message':(req.body.later)?'Bet saved':'Bet Saved'};
+         return ({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
       }
    });
    if (req.body.watch=='false' && req.body.type != 'give' && req.body.type != 'take') {
@@ -97,9 +97,6 @@ function saveBet (req){
 }
 
 router.post('/makebet', requireLogin, function (req, res) {
-   var result, today = new Date();
-   // console.log(today.setDate(today.getDate()+7*24*60*60*1000))
-
    // check stack if bet has already come through, exit if so
    if (betStack.indexOf(req.body.serial) != -1) {
       console.log('previous bet found with serial#'+req.body.serial);
@@ -128,7 +125,7 @@ router.post('/makebet', requireLogin, function (req, res) {
          });
       });
    } else {
-      saveBet(req);
+      console.log(saveBet(req));
    }
    res.send({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
 });
@@ -434,7 +431,7 @@ router.post('/getscores', requireLogin, function(req,res){
          }
       });
    else {
-      Scores.find({$and: [{sport:'nba'}, {date:{$gt:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}, function(err,scores){
+      Scores.find({$and: [{sport: req.body.sport}, {date:{$gt:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}, function(err,scores){
          if(err){
             console.log(err);
          } else {

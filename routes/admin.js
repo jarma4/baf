@@ -8,7 +8,7 @@ var express = require('express'),
 
 router.use(session({
      cookieName: 'session',
-     secret: 'lkjhsd8fasdfkh@ljkkljWljOlkjl3344',
+     secret: process.env.BAF_SESSION,
      duration: 5 * 24 * 60 * 60 * 1000,
      activeDuration: 5 * 60 * 1000,
    }));
@@ -23,11 +23,11 @@ router.post('/login', function(req,res){
          bcrypt.compare(req.body.password, user.password, function(err, result){
             if (result){
                req.session.user = user;
-               console.log('User '+req.session.user._id+' password correct');
+               console.log('User '+req.session.user._id+' password correct - '+new Date());
                res.send({'type':'success', 'message':'Login Successful'});
                // res.redirect('/');
             } else {
-               console.log('Password '+req.body.password+' not correct');
+               console.log('Password '+req.body.password+' not correct - '+new Date());
                res.send({'type':'danger', 'message':'Password incorrect'});
             }
          });

@@ -31,7 +31,7 @@ $('.sportPick').on('click', function(){
       switch (window.location.pathname) {
          case '/':
             getOdds();
-            getBets(($('#sportNfl').hasClass('selected'))?10:11,'watchBets', 'watch');
+            getBets(($('#sportNfl').hasClass('selected'))?10:($('#sportNba').hasClass('selected'))?11:12,'watchBets', 'watch');
             break;
          case '/stats':
             getStats();
@@ -97,7 +97,7 @@ $('#betModal').on('show.bs.modal', function (event) {
 
 $('#betSubmit').on('click', function(event) {
    postApi('makebet', {
-         'user2': ($('#oddsWatch').is(":checked"))?'':$('#userList').val(),
+         'user2': $('#userList').val(),
 		   'amount': $('#betAmount').val(),
 		   'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
          'type': $('#betType').val(),
@@ -106,25 +106,41 @@ $('#betSubmit').on('click', function(event) {
          'sport': $('#betSport').val(),
          'gametime': $('#betGametime').val(),
          'serial': Math.random(),
-         'watch': $('#oddsWatch').is(":checked")
+         'watch': $('#oddsWatch').is(":checked"),
+         'watchsend': $('#oddsWatchSend').is(":checked")
 		});
    });
 
 function resetOddsWatch(){
    $('#betUserlist').removeClass('nodisplay');
-   $('#oddsMod').addClass('nodisplay');
+   $('#userList').prop('disabled', false);
+   $('#oddsWatchArea').addClass('nodisplay');
    $('#betSubmit').text('Send Bet');
    $('#oddsWatch').prop('checked', false);
 }
 
 // change bet modal according to checkbox
 $('#oddsWatch').on('click', function(event) {
-   $('#oddsMod').toggleClass('nodisplay');
-   $('#betUserlist').toggleClass('nodisplay');
+   $('#oddsWatchArea').toggleClass('nodisplay');
+   if ($("#oddsWatch").is(":checked")) {
+      $('#userList').prop('disabled', 'disabled');
+   } else {
+      $('#userList').prop('disabled', false);
+   }
+   $('#oddsWatchSend').prop('checked', false);
    if($('#betSubmit').text() == 'Send Bet')
       $('#betSubmit').text('Save Odds Watch');
    else
       $('#betSubmit').text('Send Bet');
+});
+
+// change bet modal according to checkbox
+$('#oddsWatchSend').on('click', function(event) {
+   if ($("#oddsWatchSend").is(":checked")) {
+      $('#userList').prop('disabled', false);
+   } else {
+      $('#userList').prop('disabled', 'disabled');
+   }
 });
 
 //prepopulate previously watch bet modal
@@ -443,7 +459,7 @@ function getUserStats (user, sport, season, week) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':'nba', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').success(function(retData) {
+   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').then(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -456,7 +472,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
    	});
    	outp += '</table>';
    	document.getElementById("statsHistory").innerHTML = outp;
-   }).error(function(retData){
+   }).catch(function(retData){
 			alert(retData.type, retData.message);
 	});
 });
@@ -653,7 +669,7 @@ function getFutures() {
 
 function showScores(period) {
    var sport = document.cookie.split('=')[1];
-   if (sport !== 'nba' && sport !== 'nfl')
+   if (sport !== 'nba' && sport !== 'nfl' && sport !== 'ncaa')
       sport = ($('#sportNfl').hasClass('selected'))?'nfl':'nba';
    if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
       period = new Date();
@@ -752,12 +768,12 @@ function showStandings() {
          sergio = 0,
          tony = 0,
          aaron = 0,
-         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th></tr>',
+         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
          outp2 = '<table class="table table-condensed"><tr><th>Team</th><th>EK</th><th>AW</th><th>JM</th><th>RR</th><th>TJ</th><th>SC</th></tr>';
 
 			$.each(retData, function(i,rec){
             // populate standings area
-				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td></tr>';
+				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+Math.ceil(rec.line-rec.win)+'/'+(82-rec.win-rec.loss)+'</td></tr>';
             // populate picks area
             outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td '+((rec.eric.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.eric+'</td><td '+((rec.aaron.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.aaron+'</td><td '+((rec.john.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.john+'</td><td '+((rec.russell.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.russell+'</td><td '+((rec.tony.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.tony+'</td><td '+((rec.sergio.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.sergio+'</td></tr>';
             // calculate points for picks
@@ -1092,6 +1108,16 @@ function getUsers (){
 	});
 }
 
+function addAnimation(name, duration, target) {
+   // $('#'+target).addClass(name);
+   setInterval(function(){
+      $('#'+target).addClass(name);
+      setTimeout(function(){
+         $('#'+target).removeClass(name);
+      }, 1200);
+   }, duration);
+
+}
 // called when new page loaded
 function doorBell(){
 	$.ajax({
@@ -1103,10 +1129,14 @@ function doorBell(){
          } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
             // username = retData.username; // keep around for things
             if (retData.bets) {
-               $('#notify1').addClass('glyphicon-flag').addClass('text-danger');
+               $('#notify1').removeClass('hidden');
+               addAnimation('bounce', 15000, 'notify1');
             }
             if (retData.debts) {
-               $('#notify2').addClass('glyphicon-usd').addClass('text-success');
+               $('#notify2').removeClass('hidden');
+            }
+            if (retData.futures) {
+               $('#notify3').removeClass('hidden');
             }
             if (retData.nfl) {
                $('#sportNfl').removeClass('hidden');
@@ -1116,9 +1146,6 @@ function doorBell(){
             }
             if (retData.ncaa) {
                   $('#sportNcaa').removeClass('hidden');
-            }
-            if (retData.futures) {
-               $('#notify3').addClass('glyphicon-time').addClass('text-info');
             }
          }
       },

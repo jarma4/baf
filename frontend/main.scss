@@ -19,10 +19,26 @@
 	.selected {
 		padding-top: 5px;
 		border-top: solid 5px white;
+		transition: all 150ms ease-in-out;
 	}
 	.dimmed {
 		opacity: 0.33;
 		// transform: scale3d(.8, .8, .8);
+	}
+}
+.bounce {
+	animation: bounce 500ms ease-in-out;
+	// animation-iteration-count: infinite;
+}
+@keyframes bounce {
+	25% {
+		transform: rotate(-15deg);
+		transform: translateY(10px);
+	}
+	50% {
+		transform: translateY(-15px);}
+	75% {
+		transform: rotate(10deg);
 	}
 }
 span.glyphicon-menu-hamburger {
@@ -55,11 +71,17 @@ span.glyphicon-menu-hamburger {
 		font-size: 1.5em;
 	}
 }
+
 #login_logo {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 100vh;
+}
+#test {
+	float: none;
+	display: block;
+	clear: both;
 }
 // make more room for panels which already have padding
 .container-fluid {
@@ -148,6 +170,12 @@ tr .heading {
 	float: right;
 	margin-right: 25%;
 	margin-bottom: 10px;
+}
+.help-heading {
+	// font-size: 18px;
+	font-weight: bold;
+	font-style: italic;
+	color: $theme-info;
 }
 // utilitarion
 .nodisplay{

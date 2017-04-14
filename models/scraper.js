@@ -7,6 +7,7 @@ var request = require('request'),
    Records = require('./dbschema').Records,
    Scores = require('./dbschema').Scores,
    Ougame = require('./dbschema').Ougame,
+   Api = require('../routes/api'),
    mongoose = require('mongoose');
 
 var nflTeams = {'Atlanta': 'ATL', 'Arizona': 'ARI', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Dallas': 'DAL', 'Detroit': 'DET', 'Green Bay': 'GB', 'Minnesota': 'MIN', 'New Orleans': 'NO', 'NY Giants': 'NYG', 'Philadelphia': 'PHI', 'Seattle': 'SEA', 'San Francisco': 'SF', 'Los Angelas': 'LAR', 'Tampa Bay': 'TB', 'Washington': 'WAS', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Cincinatti': 'CIN', 'Cleveland': 'CLE', 'Denver': 'DEN', 'Houston': 'HOU', 'Kansas City': 'KC', 'Jacksonville': 'JAC', 'Indianapolis': 'IND', 'Miami': 'MIA', 'New England': 'NE', 'NY Jets': 'NYJ', 'Oakland': 'OAK', 'Pittsburgh': 'PIT', 'San Diego': 'SD', 'Tennessee': 'TEN'},
@@ -53,7 +54,7 @@ function getOdds(sport) {
             games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
          });
          // go through odds Watches and act if necessary
-         Bets.find({status:(sport == 'nfl')?10:11, watch: 1}, function(err, watches){
+         Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, watch: {$in: [1,2]}}, function(err, watches){
             watches.forEach(function(watch){
                // if home team was chosen, reverse things so they match current odds
                if(watch.team1.slice(0,1)=='@') {
@@ -65,26 +66,22 @@ function getOdds(sport) {
                // watch found, look through current odds for match
                games.forEach(function(game) {
                   if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
+                     // check if supposed to send bet to recipient after watch hits
+                     if (watch.watch == 2) {
+                        // Api.changeBet(watch);
+                     }
                      // save watch as seen
-                     Bets.update({_id: watch._id}, {watch: 2}, function(err){
+                     Bets.update({_id: watch._id}, {watch: 3}, function(err){
                         if(err)
                            console.log('trouble updating watch');
                      });
-                     console.log('*** Odds watch of '+watch.odds+' hit for'+watch.team1+' vs '+watch.team2);
+                     console.log('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
                      Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
-
                   }
                });
             });
          });
 
-         // add special game bets
-         // if(fs.existsSync('json/extra.json') && sport == 'nfl') {
-         //    var extraGames = JSON.parse(fs.readFileSync('json/extra.json','utf8'));
-         //    extraGames.games.forEach(function(game){
-         //       games.unshift(game);
-         //    });
-         // }
          var now = new Date();
          var sendData = {
             'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
@@ -210,7 +207,7 @@ function addNbaGame(date) {
 
 module.exports = {
    refreshOddsInfo: function() {
-      getOdds('ncaab');
+      // getOdds('ncaab');
       getOdds('nba');
    },
 
@@ -266,7 +263,7 @@ module.exports = {
 
    clearUnactedBets: function(){
       // below searches for unacted bets and marks refused after game starts; '-' are saved
-      Bets.find({status:{$in:[0,10,11]}}, function(err, bets){
+      Bets.find({status:{$in:[0,10,11,12]}}, function(err, bets){
       	bets.forEach(function(single){
             if (single.gametime < new Date()) {
                Bets.update({_id:single._id},{status:3}, function(err){

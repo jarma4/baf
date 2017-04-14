@@ -67,7 +67,8 @@ console.log(games);
    });
 }
 
-getOdds('ncaab');
+module.exports = {getOdds};
+// getOdds('ncaab');
 
 // Users.findOneAndUpdate({_id:'jarma44', bets:0}, {}, function(err, record) {
 //    if(record)
