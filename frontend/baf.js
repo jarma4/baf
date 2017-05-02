@@ -325,12 +325,12 @@ $('.actionAction').on('click', function(){
 $('.statsInc').on('click', function(event){
    event.preventDefault();
    var parsed = $('#statsPeriod').text().split(' ');
-   if (parsed[0]=='Week') {
-      if ((Number(parsed[1]) > 1 && $(this).val()=='-1') || (Number(parsed[1]) < 23 && $(this).val()=='1'))
+   // if (parsed[0]=='Week') {
+      if ((Number(parsed[1]) > 1 && $(this).val()=='-1') || (Number(parsed[1]) < ($('#sportNfl').hasClass('selected'))?23:32 && $(this).val()=='1'))
          weeklyStats(Number(parsed[1])+$(this).val()*1);
-   } else {
-      weeklyStats(new Date(Number(new Date($('#statsDate').val()))+$(this).val()*(24*60*60*1000)));
-   }
+   // } else {
+   //    weeklyStats(new Date(Number(new Date($('#statsDate').val()))+$(this).val()*(24*60*60*1000)));
+   // }
 });
 
 function getStats() {
@@ -773,7 +773,7 @@ function showStandings() {
 
 			$.each(retData, function(i,rec){
             // populate standings area
-				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+Math.ceil(rec.line-rec.win)+'/'+(82-rec.win-rec.loss)+'</td></tr>';
+				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(82-rec.win-rec.loss))+'</td></tr>';
             // populate picks area
             outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td '+((rec.eric.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.eric+'</td><td '+((rec.aaron.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.aaron+'</td><td '+((rec.john.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.john+'</td><td '+((rec.russell.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.russell+'</td><td '+((rec.tony.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.tony+'</td><td '+((rec.sergio.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.sergio+'</td></tr>';
             // calculate points for picks
