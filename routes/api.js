@@ -2,6 +2,7 @@ var express = require('express'),
    bodyParser = require('body-parser'),
    fs = require('fs'),
    // Auth = require('./auth'),
+   logger = require('pino')({}, fs.createWriteStream('./baf.log', {'flags': 'a'})),
    session = require('client-sessions'),
    bcrypt = require('bcrypt'),
    // session = require('express-session'),
@@ -12,7 +13,8 @@ var express = require('express'),
    Scores = require('../models/dbschema').Scores,
    Messages = require('../models/dbschema').Messages,
    Props = require('../models/dbschema').Props,
-   Ougame = require('../models/dbschema').Ougame,
+   OUgame = require('../models/dbschema').OUgame,
+   OUuser = require('../models/dbschema').OUuser,
    mongoose = require('mongoose');
 
 mongoose.connect('mongodb://127.0.0.1/baf', {user:'baf', pass: process.env.BAF_MONGO});
@@ -83,10 +85,10 @@ function saveBet (req){
       watch: (req.body.watch === 'true')?(req.body.watchsend === 'true')?2:1:''
    }).save(function(err){
       if(err) {
-         console.log('Trouble adding bet: '+err);
+         logger.error('Trouble adding bet: '+err);
          return ({'type':'danger', 'message':'Trouble adding bet'});
       } else {
-         console.log('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
+         logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
          return ({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
       }
    });
@@ -197,7 +199,7 @@ router.post('/changebet', requireLogin, function(req,res){
                if(err)
                   console.log(err);
                else {
-                  console.log('Bet _id='+req.body.id+' deleted - '+new Date());
+                  logger.info('Bet _id='+req.body.id+' deleted');
                   res.send({'type':'success', 'message':'Bet deleted'});
                }
             });
@@ -475,13 +477,43 @@ router.post('/acceptprop', requireLogin, function(req,res){
    });
 });
 
-router.get('/getstandings', requireLogin, function(req,res){
-   Ougame.find({}, function(err,standings){
+router.post('/getstandings', requireLogin, function(req,res){
+   OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err,standings){
       if (err)
          console.log(err);
       else
          res.json(standings);
    }).sort({team:1});
+});
+
+router.post('/getouusers', requireLogin, function(req,res){
+   OUuser.find({}, function(err,users){
+      if (err)
+         console.log('Error getting uses - '+err);
+      else
+         res.json(users);
+   }).sort({user:1});
+});
+
+router.post('/ousignup', requireLogin, function(req,res){
+   OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
+      if (err)
+         console.log(err);
+      if (result) {
+         res.send({'type':'danger', 'message':'Already joined'});
+      } else {
+         new OUuser({
+            user: req.session.user._id,
+            season: Number(req.body.season),
+            sport: req.body.sport
+         }).save(function(err){
+            if (err)
+               console.log('Error saving new OUuser: '+err);
+            else
+               res.send({'type':'success', 'message':'You are now signed up'});
+         });
+      }
+   });
 });
 
 router.post('/setprefs', requireLogin, function(req,res){
@@ -654,15 +686,16 @@ router.get('/users', requireLogin, function(req,res){
 
 // called when new page is loaded
 router.get('/doorbell', requireLogin, function(req,res){
-   var answer = {
-      type: 'message',
-      // username: req.session.user._id
+   var today = new Date(),
+      answer = {
+         type: 'message',
+         // username: req.session.user._id
       };
    if (fs.existsSync('json/nfl_odds.json'))
       answer.nfl = true;
    if (fs.existsSync('json/nba_odds.json'))
       answer.nba = true;
-   if (fs.existsSync('json/ncaab_odds.json'))
+   if (fs.existsSync('json/ncaa_odds.json'))
       answer.ncaa = true;
    var betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){
@@ -676,7 +709,6 @@ router.get('/doorbell', requireLogin, function(req,res){
       });
    });
    var futuresPromise = new Promise(function (resolve, reject) {
-      var today = new Date();
       Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {
          if (err)
             reject(err);
@@ -686,7 +718,17 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   Promise.all([betsPromise, futuresPromise]).then(function(values){
+   var propsPromise = new Promise(function (resolve, reject) {
+      Props.findOne({$and:[{user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
+         if (err)
+            reject(err);
+         if (prop) {
+            answer.props = true;
+         }
+         resolve();
+      });
+   });
+   Promise.all([betsPromise, futuresPromise, propsPromise]).then(function(values){
       res.send(answer);
    });
 });

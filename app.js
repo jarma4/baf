@@ -74,7 +74,7 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
    // tallyBetsNflCron = crontab.scheduleJob("*/10 17-22 * * 0,1", scraper.tallyBets,['nfl']),
    tallyBetsNbaCron = crontab.scheduleJob("*/10 0,12,20-23 * * *", scraper.tallyBets,['nba']),
-   // tallyBetsNcaaCron = crontab.scheduleJob("*/10 8,14-23 * * 0,1,4,5,6", scraper.tallyBets,['ncaa']),
+   // tallyBetsNhlCron = crontab.scheduleJob("* 22 * * *", scraper.tallyBets,['nhl']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
    // updateStandingsCron = crontab.scheduleJob("0 8 * * *", scraper.updateStandings);
@@ -91,7 +91,7 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
 // });
 
 // backup mongo datbases
-var backupDbCron = crontab.scheduleJob('0 1 * * *', function () {
+var backupDbCron = crontab.scheduleJob('0 1 * * 0', function () {
    var now = new Date();
    var cmd = exec('mongodump -dbaf -ubaf -p$BAF_MONGO -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr) {

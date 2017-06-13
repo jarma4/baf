@@ -1,6 +1,8 @@
 var express = require('express'),
    router = express.Router(),
    bodyParser = require('body-parser'),
+   fs = require('fs'),
+   logger = require('pino')(fs.createWriteStream('./baf.log', {'flags': 'a'})),
    session = require('client-sessions'),
    bcrypt = require('bcrypt'),
    Records = require('../models/dbschema').Records,
@@ -17,17 +19,17 @@ router.use(bodyParser.urlencoded({ extended: false }));
 router.post('/login', function(req,res){
    Users.findOne({'_id':req.body.username}, function(err, user){
       if(!user){
-         console.log('User '+req.body.username+' not found');
+         logger.error('User '+req.body.username+' not found');
          res.send({'type':'danger', 'message':'No user with that username'});
       } else {
          bcrypt.compare(req.body.password, user.password, function(err, result){
             if (result){
                req.session.user = user;
-               console.log('User '+req.session.user._id+' password correct - '+new Date());
+               logger.info('User '+req.session.user._id+' login');
                res.send({'type':'success', 'message':'Login Successful'});
                // res.redirect('/');
             } else {
-               console.log('Password '+req.body.password+' not correct - '+new Date());
+               logger.error('User '+req.session.user._id+' password not correct');
                res.send({'type':'danger', 'message':'Password incorrect'});
             }
          });

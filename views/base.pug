@@ -44,6 +44,8 @@ html
 					span#notify2.text-success.glyphicon.glyphicon-usd.hidden
 				a.right.statusIcon(href='/futures')
 					span#notify3.text-info.glyphicon.glyphicon-time.hidden
+				a.right.statusIcon(href='/props')
+					span#notify4.text-info.glyphicon.glyphicon-glass.hidden
 				block content
 
 		//- need to stay in base because used for nfl & nba views
@@ -84,10 +86,11 @@ html
 						.title Help
 						button.close(type='button', data-dismiss='modal') #[span.text-primary &times;]
 					.modal-body
-						p.help-heading Icons
+						p.help-heading Top Bar Icons
 						h4 #[span.glyphicon.glyphicon-flag.text-danger] Bets are waiting for you
 						h4 #[span.glyphicon.glyphicon-usd.text-success] Show debts owed to you/others
-						h4 #[span.glyphicon.glyphicon-time.text-info] Futures being offered
+						h4 #[span.glyphicon.glyphicon-time.text-info] New Futures being offered
+						h4 #[span.glyphicon.glyphicon-glass.text-info] New Prop bet being offered
 						h4 #[span.glyphicon.glyphicon-chevron-right] #[span.glyphicon.glyphicon-chevron-down] Open/close panel
 						if pagename == "bets"
 							h4 #[span.glyphicon.glyphicon-hourglass] First to act bet
@@ -95,13 +98,13 @@ html
 						br
 						case pagename
 							when 'odds'
-								p.help-heading Games
+								p.help-heading Games Page
 								h4 - 'Set Odds Watch' lets you set a target odds amount that you would like to be texted when hit 
 							when 'bets'
-								p.help-heading Bets
+								p.help-heading Bets Page
 								h4 - Over/under bets from others show your side in odds column, team name doesn't matter.
 							when 'futures'
-								p.help-heading Futures
+								p.help-heading Futures Page
 								h4 - Possible futures are listed in separate panels.  If a person 'Gives' an offer, they will pay the odds listed to whomever 'Takes' the other offer.  A person can choose either side and will wait until his 'offer' is accepted by someone else.
 								h4 - When submitting future offer, default time expiration of 7 days is added but can be modified.
 		#alertModal.modal.fade

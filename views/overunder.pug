@@ -4,25 +4,51 @@ block content
    span.title Over/Under Game
    .container-fluid
       .row.no-gutters
+         .col-md-12
+            #sportMenu
+               ul
+                  li#sportNfl.sportPick.selected
+                     a NFL
+                  li#sportNba.sportPick
+                     a NBA
+               button#ouYear.btn.btn-sm.btn-default.right 2017
+      .row.no-gutters
          .col-md-3
-            .panel.panel-success
+            .panel.panel-success.signup
                .panel-heading
-                  | Current Tally
+                  | Signup
+                  a(data-toggle='collapse', href='#ouSignup')#ouSignupTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #ouSignup.panel-collapse.pad15
+                  p.help-heading How to Play:
+                  ol
+                     li Season win totals for all teams given
+                     li You pick over/under for all teams
+                     li Points given for correct picks
+                     li Pick 3 special teams for bonus point each
+                     li Winner chosen at season end
+                  p.help-heading In:
+                  #ouList
+                  button#ouBtn.btn.btn-lg.btn-block.btn-primary.pushDown Join
+            .panel.panel-success.active
+               .panel-heading
+                  | Projections
                   a(data-toggle='collapse', href='#ouPicks')#ouPicksTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #ouPicks.panel-collapse.collapse
          .col-md-3
-            .panel.panel-primary
+            .panel.panel-primary.active
                .panel-heading
                   | Player Picks
                   a(data-toggle='collapse', href='#picksArea')#picksAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #picksArea.panel-collapse.collapse
          .col-md-3
-            .panel.panel-info
+            .panel.panel-info.signup
                .panel-heading
-                  | NBA Standings
-                  a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+                  | Standings
+                  a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-right.hidden]
                #standingsArea.panel-collapse.collapse
          .col-md-3
 
 block scripts
-   script(type='text/javascript') showStandings()
+   script(type='text/javascript').
+      getOverunder()
+      getOUusers()

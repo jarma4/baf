@@ -21,10 +21,12 @@
       "compression": "^1.6.1",
       "express": "^4.13.1",
       "express-session": "^1.12.1",
+      "help": "^3.0.2",
       "mongoose": "^4.1.11",
       "node-crontab": "0.0.8",
       "passport": "^0.3.2",
       "passport-local": "^1.0.0",
+      "pino": "^4.5.3",
       "pug": "^2.0.0-beta7",
       "request": "^2.61.0",
       "serve-static": "^1.10.0"

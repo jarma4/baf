@@ -41,6 +41,19 @@
 		transform: rotate(10deg);
 	}
 }
+.rotate {
+	font-size: 5em;
+	animation: rotate 1.75s linear infinite;
+	// animation-iteration-count: infinite;
+}
+@keyframes rotate {
+	50% {
+		transform: rotate(180deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
 span.glyphicon-menu-hamburger {
     font-size: 2em;
 	//  margin-right: 20px;
@@ -88,9 +101,12 @@ span.glyphicon-menu-hamburger {
   padding-right: 0;
   padding-left: 0;
 }
-// .helpArea {
-// 	margin-left: -10px;
-// }
+.pad15 {
+	padding: 15px;
+}
+.cellgutter {
+	padding-left: 25px;
+}
 .collapseIcon {
 	margin-left: 10px;
 	transition: all 200ms linear;
