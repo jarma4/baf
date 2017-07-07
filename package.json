@@ -4,8 +4,8 @@
    "description": "",
    "main": "app.js",
    "scripts": {
-      "dev": "webpack -d --watch",
-      "prod": "webpack -p"
+      "start": "node .",
+      "dev": "gulp"
    },
    "repository": {
       "type": "git",

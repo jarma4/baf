@@ -6,7 +6,7 @@ module.exports = router;
 
 // Main page renderings
 router.get('/', function(req, res) {
-   res.render('odds', {pagename:'odds'});  // pagename not used now
+   res.render('overunder', {pagename:'overunder'});  // pagename not used now
 });
 
 // router.get('/nba', function(req, res) {
