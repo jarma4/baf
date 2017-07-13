@@ -1,7 +1,7 @@
 var mongoose = require('mongoose'),
    Users = require('../models/dbschema').Users;
 
-mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 Users.update({}, {bets: 0}, {multi: true}, function (err) {
    if (err)

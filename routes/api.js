@@ -17,7 +17,7 @@ var express = require('express'),
    OUuser = require('../models/dbschema').OUuser,
    mongoose = require('mongoose');
 
-mongoose.connect('mongodb://127.0.0.1/baf', {user:'baf', pass: process.env.BAF_MONGO});
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 router = express.Router();
 

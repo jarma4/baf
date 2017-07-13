@@ -12,7 +12,8 @@ var request = require('request'),
    Messages = require('./models/dbschema').Messages,
    Logs = require('./models/dbschema').Logs;
 
-// mongoose.connect('mongodb://localhost/baf', {user:'baf', pass: process.env.BAF_MONGO});
+//mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
+
 logger.info('info test3');
 // }
 

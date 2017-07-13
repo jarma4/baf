@@ -3,7 +3,7 @@ var fs = require('fs'),
    mongoose = require('mongoose'),
    Ougame = require('./models/dbschema').Ougame;
 
-mongoose.connect('mongodb://localhost/baf');
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 var teams = {
    Warriors: 'Golden State',
