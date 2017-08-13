@@ -79,19 +79,52 @@ var ouGameSchema = new mongoose.Schema({
    status: String,
    season: Number,
    sport: String,
-   // john : String,
-   // eric: String,
-   // russell: String,
-   // aaron: String,
-   // tony: String,
-   // sergio: String
+   index: Number,
+   john: String,
+   eric: String,
+   russell: String,
+   aaron: String,
+   tony: String,
+   sergio: String
 },{collection:'ougame'});
 
 var ouUserSchema = new mongoose.Schema({
    user: String,
    season: Number,
-   sport: String
-});
+   sport: String,
+   0: String,
+   1: String,
+   2: String,
+   3: String,
+   4: String,
+   5: String,
+   6: String,
+   7: String,
+   8: String,
+   9: String,
+   10: String,
+   11: String,
+   12: String,
+   13: String,
+   14: String,
+   15: String,
+   16: String,
+   17: String,
+   18: String,
+   19: String,
+   20: String,
+   21: String,
+   22: String,
+   23: String,
+   24: String,
+   25: String,
+   26: String,
+   27: String,
+   28: String,
+   29: String,
+   30: String,
+   31: String
+},{collection:'ouuser'});
 
 var logsSchema = new mongoose.Schema({
    time: Date,
@@ -111,7 +144,7 @@ var Scores = mongoose.model('Scores', scoresSchema);
 var Messages = mongoose.model('Messages', msgSchema);
 var Props = mongoose.model('Props', propsSchema);
 var OUgame = mongoose.model('OUgame', ouGameSchema);
-var OUuser = mongoose.model('OUusers', ouUserSchema);
+var OUuser = mongoose.model('OUuser', ouUserSchema);
 var Logs = mongoose.model('Logs', logsSchema);
 
 module.exports = {

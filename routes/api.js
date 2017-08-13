@@ -486,10 +486,53 @@ router.post('/getstandings', requireLogin, function(req,res){
    }).sort({team:1});
 });
 
+router.post('/getouinfo', requireLogin, function(req,res){
+   // first find list of all users
+   OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
+      if (err) {
+         console.log('Error getting OU users - '+err);
+      } else {
+         // next find choices for current user
+         OUuser.findOne({season: Number(req.body.season), sport: req.body.sport, user: req.session.user._id}, function(err, choices){
+            if (choices) {
+               OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, teams){
+                  if (err) {
+                     console.log(err);
+                  } else {
+                     // add users choice to results
+                     teams.forEach(function(team, index){
+                        teams[index].pick = choices[index];
+                     });
+                     if (err) {
+                        console.log(err);
+                     } else {
+                        res.json({users: users, choices: teams});
+                     }
+                  }
+               }).sort({index:1}).lean(); // lean needed to modify mongoose object above
+            } else {
+               res.json({users: users});
+            }
+         });
+      }
+   }).sort({user:1});
+});
+
+router.post('/setouchoices', requireLogin, function(req,res){
+   // console.log(typeof(req.body.choices));
+   OUuser.update({user: req.session.user._id}, JSON.parse(req.body.choices), function(err){
+      if (err)
+         console.log("OU choice change error: "+err);
+      else {
+         res.send({'type':'success', 'message':'Choices updated'});
+      }
+   });
+});
+
 router.post('/getouusers', requireLogin, function(req,res){
    OUuser.find({}, function(err,users){
       if (err)
-         console.log('Error getting uses - '+err);
+         console.log('Error getting OU users - '+err);
       else
          res.json(users);
    }).sort({user:1});

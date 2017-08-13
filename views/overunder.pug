@@ -9,7 +9,7 @@ block content
                ul
                   li#sportNfl.sportPick.selected
                      a NFL
-                  li#sportNba.sportPick
+                  li#sportNba.sportPick.dimmed
                      a NBA
                button#ouYear.btn.btn-sm.btn-default.right 2017
       .row.no-gutters
@@ -28,12 +28,15 @@ block content
                      li Winner chosen at season end
                   p.help-heading In:
                   #ouList
-                  button#ouBtn.btn.btn-lg.btn-block.btn-primary.pushDown Join
+                  p.help-heading.pushDown Your Choices:
+                  #ouChoices
+                  button#ouBtn.btn.btn-lg.btn-block.btn-primary Join
+                  //- button#ouSave.btn.btn-success(type='submit', name='status', value='1') Save
             .panel.panel-success.active
                .panel-heading
                   | Projections
-                  a(data-toggle='collapse', href='#ouPicks')#ouPicksTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
-               #ouPicks.panel-collapse.collapse
+                  a(data-toggle='collapse', href='#ouProjection')#ouProjectionTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #ouProjection.panel-collapse.collapse
          .col-md-3
             .panel.panel-primary.active
                .panel-heading
@@ -50,5 +53,5 @@ block content
 
 block scripts
    script(type='text/javascript').
+      //- ouSignup()
       getOverunder()
-      getOUusers()

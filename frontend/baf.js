@@ -37,7 +37,7 @@ $('.sportPick').on('click', function(){
             getStats();
             break;
          case '/scores':
-            showScores(($('#sportNfl').hasClass('selected'))?getWeek(new Date()):new Date());
+            showScores(($('#sportNfl').hasClass('selected'))?getWeek(new Date(), 'nfl'):new Date());
             break;
          case '/overunder':
             getOverunder();
@@ -415,10 +415,10 @@ function weeklyStats(date) {
 }
 
 $('#statsYear').on('click', function(){
-   if ($('#statsYear').text()=='2016') {
-      $('#statsYear').text('2015');
-   } else {
+   if ($('#statsYear').text()=='2017') {
       $('#statsYear').text('2016');
+   } else {
+      $('#statsYear').text('2017');
    }
    overallStats();
 });
@@ -686,7 +686,7 @@ function showScores(period) {
 		url: '/api/getscores',
       data: {
          'sport': sport,
-         'season': 2016, //too specific to football, needs to fixed
+         'season': 2017, //too specific to football, needs to fixed
          'period': period
       },
 		success:function(retData){
@@ -788,70 +788,115 @@ function getOUusers(){
       }
    });
 }
+function ouSignup() {
+   $.ajax({
+		type: 'POST',
+		url: '/api/getouinfo',
+      data: {
+         'sport': 'nfl',
+         'season': 2017
+      },
+		success:function(retData){
+         var outp;
+         // first populate users
+         outp = '<table><tr>';
+         $.each(retData.users, function(i, rec){
+            if (i%3 === 0)
+               outp += '</tr><tr>';
+            outp += '<td class="cellgutter">'+rec.user+'</td>';
+         });
+         outp += '</tr></table>';
+         document.getElementById("ouList").innerHTML = outp;
+         // next fill choices in if already signed up
+         if(retData.choices) {
+            $('#ouBtn').text('Save');
+            outp = '<table class="table table-condensed"><tr><th>Team</th><th>Line</th><th class="center">Choice</th><th>B</th></tr>';
+            $.each(retData.choices, function(i, rec){
+               // outp += '<tr><td><button class="btn btn-sm btn-success btn-block">Over</button><td>'+rec.team+'</td><td>'+rec.line+'</td><td><button class="btn btn-sm btn-primary btn-block">Under</button></tr>';
+               outp += '<tr class="lg"><td>'+rec.team.slice(0,6)+'</td><td>'+rec.line+'</td><td><form><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="0" checked>Over</input></label><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="1" >Under</input></label></form></td><td><input class="bonusCheck" name="bonusCheck'+i+'"type="checkbox" value="'+i+'" ></input></td></tr>';
+            });
+            document.getElementById('ouChoices').innerHTML = outp;
+            // set all radio buttons as user picked
+            $.each(retData.choices, function(i, rec){
+               $('input[name=pickRadio'+i+'][value='+((rec.pick.startsWith('O'))?0:1)+']').prop("checked",true);
+               if (rec.pick.endsWith('*')) {
+                  $('input[name=bonusCheck'+i+']').prop("checked",true);
+               }
+            });
+         }
+      },
+      error: function(retData){
+			alert(retData.type, retData.message);
+		}
+	});
+}
+
 // Update status of special over/under wager these guys have
 function getOverunder() {
    $.ajax({
 		type: 'POST',
 		url: '/api/getstandings',
       data: {
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': $('#ouYear').text()
+         'sport': 'nfl', //($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+         'season': 2017
       },
 		success:function(retData){
-         if(new Date() < ($('#sportNfl').hasClass('selected'))?seasonStart.nfl:seasonStart.nba){
-            $('.signup').removeClass('hidden');
-            $('.active').addClass('hidden');
-         } else {
-            $('.active').removeClass('hidden');
-            $('.signup').addClass('hidden');
-            var eric = 0,
-            john = 0,
-            russell = 0,
-            sergio = 0,
-            tony = 0,
-            aaron = 0,
-            outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
-            outp2 = '<table class="table table-condensed"><tr><th>Team</th><th>EK</th><th>AW</th><th>JM</th><th>RR</th><th>TJ</th><th>SC</th></tr>';
+         // if(new Date() < ($('#sportNfl').hasClass('selected'))?seasonStart.nfl:seasonStart.nba){
+         //    $('.signup').removeClass('hidden');
+         //    $('.active').addClass('hidden');
+         // } else {
+         //    $('.active').removeClass('hidden');
+         //    $('.signup').addClass('hidden');
+         // }
+         var eric = 0,
+         john = 0,
+         russell = 0,
+         sergio = 0,
+         tony = 0,
+         aaron = 0,
+         // standings
+         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
+         // picks
+         outp2 = '<table class="table table-condensed"><tr><th>Team</th><th>EK</th><th>AW</th><th>JM</th><th>RR</th><th>TJ</th><th>SC</th></tr>';
 
-   			$.each(retData, function(i,rec){
-               // populate standings area
-   				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(82-rec.win-rec.loss))+'</td></tr>';
-               // populate picks area
-               // outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td '+((rec.eric.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.eric+'</td><td '+((rec.aaron.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.aaron+'</td><td '+((rec.john.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.john+'</td><td '+((rec.russell.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.russell+'</td><td '+((rec.tony.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.tony+'</td><td '+((rec.sergio.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.sergio+'</td></tr>';
-               // calculate points for picks
-               // eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
-               // john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
-               // russell += (rec.russell.slice(0,1) == rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
-               // aaron += (rec.aaron.slice(0,1) == rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
-               // tony += (rec.tony.slice(0,1) == rec.status.slice(0,1))?((rec.tony.endsWith('*'))?2:1):0;
-               // sergio += (rec.sergio.slice(0,1) == rec.status.slice(0,1))?((rec.sergio.endsWith('*'))?2:1):0;
-   			});
-            outp += '</table>';
-   			document.getElementById("standingsArea").innerHTML = outp;
-            if ($('#standingsAreaTitle span.collapseIcon').hasClass('hidden')) {
-               $('#standingsAreaTitle').addClass('open'); //actually opens/uncollapses pane
-               $('#standingsArea').addClass('in'); //actually opens/uncollapses pane
-               $('#standingsAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-            }
-            outp2 += '</table>';
-   			document.getElementById("picksArea").innerHTML = outp2;
-            if ($('#picksAreaTitle span.collapseIcon').hasClass('hidden')) {
-               $('#picksAreaTitle').addClass('open'); //actually opens/uncollapses pane
-               $('#picksArea').addClass('in'); //actually opens/uncollapses pane
-               $('#picksAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-            }
-            // picks area
-            // outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th></tr>';
-            // outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td></tr>';
-            // outp += '<tr><th>Aaron</th><th>Tony</th><th>Sergio</th></tr>';
-            // outp += '<tr><td>'+aaron+'</td><td>'+tony+'</td><td>'+sergio+'</td></tr></table>';
-            // document.getElementById("ouPicks").innerHTML = outp;
-            // if ($('#ouPicksTitle span.collapseIcon').hasClass('hidden')) {
-            //    $('#ouPicksTitle').addClass('open'); //actually opens/uncollapses pane
-            //    $('#ouPicks').addClass('in'); //actually opens/uncollapses pane
-            //    $('#ouPicksTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-            // }
+			$.each(retData, function(i,rec){
+            // populate standings area
+				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16:82-rec.win-rec.loss))+'</td></tr>';
+            // populate picks area
+            // outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td '+((rec.eric.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.eric+'</td><td '+((rec.aaron.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.aaron+'</td><td '+((rec.john.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.john+'</td><td '+((rec.russell.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.russell+'</td><td '+((rec.tony.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.tony+'</td><td '+((rec.sergio.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.sergio+'</td></tr>';
+            // calculate points for picks
+            // eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
+            // john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
+            // russell += (rec.russell.slice(0,1) == rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
+            // aaron += (rec.aaron.slice(0,1) == rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
+            // tony += (rec.tony.slice(0,1) == rec.status.slice(0,1))?((rec.tony.endsWith('*'))?2:1):0;
+            // sergio += (rec.sergio.slice(0,1) == rec.status.slice(0,1))?((rec.sergio.endsWith('*'))?2:1):0;
+			});
+         outp += '</table>';
+			document.getElementById("standingsArea").innerHTML = outp;
+         if ($('#standingsAreaTitle span.collapseIcon').hasClass('hidden')) {
+            $('#standingsAreaTitle').addClass('open'); //actually opens/uncollapses pane
+            $('#standingsArea').addClass('in'); //actually opens/uncollapses pane
+            $('#standingsAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
          }
+         outp2 += '</table>';
+			document.getElementById("picksArea").innerHTML = outp2;
+         if ($('#picksAreaTitle span.collapseIcon').hasClass('hidden')) {
+            $('#picksAreaTitle').addClass('open'); //actually opens/uncollapses pane
+            $('#picksArea').addClass('in'); //actually opens/uncollapses pane
+            $('#picksAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+         }
+         // projection area
+         // outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th></tr>';
+         // outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td></tr>';
+         // outp += '<tr><th>Aaron</th><th>Tony</th><th>Sergio</th></tr>';
+         // outp += '<tr><td>'+aaron+'</td><td>'+tony+'</td><td>'+sergio+'</td></tr></table>';
+         // document.getElementById("ouProjection").innerHTML = outp;
+         // if ($('#ouProjectionTitle span.collapseIcon').hasClass('hidden')) {
+         //    $('#ouProjectionTitle').addClass('open'); //actually opens/uncollapses pane
+         //    $('#ouProjection').addClass('in'); //actually opens/uncollapses pane
+         //    $('#ouProjectionTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+         // }
 		},
 		error: function(retData){
 			alert(retData.type, retData.message);
@@ -860,6 +905,7 @@ function getOverunder() {
 }
 
 $('#ouBtn').on('click', function(e){
+   if ($('#ouBtn').text() == 'Join') {
       $.ajax({
    		type: 'POST',
    		url: '/api/ousignup',
@@ -868,12 +914,39 @@ $('#ouBtn').on('click', function(e){
             'season': 2017
          },
    		success:function(retData){
+            ouSignup();
             alert(retData.type,retData.message);
    		},
    		error: function(retData){
             alert(retData.type,retData.message);
    		}
    	});
+   } else {
+      if ($('.bonusCheck:checked').length > 3) {
+         alert('danger', 'More than 3 bonus checkboxes are chosen.  Please correct.');
+      } else {
+         var choices = {};
+         // read choices to send
+         for (var i = 0; i < 32; i++) {
+            choices[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
+            if ($('input[name=bonusCheck'+i).prop('checked'))
+               choices[i] += '*';
+         }
+         $.ajax({
+            type: 'POST',
+            url: '/api/setouchoices',
+            data: {
+               choices: JSON.stringify(choices)
+            },
+            success:function(retData){
+               alert(retData.type,retData.message);
+            },
+            error: function(retData){
+               alert(retData.type, retData.message);
+            }
+         });
+      }
+   }
 });
 
 // Preferences stuff
@@ -1218,8 +1291,13 @@ function doorBell(){
 }
 
 function getWeek(date, sport){
-   var dayTicks = 24 * 60 * 60 * 1000;
-   return Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
+   var dayTicks = 24 * 60 * 60 * 1000,
+      week = Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
+   if (week < 0) {
+      return 1;
+   } else {
+      return week;
+   }
 }
 
 function getOdds (){
@@ -1324,8 +1402,8 @@ var username,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    seasonStart = {
-         nfl: new Date(2016,8,7),
-         nba: new Date(2016,9,20),
+         nfl: new Date(2017,8,7),
+         nba: new Date(2017,9,20),
          ncaa: new Date(2017,2,16)
       },
    inSeason = {

@@ -4,27 +4,13 @@ block content
    span.title Games
    .container-fluid
       .row.no-gutters
-         .col-md-12
-            #sportMenu
-               ul
-                  li#sportNfl.sportPick2
-                     a NFL
-                     li#sportNba.sportPick2.selected
-                        a NBA
-                        li#sportNcaa.sportPick2
-                           a NCAA            
-               em#timestamp.right
-      .row.no-gutters
-         span.rotate.glyphicon.glyphicon-repeat
          .col-md-3
-            #watchBets
-            #col1
-         .col-md-3
-            #col2
-         .col-md-3
-            #col3
-         .col-md-3
-            #col4
+            .panel.panel-success.signup
+               .panel-heading
+                  | Choices
+                  a(data-toggle='collapse', href='#ouSignup')#ouSignupTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+               #ouPicks.panel-collapse
+               button#ouSave.btn.btn-block.btn-success(type='submit', name='status', value='1') Save
    #betModal.modal.fade
       .modal-dialog
          .modal-content
@@ -84,6 +70,4 @@ block content
                input#watchModOdds.nodisplay
 
 block scripts
-   script(type='text/javascript') getOdds()
-   script(type='text/javascript') getUsers()
-   script(type='text/javascript') getBets(($('#sportNfl').hasClass('dropped'))?10:11,'watchBets','watch');
+   script(type='text/javascript') getOverUnder2()

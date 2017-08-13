@@ -27,4 +27,4 @@ block content
                #scoresArea.panel-body
 
 block scripts
-   script(type='text/javascript') showScores(new Date())
+   script(type='text/javascript') showScores(getWeek(new Date(), 'nfl'))

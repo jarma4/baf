@@ -6,7 +6,7 @@ module.exports = router;
 
 // Main page renderings
 router.get('/', function(req, res) {
-   res.render('overunder', {pagename:'overunder'});  // pagename not used now
+   res.render('odds', {pagename:'odds'});  // pagename not used now
 });
 
 // router.get('/nba', function(req, res) {
@@ -15,14 +15,6 @@ router.get('/', function(req, res) {
 
 router.get('/bets', function(req, res) {
    res.render('bets', {pagename:'bets'});
-});
-
-router.get('/nfl2', function(req, res) {
-   res.render('nfl2', {pagename:'nfl'});  // pagename not used now
-});
-
-router.get('/bets2', function(req, res) {
-   res.render('bets2', {pagename:'bets'});
 });
 
 router.get('/stats', function(req, res) {
