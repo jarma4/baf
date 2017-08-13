@@ -791,7 +791,7 @@ function getOUusers(){
 function ouSignup() {
    $.ajax({
 		type: 'POST',
-		url: '/api/getouinfo',
+		url: '/api/getousignup',
       data: {
          'sport': 'nfl',
          'season': 2017
@@ -841,37 +841,35 @@ function getOverunder() {
          'season': 2017
       },
 		success:function(retData){
-         // if(new Date() < ($('#sportNfl').hasClass('selected'))?seasonStart.nfl:seasonStart.nba){
-         //    $('.signup').removeClass('hidden');
-         //    $('.active').addClass('hidden');
-         // } else {
-         //    $('.active').removeClass('hidden');
-         //    $('.signup').addClass('hidden');
-         // }
-         var eric = 0,
-         john = 0,
-         russell = 0,
-         sergio = 0,
-         tony = 0,
-         aaron = 0,
-         // standings
-         outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
-         // picks
-         outp2 = '<table class="table table-condensed"><tr><th>Team</th><th>EK</th><th>AW</th><th>JM</th><th>RR</th><th>TJ</th><th>SC</th></tr>';
-
-			$.each(retData, function(i,rec){
+         if(new Date() < ($('#sportNfl').hasClass('selected'))?seasonStart.nfl:seasonStart.nba){
+            $('.signup').removeClass('hidden');
+            $('.active').addClass('hidden');
+         } else {
+            $('.active').removeClass('hidden');
+            $('.signup').addClass('hidden');
+         }
+         var points = [],
+            outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
+            outp2 = '<table class="table table-condensed"><tr><th>Team</th>';
+         // create columns for each user
+         $.each(retData.users, function(i, rec){
+            outp2 += '<th>'+bafusers[rec.user]+'</th>';
+            points[i] = 0; // initialize for all users, used for projections
+         });
+         outp2 += '<tr>';
+         // go through teams and populate tables
+         $.each(retData.standings, function(i, rec){
             // populate standings area
-				outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16:82-rec.win-rec.loss))+'</td></tr>';
+            outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16:82-rec.win-rec.loss))+'</td></tr>';
             // populate picks area
-            // outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td '+((rec.eric.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.eric+'</td><td '+((rec.aaron.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.aaron+'</td><td '+((rec.john.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.john+'</td><td '+((rec.russell.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.russell+'</td><td '+((rec.tony.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.tony+'</td><td '+((rec.sergio.slice(0,1)==rec.status.slice(0,1))?'class=heading-success>':'>')+rec.sergio+'</td></tr>';
-            // calculate points for picks
-            // eric += (rec.eric.slice(0,1) == rec.status.slice(0,1))?((rec.eric.endsWith('*'))?2:1):0;
-            // john += (rec.john.slice(0,1) == rec.status.slice(0,1))?((rec.john.endsWith('*'))?2:1):0;
-            // russell += (rec.russell.slice(0,1) == rec.status.slice(0,1))?((rec.russell.endsWith('*'))?2:1):0;
-            // aaron += (rec.aaron.slice(0,1) == rec.status.slice(0,1))?((rec.aaron.endsWith('*'))?2:1):0;
-            // tony += (rec.tony.slice(0,1) == rec.status.slice(0,1))?((rec.tony.endsWith('*'))?2:1):0;
-            // sergio += (rec.sergio.slice(0,1) == rec.status.slice(0,1))?((rec.sergio.endsWith('*'))?2:1):0;
-			});
+            outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
+            for (var j = 0; j < retData.users.length; j++) {
+               outp2 += '<td>'+retData.users[j][i]+'</td>';
+               // calculate
+               points[j] += (retData.users[j][i].slice(0,1) == rec.status.slice(0,1))?((retData.users[j][i].endsWith('*'))?2:1):0;
+            }
+            outp2 += '</tr>';
+         });
          outp += '</table>';
 			document.getElementById("standingsArea").innerHTML = outp;
          if ($('#standingsAreaTitle span.collapseIcon').hasClass('hidden')) {
@@ -880,23 +878,27 @@ function getOverunder() {
             $('#standingsAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
          }
          outp2 += '</table>';
-			document.getElementById("picksArea").innerHTML = outp2;
+         document.getElementById("picksArea").innerHTML = outp2;
          if ($('#picksAreaTitle span.collapseIcon').hasClass('hidden')) {
             $('#picksAreaTitle').addClass('open'); //actually opens/uncollapses pane
             $('#picksArea').addClass('in'); //actually opens/uncollapses pane
             $('#picksAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
          }
+
          // projection area
-         // outp = '<table class="table table-condensed"><tr><th>John</th><th>Eric</th><th>Russell</th></tr>';
-         // outp += '<tr><td>'+john+'</td><td>'+eric+'</td><td>'+russell+'</td></tr>';
-         // outp += '<tr><th>Aaron</th><th>Tony</th><th>Sergio</th></tr>';
-         // outp += '<tr><td>'+aaron+'</td><td>'+tony+'</td><td>'+sergio+'</td></tr></table>';
-         // document.getElementById("ouProjection").innerHTML = outp;
-         // if ($('#ouProjectionTitle span.collapseIcon').hasClass('hidden')) {
-         //    $('#ouProjectionTitle').addClass('open'); //actually opens/uncollapses pane
-         //    $('#ouProjection').addClass('in'); //actually opens/uncollapses pane
-         //    $('#ouProjectionTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-         // }
+         outp = '<table class="table table-condensed"><tr>';
+         outp2 = '<tr>';
+         $.each(retData.users, function(i, rec){
+            outp += '<th>'+bafusers[rec.user]+'</th>';
+            outp2 += '<td>'+points[i]+'</td>';
+         });
+         outp += '<tr>'+outp2+'</tr></table>';
+         document.getElementById("ouProjection").innerHTML = outp;
+         if ($('#ouProjectionTitle span.collapseIcon').hasClass('hidden')) {
+            $('#ouProjectionTitle').addClass('open'); //actually opens/uncollapses pane
+            $('#ouProjection').addClass('in'); //actually opens/uncollapses pane
+            $('#ouProjectionTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+         }
 		},
 		error: function(retData){
 			alert(retData.type, retData.message);
@@ -1401,6 +1403,7 @@ var username,
    winChart, // declared global so that charts can be updated between functions
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'firdavs': 'FP'},
    seasonStart = {
          nfl: new Date(2017,8,7),
          nba: new Date(2017,9,20),

@@ -478,15 +478,20 @@ router.post('/acceptprop', requireLogin, function(req,res){
 });
 
 router.post('/getstandings', requireLogin, function(req,res){
-   OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err,standings){
+   OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, standings){
       if (err)
          console.log(err);
       else
-         res.json(standings);
+      OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
+         if (err)
+            console.log(err);
+         else
+            res.json({standings, users});
+      }).sort({user:1});
    }).sort({team:1});
 });
 
-router.post('/getouinfo', requireLogin, function(req,res){
+router.post('/getousignup', requireLogin, function(req,res){
    // first find list of all users
    OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
       if (err) {

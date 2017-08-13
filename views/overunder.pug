@@ -14,7 +14,7 @@ block content
                button#ouYear.btn.btn-sm.btn-default.right 2017
       .row.no-gutters
          .col-md-3
-            .panel.panel-success.signup
+            .panel.panel-warning.signup
                .panel-heading
                   | 2017 Signup
                   a(data-toggle='collapse', href='#ouSignup')#ouSignupTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
@@ -44,7 +44,7 @@ block content
                   a(data-toggle='collapse', href='#picksArea')#picksAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
                #picksArea.panel-collapse.collapse
          .col-md-3
-            .panel.panel-info.signup
+            .panel.panel-info.active
                .panel-heading
                   | Standings
                   a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-right.hidden]
@@ -53,5 +53,5 @@ block content
 
 block scripts
    script(type='text/javascript').
-      //- ouSignup()
-      getOverunder()
+      ouSignup()
+      //- getOverunder()
