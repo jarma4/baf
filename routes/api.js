@@ -68,7 +68,7 @@ function saveBet (req){
 
    new Bets({
       week: Util.getWeek(today, req.body.sport),
-      season: 2016, //today.getFullYear(),
+      season: 2017, //today.getFullYear(),
       gametime: req.body.gametime,
       date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
       user1: req.session.user._id,
@@ -267,7 +267,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
    var sortedBets = [];
    // console.log(getWeek(new Date(req.body.date));
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
-   Bets.find({$and:[{season:2016}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{season:2017}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {

@@ -253,12 +253,7 @@ function showBets () {
             outp += '</table>';
             $('#otherBets').append(outp);
             // check title where icon stores whether pane should be open or closed
-            if ($('#acceptedBetsTitle span.collapseIcon').hasClass('hidden')) {
-               $('#acceptedBetsTitle').addClass('open'); //actually opens/uncollapses pane
-               $('#acceptedBets').addClass('in'); //actually opens/uncollapses pane
-               $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-               // $('[data-toggle="popover"]').popover();
-            }
+            collapseIconAction('acceptedBets');
             // $('#otherBets').addClass('in');
             // $('#acceptedBetsTitle span.collapseIcon').removeClass('hidden');
             // $('[data-toggle="popover"]').popover();   //this is for comments that might be on bets
@@ -296,9 +291,7 @@ function getBets(status, target, addButton) {
             outp += '</table>';
             $('#'+target).prepend(outp);
             // check title where icon stores whether pane should be open or closed
-            if ($('#'+target+'Title').children().hasClass('open'))
-               $('#'+target).addClass('in'); //actually opens/uncollapses pane
-            $('#'+target+'Title span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+            collapseIconAction(target);
             // $('[data-toggle="popover"]').popover();
          }
       },
@@ -400,9 +393,7 @@ function weeklyStats(date) {
                document.getElementById('weeklyStats').innerHTML = outp;
 
                // open collapsed panel if not already open
-               if ($('#weeklyStatsTitle').children().hasClass('open'))
-                  $('#weeklyStats').addClass('in');
-               $('#weeklyStatsTitle span.collapseIcon').removeClass('hidden');
+               collapseIconAction('weeklyStats');
             }
          },
    		error: function(retData){
@@ -414,12 +405,7 @@ function weeklyStats(date) {
    }
 }
 
-$('#statsYear').on('click', function(){
-   if ($('#statsYear').text()=='2017') {
-      $('#statsYear').text('2016');
-   } else {
-      $('#statsYear').text('2017');
-   }
+$('#statsYear').on('change', function(){
    overallStats();
 });
 
@@ -430,7 +416,7 @@ function overallStats() {
 		url: '/api/overallstats',
       data: {
          'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
-         'season': $('#statsYear').text()
+         'season': $('#statsYear').val()
       },
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
@@ -466,7 +452,7 @@ function getUserStats (user, sport, season, week) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').text(),(button.data('week'))?button.data('week'):'').then(function(retData) {
+   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').val(),(button.data('week'))?button.data('week'):'').then(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData, function(i,rec){
          var date=new Date(rec.date);
@@ -520,7 +506,7 @@ function drawChart(days, update) {
          user: 'ALL',
          days: days,
          sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
-         season: $('#statsYear').text()
+         season: $('#statsYear').val()
       },
       success: function(retData){
          chartData.labels = retData.xaxis;
@@ -763,31 +749,6 @@ function showProps() {
 	});
 }
 
-function getOUusers(){
-   $.ajax({
-      type: 'POST',
-      url: '/api/getouusers',
-      data: {
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': $('#ouYear').text()
-      },
-      success: function(retData){
-         if(retData) {
-            outp = '<table><tr>';
-            $.each(retData, function(i, rec){
-               if (i%3 === 0)
-                  outp += '</tr><tr>';
-               outp += '<td class="cellgutter">'+rec.user+'</td>';
-            });
-            outp += '</tr></table>';
-            document.getElementById("ouList").innerHTML = outp;
-         }
-      },
-      error: function(retData){
-         alert(retData.type, retData.message);
-      }
-   });
-}
 function ouSignup() {
    $.ajax({
 		type: 'POST',
@@ -812,7 +773,6 @@ function ouSignup() {
             $('#ouBtn').text('Save');
             outp = '<table class="table table-condensed"><tr><th>Team</th><th>Line</th><th class="center">Choice</th><th>B</th></tr>';
             $.each(retData.choices, function(i, rec){
-               // outp += '<tr><td><button class="btn btn-sm btn-success btn-block">Over</button><td>'+rec.team+'</td><td>'+rec.line+'</td><td><button class="btn btn-sm btn-primary btn-block">Under</button></tr>';
                outp += '<tr class="lg"><td>'+rec.team.slice(0,6)+'</td><td>'+rec.line+'</td><td><form><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="0" checked>Over</input></label><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="1" >Under</input></label></form></td><td><input class="bonusCheck" name="bonusCheck'+i+'"type="checkbox" value="'+i+'" ></input></td></tr>';
             });
             document.getElementById('ouChoices').innerHTML = outp;
@@ -833,78 +793,78 @@ function ouSignup() {
 
 // Update status of special over/under wager these guys have
 function getOverunder() {
-   $.ajax({
-		type: 'POST',
-		url: '/api/getstandings',
-      data: {
-         'sport': 'nfl', //($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': 2017
-      },
-		success:function(retData){
-         if(new Date() < ($('#sportNfl').hasClass('selected'))?seasonStart.nfl:seasonStart.nba){
-            $('.signup').removeClass('hidden');
-            $('.active').addClass('hidden');
-         } else {
-            $('.active').removeClass('hidden');
-            $('.signup').addClass('hidden');
-         }
-         var points = [],
-            outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
-            outp2 = '<table class="table table-condensed"><tr><th>Team</th>';
-         // create columns for each user
-         $.each(retData.users, function(i, rec){
-            outp2 += '<th>'+bafusers[rec.user]+'</th>';
-            points[i] = 0; // initialize for all users, used for projections
-         });
-         outp2 += '<tr>';
-         // go through teams and populate tables
-         $.each(retData.standings, function(i, rec){
-            // populate standings area
-            outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16:82-rec.win-rec.loss))+'</td></tr>';
-            // populate picks area
-            outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
-            for (var j = 0; j < retData.users.length; j++) {
-               outp2 += '<td>'+retData.users[j][i]+'</td>';
-               // calculate
-               points[j] += (retData.users[j][i].slice(0,1) == rec.status.slice(0,1))?((retData.users[j][i].endsWith('*'))?2:1):0;
-            }
-            outp2 += '</tr>';
-         });
-         outp += '</table>';
-			document.getElementById("standingsArea").innerHTML = outp;
-         if ($('#standingsAreaTitle span.collapseIcon').hasClass('hidden')) {
-            $('#standingsAreaTitle').addClass('open'); //actually opens/uncollapses pane
-            $('#standingsArea').addClass('in'); //actually opens/uncollapses pane
-            $('#standingsAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-         }
-         outp2 += '</table>';
-         document.getElementById("picksArea").innerHTML = outp2;
-         if ($('#picksAreaTitle span.collapseIcon').hasClass('hidden')) {
-            $('#picksAreaTitle').addClass('open'); //actually opens/uncollapses pane
-            $('#picksArea').addClass('in'); //actually opens/uncollapses pane
-            $('#picksAreaTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-         }
+   if(true && $('#ouYear').val() == 2017){
+      $('.signup').removeClass('hidden');
+      $('.active').addClass('hidden');
+      ouSignup();
+   } else {
+      $('.active').removeClass('hidden');
+      $('.signup').addClass('hidden');
+      $.ajax({
+   		type: 'POST',
+   		url: '/api/getstandings',
+         data: {
+            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+            'season': $('#ouYear').val()
+         },
+   		success:function(retData){
+            var points = [],
+               outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Prj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
+               outp2 = '<table class="table table-condensed"><tr><th>Team</th>';
+            // create columns for each user
+            $.each(retData.users, function(i, rec){
+               outp2 += '<th>'+bafusers[rec.user]+'</th>';
+               points[i] = 0; // initialize for all users, used for projections
+            });
+            outp2 += '<tr>';
+            // go through teams and populate tables
+            $.each(retData.standings, function(i, rec){
+               // populate standings area
+               outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<1.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':'U')+'</td><td>'+((rec.line-rec.win<1)?'met':Math.ceil(rec.line-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16:82-rec.win-rec.loss))+'</td></tr>';
+               // populate picks area
+               outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
+               for (var j = 0; j < retData.users.length; j++) {
+                  outp2 += '<td>'+retData.users[j][i]+'</td>';
+                  // calculate
+                  points[j] += (retData.users[j][i].slice(0,1) == rec.status.slice(0,1))?((retData.users[j][i].endsWith('*'))?2:1):0;
+               }
+               outp2 += '</tr>';
+            });
+            outp += '</table>';
+   			document.getElementById("standingsArea").innerHTML = outp;
+            // check title where icon stores whether pane should be open or closed
+            collapseIconAction('standingsArea');
 
-         // projection area
-         outp = '<table class="table table-condensed"><tr>';
-         outp2 = '<tr>';
-         $.each(retData.users, function(i, rec){
-            outp += '<th>'+bafusers[rec.user]+'</th>';
-            outp2 += '<td>'+points[i]+'</td>';
-         });
-         outp += '<tr>'+outp2+'</tr></table>';
-         document.getElementById("ouProjection").innerHTML = outp;
-         if ($('#ouProjectionTitle span.collapseIcon').hasClass('hidden')) {
-            $('#ouProjectionTitle').addClass('open'); //actually opens/uncollapses pane
-            $('#ouProjection').addClass('in'); //actually opens/uncollapses pane
-            $('#ouProjectionTitle span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
-         }
-		},
-		error: function(retData){
-			alert(retData.type, retData.message);
-		}
-	});
+            outp2 += '</table>';
+            document.getElementById("picksArea").innerHTML = outp2;
+            collapseIconAction('picksArea');
+
+            outp = '<table class="table table-condensed"><tr>';
+            outp2 = '<tr>';
+            // go through active users
+            $.each(retData.users, function(i, rec){
+               outp += '<th>'+bafusers[rec.user]+'</th>';
+               outp2 += '<td>'+points[i]+'</td>';
+            });
+            outp += '<tr>'+outp2+'</tr></table>';
+            document.getElementById("ouProjection").innerHTML = outp;
+            collapseIconAction('ouProjection');
+   		},
+   		error: function(retData){
+   			alert(retData.type, retData.message);
+   		}
+   	});
+   }
 }
+function collapseIconAction(target) {
+   if ($('#'+target+'Title').children().hasClass('open'))
+      $('#'+target).addClass('in'); //actually opens/uncollapses pane
+   $('#'+target+'Title span.collapseIcon').removeClass('hidden');  // show icon which defaults to hidden
+}
+
+$('#ouYear').on('change', function(e){
+   getOverunder();
+});
 
 $('#ouBtn').on('click', function(e){
    if ($('#ouBtn').text() == 'Join') {
@@ -1410,7 +1370,7 @@ var username,
          ncaa: new Date(2017,2,16)
       },
    inSeason = {
-      nfl: 0,
-      nba: 1,
+      nfl: 1,
+      nba: 0,
       ncaa: 0
    };

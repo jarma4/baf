@@ -9,9 +9,12 @@ block content
                ul
                   li#sportNfl.sportPick.selected
                      a NFL
-                  li#sportNba.sportPick.dimmed
+                  li#sportNba.sportPick
                      a NBA
-               button#ouYear.btn.btn-sm.btn-default.right 2017
+               select#ouYear.btn-default.right.pushdown
+                  option(value='2017') 2017
+                  option(value='2016') 2016
+               //- button#ouYear.btn.btn-sm.btn-default.right 2017
       .row.no-gutters
          .col-md-3
             .panel.panel-warning.signup
@@ -35,23 +38,22 @@ block content
             .panel.panel-success.active
                .panel-heading
                   | Projections
-                  a(data-toggle='collapse', href='#ouProjection')#ouProjectionTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+                  a(data-toggle='collapse', href='#ouProjection')#ouProjectionTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
                #ouProjection.panel-collapse.collapse
          .col-md-3
             .panel.panel-primary.active
                .panel-heading
                   | Player Picks
-                  a(data-toggle='collapse', href='#picksArea')#picksAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-right.hidden]
+                  a(data-toggle='collapse', href='#picksArea')#picksAreaTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
                #picksArea.panel-collapse.collapse
          .col-md-3
             .panel.panel-info.active
                .panel-heading
                   | Standings
-                  a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-right.hidden]
+                  a(data-toggle='collapse', href='#standingsArea')#standingsAreaTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-down.hidden]
                #standingsArea.panel-collapse.collapse
          .col-md-3
 
 block scripts
    script(type='text/javascript').
-      ouSignup()
-      //- getOverunder()
+      getOverunder()
