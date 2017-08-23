@@ -170,3 +170,12 @@ $('#rescindSend').on('click', function(){
          'action': 'delete'});
    getBets(1, 'waitingThem', 'rescind');
 });
+
+// since .comment class is not in html(added by js), need to attach to higher id
+$('#page-content-wrapper').on('click', '.comment', function(event){
+    var that = $(this);
+    that.popover('show');
+    setTimeout(function(){
+        that.popover('hide');
+    }, 3000);
+});
