@@ -146,7 +146,7 @@ router.post('/getbets', requireLogin, function(req,res){
                                                                           :{$or:[
                                                                               {user1: req.session.user._id},
                                                                               {user2: req.session.user._id}]}]
-      }, function(err,bets){
+      }, function(err, bets){
       if(err){
          console.log(err);
       } else {

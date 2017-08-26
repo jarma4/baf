@@ -92,6 +92,8 @@ function getOdds(sport) {
 }
 
 function updateBet(id,object){
+   if (object.status == 6)  // special case for marking tie game
+      object = {status:6, paid:true};
 	Bets.update({_id:id},{$set:object},function(err){
 		if (err)
 			console.log(id+' had trouble updating - ');

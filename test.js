@@ -15,21 +15,12 @@ var request = require('request'),
    Logs = require('./models/dbschema').Logs;
 
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
-var names = {sergio:'Serg', tony:'jarma4', john:'Jmcgeady', aaron:'aaron', eric:'KRELL', russell: 'russell'};
-// OUgame.find({season:2016}, function(err, teams){
-OUgame.find({season:2016}, function(err, teams){
-   teams.forEach(function(record, i){
-      var temp = {};
-      temp[i] = record.russell;
-      OUuser.update({season:2016, sport:'nba', user:'russell'},temp, function(err){
-         if(err)
-            console.log('error: '+err);
-         console.log('updated');
-      });
-   });
-}).sort({index:1});
-// });
+const object = {paid:true};
 
+if (object.status == 6)
+   console.log('matches');
+else
+   console.log('no match');
 // OUuser.find({}, function(err, teams) {
 //    var temp = {0:'',1:'',2:'',3:'',4:'',5:'',6:'',7:'',8:'',9:'',10:'',11:'',12:'',13:'',14:'',15:'',16:'',17:'',18:'',19:'',20:'',21:'',22:'',23:'',24:'',25:'',26:'',27:'',28:'',29:'',30:'',31:''};
 //    teams.forEach(function(team, inc){

@@ -88,6 +88,7 @@ function weeklyStats(date) {
 
 $('#statsYear').on('change', function(){
    overallStats();
+   drawChart(0);
 });
 
 // get overall stats and graph
