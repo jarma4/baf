@@ -579,7 +579,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 });
 
 router.get('/getprefs',function(req,res){
-   Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1, slack: 1}, function(err,user){
+   Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_receive:1, pref_text_accept:1, sms: 1, pref_default_page: 1}, function(err,user){
       res.json(user);
    });
 });
@@ -727,7 +727,7 @@ router.get('/ncaaodds', function (req, res) {
 
 // gets userlist for bet select list
 router.get('/users', requireLogin, function(req,res){
-   Users.find({_id: {$ne:req.session.user}}, {_id: 1}, function(err,user){
+   Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}, function(err,user){
       res.json(user);
    }).sort({_id:1});
 });

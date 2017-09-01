@@ -10,7 +10,7 @@ var usersSchema = new mongoose.Schema({
    pref_nba_everyone: Boolean,
    pref_text_receive: Boolean,
    pref_text_accept: Boolean,
-   slack: String
+   pref_default_page: String
 });
 
 var recordsSchema = new mongoose.Schema({

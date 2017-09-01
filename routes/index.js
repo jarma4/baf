@@ -1,22 +1,40 @@
 var express = require('express'),
 // Auth = require('./auth'),
-router = express.Router();
+router = express.Router(),
+session = require('client-sessions'),
+Users = require('../models/dbschema').Users,
+mongoose = require('mongoose');
+
+router.use(session({
+    cookieName: 'session',
+    secret: process.env.BAF_SESSION,
+    duration: 14 * 24 * 60 * 60 * 1000,
+    activeDuration: 5 * 60 * 1000,
+}));
+
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 module.exports = router;
 
 // Main page renderings
 router.get('/', function(req, res) {
-   res.render('odds', {pagename:'odds'});  // pagename not used now
+    Users.findOne({_id: req.session.user._id}, {pref_default_page: 1}, function(err,user){
+        res.render(user.pref_default_page);  // pagename not used now
+     }).sort({_id:1});
 });
 
 // router.get('/nba', function(req, res) {
 //    res.render('nba', {pagename:'NBA'});  // pagename not used now
 // });
 
-router.get('/bets', function(req, res) {
-   res.render('bets', {pagename:'bets'});
-});
+router.get('/odds', function(req, res) {
+    res.render('odds', {pagename:'odds'});
+ });
 
+ router.get('/bets', function(req, res) {
+    res.render('bets', {pagename:'bets'});
+ });
+  
 router.get('/stats', function(req, res) {
    res.render('stats', {pagename:'stats'});
 });

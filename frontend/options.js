@@ -4,13 +4,14 @@ $('#prefSave').on('click', function(e){
       $.ajax({
    		type: 'POST',
    		url: '/api/setprefs',
-         data: {
-            'sms': $('#changeSMS').val(),
-            'pref_nfl_everyone': $('#prefNflEveryone').is(":checked"),
-            'pref_nba_everyone': $('#prefNbaEveryone').is(":checked"),
-            'pref_text_receive': $('#prefTextReceive').is(":checked"),
-            'pref_text_accept': $('#prefTextAccept').is(":checked")
-         },
+      data: {
+        'sms': $('#changeSMS').val(),
+        'pref_nfl_everyone': $('#prefNflEveryone').is(":checked"),
+        'pref_nba_everyone': $('#prefNbaEveryone').is(":checked"),
+        'pref_text_receive': $('#prefTextReceive').is(":checked"),
+        'pref_text_accept': $('#prefTextAccept').is(":checked"),
+        'pref_default_page': $('#prefDefaultPage').val()
+      },
    		success:function(retData){
             alert(retData.type,retData.message);
    		},
@@ -31,7 +32,7 @@ function getPrefs() {
          $('#prefNbaEveryone').prop('checked', retData.pref_nba_everyone);
          $('#prefTextReceive').prop('checked', retData.pref_text_receive);
          $('#prefTextAccept').prop('checked', retData.pref_text_accept);
-         $('#changeSlack').val(retData.slack);
+         $('#prefDefaultPage').val(retData.pref_default_page);
       },
       error: function(retData){
 			alert(retData.type,retData.message);

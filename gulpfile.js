@@ -11,7 +11,7 @@ gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
       .pipe(concat('bundle.js'))
-//      .pipe(uglify())
+      .pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 

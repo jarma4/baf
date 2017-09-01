@@ -25,8 +25,13 @@ block content
                   label
                      input#prefTextAccept(type='checkbox')
                      | Text me when someone accepts my bet
-               label(for='changeSlack') Slack Username:
-               input#changeSlack.form-control
+               label(for='changeSlack') Default Start Page:
+               // input#changeSlack.form-control
+               select#prefDefaultPage.form-control
+                     option(value='odds') Odds
+                     option(value='bets') Bets
+                     option(value='stats') Stats
+                     option(value='overunder') Over Under
                button#prefSave.btn.btn-success(type='submit', name='status', value='1', data-dismiss="modal") Save
    a.btn.btn-primary.btn-lg.btn-block(type='button', data-toggle='modal', data-target='#changePasswordModal') Change Password
    a.btn.btn-primary.btn-lg.btn-block(type='button', href='/admin/logout') Logout

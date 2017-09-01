@@ -1,10 +1,21 @@
 // below uses ChartJS library
-function drawChart(days, update) {
-   var ctx = document.getElementById("winGraph").getContext("2d"),
-      colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray", "teal"],
+function drawChart(days) {
+   var colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray", "teal"],
       chartData = {
          labels: [],
-         datasets: []
+         datasets: [],
+      },
+      chartOptions = {
+         scales: {
+            yAxes: [{
+               gridLines: {
+                  color: '#444'
+               }
+            }]
+         },
+         legend: {
+            position: 'bottom'
+         }
       };
 
    Chart.defaults.global.defaultFontColor = '#fff';
@@ -31,19 +42,13 @@ function drawChart(days, update) {
             };
             chartData.datasets.push(obj);
          });
-         if (update) {
-            winChart.data.labels = chartData.labels;
-            winChart.data.datasets = chartData.datasets;
-            winChart.update();
-         } else {
-            winChart = new Chart(ctx, {
-               type: 'line',
-               data: chartData,
-               //  options: chartOptions
-            });
-            winChart.options.scales.yAxes[0].gridLines.color = '#444';
-            winChart.options.legend.position = 'bottom';
-         }
+         if (winChart)
+            winChart.destroy();
+         winChart = new Chart(document.getElementById("winGraph").getContext("2d"), {
+            type: 'line',
+            data: chartData,
+            options: chartOptions
+         });
       },
 		error: function(retData){
          alert(retData.type, retData.message);
@@ -56,12 +61,12 @@ $('#graphDays').on('click', function(event){
    event.preventDefault();
    if ($('#graphDays').text() == '30days') {
          $('#graphDays').text('60days');
-         drawChart(60, 1);
+         drawChart(60);
    } else if ($('#graphDays').text() == '60days') {
       $('#graphDays').text('Season');
-      drawChart(90, 1);
+      drawChart(90);
    } else {
       $('#graphDays').text('30days');
-      drawChart(30, 1);
+      drawChart(30);
    }
 });
