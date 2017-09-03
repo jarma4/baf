@@ -68,7 +68,7 @@ function getFutures() {
          document.getElementById('futuresOffers').innerHTML = outp;
       },
 		error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		}
 	});
    // next check if there are any futures propostions
@@ -93,7 +93,7 @@ function getFutures() {
          });
       },
 		error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		}
 	});
    // lastly get accepted future offers
@@ -115,7 +115,7 @@ function getFutures() {
          document.getElementById('futuresAccepted').innerHTML = outp;
       },
       error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
       }
    });
 }

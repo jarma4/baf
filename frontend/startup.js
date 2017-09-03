@@ -63,7 +63,7 @@ function doorBell(){
          }
       },
 		error: function(retData){
-			alert(retData.type,retData.message);
+			modalAlert(retData.type,retData.message);
 		}
 	});
 }
@@ -75,16 +75,16 @@ function postApi(page, obj) {
 		url: '/api/'+page,
 		data: obj,
 		success:function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		},
 		error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		}
 	});
 }
 
 // multi use alert modal
-function alert(type, message, duration, pause){
+function modalAlert(type, message, duration, pause){
    $('#alertBody').removeClass();
    $('#alertBody').addClass('modal-content').addClass('modal-'+type);
    $('#alertText').text(message);
@@ -119,7 +119,7 @@ function getUsers (){
          // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
 		},
 		error: function(retData){
-			alert(retData.type,retData.message);
+			modalAlert(retData.type,retData.message);
 		}
 	});
 }
@@ -171,18 +171,18 @@ $('#loginSubmit').on('click', function(){
             // username = $('#loginUsername').val();
             getUsers();
          }
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
          doorBell();
 		},
 		error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		}
 	});
 });
 
 // $('#registerSubmit').on('click', function(){
 //    if (!$('#registerSMS').val() || !$('#registerUsername').val()) {
-//       alert('danger', 'You have not completed all the fields');
+//       modalAlert('danger', 'You have not completed all the fields');
 //       $('#registerModal').modal('show');
 //    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
 //       $.ajax({
@@ -197,13 +197,13 @@ $('#loginSubmit').on('click', function(){
 //             if (retData.type == 'success') {
 //                getUsers();
 //             }
-//             alert(retData.type, retData.message);
+//             modalAlert(retData.type, retData.message);
 //          },
 //          error: function(retData){
-//             alert(retData.type, retData.message);
+//             modalAlert(retData.type, retData.message);
 //          }
 //       });
 //    } else {
-//       alert('danger', "Passwords don't match, please try again");
+//       modalAlert('danger', "Passwords don't match, please try again");
 //    }
 // });

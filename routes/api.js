@@ -468,7 +468,6 @@ router.get('/getprops', requireLogin, function(req,res){
 });
 
 router.post('/acceptprop', requireLogin, function(req,res){
-   console.log(req.body);
    Props.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
       if (err)
          console.log("Prop accept error: "+err);
@@ -524,7 +523,11 @@ router.post('/getousignup', requireLogin, function(req,res){
 });
 
 router.post('/setouchoices', requireLogin, function(req,res){
-   // console.log(typeof(req.body.choices));
+   // var tmp = {};
+   // var tmp2 = JSON.parse(req.body.choices2);
+   // for (var i=0; i < tmp2.length; i++) {
+   //    tmp[i] = tmp2[i];
+   // }
    OUuser.update({user: req.session.user._id}, JSON.parse(req.body.choices), function(err){
       if (err)
          console.log("OU choice change error: "+err);

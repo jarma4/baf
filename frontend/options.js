@@ -13,10 +13,10 @@ $('#prefSave').on('click', function(e){
         'pref_default_page': $('#prefDefaultPage').val()
       },
    		success:function(retData){
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
    		},
    		error: function(retData){
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
    		}
    	});
 });
@@ -35,7 +35,7 @@ function getPrefs() {
          $('#prefDefaultPage').val(retData.pref_default_page);
       },
       error: function(retData){
-			alert(retData.type,retData.message);
+			modalAlert(retData.type,retData.message);
 		}
 	});
 }
@@ -55,13 +55,13 @@ $('#changeSubmit').on('click', function() {
             'password': $('#changePassword').val()
          },
          success:function(retData){
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
          },
          error: function(retData){
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
          }
       });
    } else {
-      alert('danger', "Passwords don't match, please try again");
+      modalAlert('danger', "Passwords don't match, please try again");
    }
 });

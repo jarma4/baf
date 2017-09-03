@@ -78,7 +78,7 @@ function weeklyStats(date) {
             }
          },
    		error: function(retData){
-   			alert(retData.type, retData.message);
+   			modalAlert(retData.type, retData.message);
    		}
    	});
    } else {
@@ -112,7 +112,7 @@ function overallStats() {
 			document.getElementById("overallStats").innerHTML = outp;
 		},
 		error: function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 		}
 	});
 }
@@ -148,6 +148,6 @@ $('#statsModal').on('show.bs.modal', function (event) {
    	outp += '</table>';
    	document.getElementById("statsHistory").innerHTML = outp;
    }).catch(function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 	});
 });

@@ -51,7 +51,7 @@ function drawChart(days) {
          });
       },
 		error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
 		}
    });
 }

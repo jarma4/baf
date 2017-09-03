@@ -17,6 +17,7 @@ router.use(session({
 router.use(bodyParser.urlencoded({ extended: false }));
 
 router.post('/login', function(req,res){
+  // console.log(req);
    Users.findOne({'_id':req.body.username}, function(err, user){
       if(!user){
          logger.error('User '+req.body.username+' not found');
@@ -29,7 +30,7 @@ router.post('/login', function(req,res){
                res.send({'type':'success', 'message':'Login Successful'});
                // res.redirect('/');
             } else {
-               logger.error('User '+req.session.user._id+' password not correct');
+               logger.error('User '+req.body.username+' password not correct');
                res.send({'type':'danger', 'message':'Password incorrect'});
             }
          });

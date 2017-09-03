@@ -27,15 +27,15 @@ function ouSignup() {
             document.getElementById('ouChoices').innerHTML = outp;
             // set all radio buttons as user picked
             $.each(retData.choices, function(i, rec){
-               $('input[name=pickRadio'+i+'][value='+((rec.pick.startsWith('O'))?0:1)+']').prop("checked",true);
-               if (rec.pick.endsWith('*')) {
+               $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
+               if (rec.pick.slice(-1) == '*') {
                   $('input[name=bonusCheck'+i+']').prop("checked",true);
                }
             });
          }
       },
       error: function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 		}
 	});
 }
@@ -100,7 +100,7 @@ function getOverunder() {
             collapseIconAction('ouProjection');
    		},
    		error: function(retData){
-   			alert(retData.type, retData.message);
+   			modalAlert(retData.type, retData.message);
    		}
    	});
    }
@@ -122,34 +122,38 @@ $('#ouBtn').on('click', function(e){
          },
    		success:function(retData){
             ouSignup();
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
    		},
    		error: function(retData){
-            alert(retData.type,retData.message);
+            modalAlert(retData.type,retData.message);
    		}
    	});
    } else {
       if ($('.bonusCheck:checked').length > 3) {
-         alert('danger', 'More than 3 bonus checkboxes are chosen.  Please correct.');
+         modalAlert('danger', 'More than 3 bonus checkboxes are chosen.  Please correct.');
       } else {
-         var choices = {};
+         var choices = {}, choices2 = [];
          // read choices to send
          for (var i = 0; i < 32; i++) {
             choices[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
-            if ($('input[name=bonusCheck'+i).prop('checked'))
+            // choices2[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
+            if ($('input[name=bonusCheck'+i+']').prop('checked')) {
                choices[i] += '*';
+               // choices2[i] += '*';
+            }
          }
          $.ajax({
             type: 'POST',
             url: '/api/setouchoices',
             data: {
-               choices: JSON.stringify(choices)
+               'choices': JSON.stringify(choices)
+               // 'choices2': JSON.stringify(choices2)
             },
             success:function(retData){
-               alert(retData.type,retData.message);
+               modalAlert(retData.type,retData.message);
             },
             error: function(retData){
-               alert(retData.type, retData.message);
+               modalAlert(retData.type, retData.message);
             }
          });
       }

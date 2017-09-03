@@ -27,7 +27,7 @@ function showScores(period) {
 			document.getElementById("scoresArea").innerHTML = outp;
 		},
 		error: function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 		}
 	});
 }

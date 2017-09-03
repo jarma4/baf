@@ -7,10 +7,10 @@ $('#resolveBody').on('click', '.xxx', function(event){
          'num': $(this).data('num')
       },
       success:function(retData){
-         alert(retData.type,retData.message, 3000);
+         modalAlert(retData.type,retData.message, 3000);
       },
       error: function(retData){
-         alert(retData.type,retData.message);
+         modalAlert(retData.type,retData.message);
       }
    });
 });
@@ -33,7 +33,7 @@ $('#resolveDebts').on('click', function(){
          $('#resolveModal').modal('show');
       },
       error: function(retData){
-         alert(retData.type, retData.message);
+         modalAlert(retData.type, retData.message);
       }
    });
 });
@@ -53,11 +53,11 @@ $('#oweyou').on('click', '.paidBtn', function(){
             $('#debtsModal').modal('show');
          },
          error: function(retData){
-            alert(retData.type, retData.message);
+            modalAlert(retData.type, retData.message);
          }
       });
    });
-   alert('', 'Dismiss debt?', null, true);      // confirm modal
+   modalAlert('', 'Dismiss debt?', null, true);      // confirm modal
 });
 
 //modal to show stats for each user of every bet in database for them
@@ -98,7 +98,7 @@ $('#debtsModal').on('show.bs.modal', function (event) {
          $('#debtHolder').data('losses', losses);
 		},
 		error: function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 		}
 	});
 });

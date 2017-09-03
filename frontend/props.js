@@ -36,7 +36,7 @@ function showProps() {
 			document.getElementById("propList").innerHTML = outp;
 		},
 		error: function(retData){
-			alert(retData.type, retData.message);
+			modalAlert(retData.type, retData.message);
 		}
 	});
 }
