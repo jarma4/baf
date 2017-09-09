@@ -23,7 +23,7 @@ router.use(function (req, res, next) {
           req.session.user = user;
           res.locals.user = user;
         }
-  
+
         next();
       });
     } else {
@@ -44,50 +44,46 @@ router.get('/', function(req, res) {
     }
 });
 
-// router.get('/nba', function(req, res) {
-//    res.render('nba', {pagename:'NBA'});  // pagename not used now
-// });
-
 router.get('/odds', function(req, res) {
-    res.render('odds', {pagename:'odds'});
+    res.render('odds');
  });
 
  router.get('/bets', function(req, res) {
-    res.render('bets', {pagename:'bets'});
+    res.render('bets');
  });
-  
+
 router.get('/stats', function(req, res) {
-   res.render('stats', {pagename:'stats'});
+   res.render('stats');
 });
 
 router.get('/messageboard', function(req, res) {
-   res.render('msg', {pagename:'msgboard'});
+   res.render('msg');
 });
 
 router.get('/scores', function(req, res) {
-   res.render('scores', {pagename:'scores'});
+   res.render('scores');
 });
 
 router.get('/props', function(req, res) {
-   res.render('props', {pagename:'props'});
+   res.render('props');
 });
 
 router.get('/overunder', function(req, res) {
-   res.render('overunder', {pagename:'overunder'});
+   res.render('overunder');
 });
 
 router.get('/options', function(req, res) {
-   res.render('options', {pagename:'options'});
+   res.render('options');
 });
 
 router.get('/futures', function(req, res) {
-   res.render('futures', {pagename:'futures'});
+   res.render('futures');
 });
 
 router.get('/login', function(req, res) {
-   res.render('login', {pagename:'login'});
+   res.render('login');
 });
 
-router.get('/test', function(req, res) {
-   res.render('test', {pagename:'test'});
+router.get('/log', function(req, res) {
+   res.render('log');
 });

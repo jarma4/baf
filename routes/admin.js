@@ -26,11 +26,11 @@ router.post('/login', function(req,res){
          bcrypt.compare(req.body.password, user.password, function(err, result){
             if (result){
                req.session.user = user;
-               logger.info('User '+req.session.user._id+' login');
+               logger.debug('User '+req.session.user._id+' login');
                res.send({'type':'success', 'message':'Login Successful'});
                // res.redirect('/');
             } else {
-               logger.error('User '+req.body.username+' password not correct');
+               logger.warn('User '+req.body.username+' password not correct');
                res.send({'type':'danger', 'message':'Password incorrect'});
             }
          });

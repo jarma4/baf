@@ -10,26 +10,26 @@ block content
             .panel.panel-primary
                .panel-heading
                   | Waiting on You
-                  a(data-toggle='collapse', href='#waitingYou')#waitingYouTitle #[span.collapseIcon.open.glyphicon.glyphicon-triangle-bottom.hidden]
+                  a(data-toggle='collapse', href='#waitingYou')#waitingYouTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
                #waitingYou.panel-collapse.collapse
          .col-md-3
             .panel.panel-info
                .panel-heading
                   | Waiting on Them
-                  a(data-toggle='collapse', href='#waitingThem')#waitingThemTitle #[span.collapseIcon.open.glyphicon.glyphicon-triangle-bottom.hidden]
+                  a(data-toggle='collapse', href='#waitingThem')#waitingThemTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
                #waitingThem.panel-collapse.collapse
          .col-md-3
             .panel.panel-success
                .panel-heading
                   | Accepted Bets
-                  a(data-toggle='collapse', href='#acceptedBets')#acceptedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-triangle-bottom.hidden]
+                  a(data-toggle='collapse', href='#acceptedBets')#acceptedBetsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
                #acceptedBets.panel-collapse.collapse
                   // #otherBets added here via JS
          .col-md-3
             .panel.panel-default
                .panel-heading
                   | Refused Bets
-                  a(data-toggle='collapse', href='#refusedBets')#refusedBetsTitle #[span.collapseIcon.glyphicon.glyphicon-triangle-bottom.hidden]
+                  a(data-toggle='collapse', href='#refusedBets')#refusedBetsTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-down.hidden]
                #refusedBets.panel-collapse.collapse
 block modals
    #actionModal.modal.fade

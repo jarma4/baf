@@ -173,9 +173,10 @@ $('#rescindSend').on('click', function(){
 
 // since .comment class is not in html(added by js), need to attach to higher id
 $('#page-content-wrapper').on('click', '.comment', function(event){
-    var that = $(this);
-    that.popover('show');
-    setTimeout(function(){
-        that.popover('hide');
-    }, 3000);
+   event.preventDefault();
+   var that = $(this);
+   that.popover('show');
+      setTimeout(function(){
+      that.popover('hide');
+   }, 6000);
 });

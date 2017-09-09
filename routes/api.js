@@ -2,7 +2,7 @@ var express = require('express'),
    bodyParser = require('body-parser'),
    fs = require('fs'),
    // Auth = require('./auth'),
-   logger = require('pino')({}, fs.createWriteStream('./baf.log', {'flags': 'a'})),
+   logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
    session = require('client-sessions'),
    bcrypt = require('bcrypt'),
    // session = require('express-session'),
@@ -528,7 +528,7 @@ router.post('/setouchoices', requireLogin, function(req,res){
    // for (var i=0; i < tmp2.length; i++) {
    //    tmp[i] = tmp2[i];
    // }
-   OUuser.update({user: req.session.user._id}, JSON.parse(req.body.choices), function(err){
+   OUuser.update({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), function(err){
       if (err)
          console.log("OU choice change error: "+err);
       else {
@@ -609,7 +609,7 @@ function markPaid(betid, user) {
             if(err)
                console.log(err);
          });
-         console.log('Bet#'+betid+' marked paid by '+user+' - '+new Date());
+         logger.info('Bet#'+betid+' marked paid by '+user+' - '+new Date());
          return 1;
       }
    });
@@ -714,6 +714,12 @@ router.post('/getfutureoffers', requireLogin, function(req,res){
 router.get('/getfutures', function (req, res) {
    if (fs.existsSync('json/futures.json'))
       res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
+});
+
+router.get('/getlogs', function (req, res) {
+   if (fs.existsSync('json/log.json')) {
+      res.sendFile('./json/log.json', {'root':__dirname+'/..'});
+   }
 });
 
 router.get('/nflodds', function (req, res) {

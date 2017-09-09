@@ -1,6 +1,7 @@
 var request = require('request'),
    fs = require('fs'),
    cheerio = require('cheerio'),
+   logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
    Util = require('./util'),
    Users = require('./dbschema').Users,
    Bets = require('./dbschema').Bets,
@@ -69,9 +70,9 @@ function getOdds(sport) {
                      // save watch as seen
                      Bets.update({_id: watch._id}, {watch: 3}, function(err){
                         if(err)
-                           console.log('trouble updating watch');
+                           logger.error('trouble updating watch');
                      });
-                     console.log('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
+                     logger.info('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
                      Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
                   }
                });
@@ -96,9 +97,9 @@ function updateBet(id,object){
       object = {status:6, paid:true};
 	Bets.update({_id:id},{$set:object},function(err){
 		if (err)
-			console.log(id+' had trouble updating - ');
+			logger.error(id+' had trouble updating - ');
 		else
-			console.log(id+' bet updated - '+new Date());
+			logger.info(id+' bet updated - '+new Date());
 	});
 }
 
@@ -117,10 +118,10 @@ function updateRecord(user, category, sport, season) {
       temp[category] = 1;
       Records.update({'user': user, 'sport': sport, 'season': season},{$inc: temp}, function(err){
    		if (err) {
-   			console.log(user+' had trouble updating wins - '+new Date());
+   			logger.error(user+' had trouble updating wins - '+new Date());
             reject();
    		} else {
-   			console.log(user+' had a '+category+' - '+new Date());
+   			logger.info(user+' had a '+category+' - '+new Date());
             resolve();
          }
    	});
@@ -138,11 +139,11 @@ function updateWinnerLoser(winner, loser, push, sport){
    if (!push) {
       Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
          if (err)
-         console.log(user+' had trouble updating winner debts - '+new Date());
+         logger.error(user+' had trouble updating winner debts - '+new Date());
       });
       Users.update({_id: loser}, {$inc: {debts:1}}, function(err){
          if (err)
-            console.log(user+' had trouble updating loser debts - '+new Date());
+            logger.error(user+' had trouble updating loser debts - '+new Date());
       });
    }
 }
@@ -165,9 +166,9 @@ function addNflGame (wk, yr, sprt) {
                   team2: nflTeams2[$(this).text()]
                }).save(function(err){
                   if(err) {
-                     console.log('Trouble adding game');
+                     logger.error('Trouble adding game');
                   } else {
-                     console.log('Week '+wk+' game added');
+                     logger.info('Week '+wk+' game added');
                   }
                });
             } else {
@@ -253,9 +254,9 @@ module.exports = {
                                        {winner:0},
                                        ((sport=='nfl')?{week:wk}:{$and:[{date:{$gt:today.setHours(0,0)}}, {date:{$lt:today.setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:(Number(sc1) > Number(sc2))?1:2},function(err, resp) {
                      if (err)
-                        console.log('checkScores error: '+err);
+                        logger.error('checkScores error: '+err);
                      if (resp.n)
-                        console.log(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
+                        logger.info(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
                   });
                }
             });
@@ -270,13 +271,13 @@ module.exports = {
             if (single.gametime < new Date()) {
                Bets.update({_id:single._id},{status:3}, function(err){
          			if(err)
-         				console.log(err);
+         				logger.error(err);
          			else
-                     console.log(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
+                     logger.info(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
    		      });
                Users.update({_id:single.user2},{$inc: {bets: -1}}, function(err){
                   if(err)
-                     console.log(err);
+                     logger.error(err);
                });
              }
       	});
@@ -290,9 +291,9 @@ module.exports = {
                      {$and:[{status:0}, {type: {$in: ['take', 'give']}}, {date:{$lt:new Date()}}]}]},
                       function(err){
 			if(err)
-				console.log(err);
+				logger.error(err);
 			else
-            console.log('Refused bets cleared - '+new Date());
+            logger.info('Refused bets cleared - '+new Date());
       });
    },
 
@@ -313,7 +314,7 @@ module.exports = {
                                     {week: singleBet.week}]},
                               {season: singleBet.season}]}, function(err, game){
    				if(err)
-   					console.log('tallyBets error: '+err);
+   					logger.error('tallyBets error: '+err);
    				else if (game) {
                   // console.log('found score');
                   if (singleBet.type == 'spread') {
@@ -362,16 +363,16 @@ module.exports = {
                var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*82;
                Ougame.findOne({team: name}, function(err, rec) {
                   if (err)
-                     console.log('Ougame find team error: '+err);
+                     logger.error('Ougame find team error: '+err);
                   else if(rec) {
                      Ougame.update({team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
                         if (err)
-                           console.log('updateStandings error: '+err);
+                           logger.error('updateStandings error: '+err);
                      });
                   }
                });
             });
-            console.log('updated standings - '+new Date());
+            logger.info('updated standings - '+new Date());
          }
       });
    },
@@ -403,7 +404,6 @@ module.exports = {
                console.log('ouGame added '+team);
             }
          });
-         console.log(tmp);
       }
    }
 };

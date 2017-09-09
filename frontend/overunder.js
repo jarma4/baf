@@ -27,9 +27,11 @@ function ouSignup() {
             document.getElementById('ouChoices').innerHTML = outp;
             // set all radio buttons as user picked
             $.each(retData.choices, function(i, rec){
-               $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
-               if (rec.pick.slice(-1) == '*') {
-                  $('input[name=bonusCheck'+i+']').prop("checked",true);
+               if (rec.pick) {
+                  $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
+                  if (rec.pick.slice(-1) == '*') {
+                     $('input[name=bonusCheck'+i+']').prop("checked",true);
+                  }
                }
             });
          }
@@ -42,7 +44,7 @@ function ouSignup() {
 
 // Update status of special over/under wager these guys have
 function getOverunder() {
-   if(true && $('#ouYear').val() == 2017){
+   if(true && $('#ouYear').val() == 2018){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
@@ -146,8 +148,9 @@ $('#ouBtn').on('click', function(e){
             type: 'POST',
             url: '/api/setouchoices',
             data: {
+               'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+               'season': 2017,
                'choices': JSON.stringify(choices)
-               // 'choices2': JSON.stringify(choices2)
             },
             success:function(retData){
                modalAlert(retData.type,retData.message);

@@ -11,14 +11,14 @@ $(document).ready(function() {
 //global variables
 var username,
    // used for swiping between pages
-   urls = ['/', '/bets', '/stats', '/scores', '/futures', '/overunder', '/props', '/options'],
+   urls = ['/odds', '/bets', '/stats', '/scores', '/futures', '/overunder', '/props', '/options'],
    // declared global so that charts can be updated between functions
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'firdavs': 'FP'},
+   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB'},
    seasonStart = {
-         nfl: new Date(2017,8,7),
+         nfl: new Date(2017,8,5),
          nba: new Date(2017,9,20),
          ncaa: new Date(2017,2,16)
       },
