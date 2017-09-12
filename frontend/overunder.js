@@ -1,47 +1,3 @@
-function ouSignup() {
-   $.ajax({
-		type: 'POST',
-		url: '/api/getousignup',
-      data: {
-         'sport': 'nfl',
-         'season': 2017
-      },
-		success:function(retData){
-         var outp;
-         // first populate users
-         outp = '<table><tr>';
-         $.each(retData.users, function(i, rec){
-            if (i%3 === 0)
-               outp += '</tr><tr>';
-            outp += '<td class="cellgutter">'+rec.user+'</td>';
-         });
-         outp += '</tr></table>';
-         document.getElementById("ouList").innerHTML = outp;
-         // next fill choices in if already signed up
-         if(retData.choices) {
-            $('#ouBtn').text('Save');
-            outp = '<table class="table table-condensed"><tr><th>Team</th><th>Line</th><th class="center">Choice</th><th>B</th></tr>';
-            $.each(retData.choices, function(i, rec){
-               outp += '<tr class="lg"><td>'+rec.team.slice(0,6)+'</td><td>'+rec.line+'</td><td><form><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="0" checked>Over</input></label><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="1" >Under</input></label></form></td><td><input class="bonusCheck" name="bonusCheck'+i+'"type="checkbox" value="'+i+'" ></input></td></tr>';
-            });
-            document.getElementById('ouChoices').innerHTML = outp;
-            // set all radio buttons as user picked
-            $.each(retData.choices, function(i, rec){
-               if (rec.pick) {
-                  $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
-                  if (rec.pick.slice(-1) == '*') {
-                     $('input[name=bonusCheck'+i+']').prop("checked",true);
-                  }
-               }
-            });
-         }
-      },
-      error: function(retData){
-			modalAlert(retData.type, retData.message);
-		}
-	});
-}
-
 // Update status of special over/under wager these guys have
 function getOverunder() {
    if(true && $('#ouYear').val() == 2018){
@@ -108,57 +64,99 @@ function getOverunder() {
    }
 }
 
-
 $('#ouYear').on('change', function(e){
    getOverunder();
 });
 
-$('#ouBtn').on('click', function(e){
-   if ($('#ouBtn').text() == 'Join') {
-      $.ajax({
-   		type: 'POST',
-   		url: '/api/ousignup',
-         data: {
-            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-            'season': 2017
-         },
-   		success:function(retData){
-            ouSignup();
-            modalAlert(retData.type,retData.message);
-   		},
-   		error: function(retData){
-            modalAlert(retData.type,retData.message);
-   		}
-   	});
-   } else {
-      if ($('.bonusCheck:checked').length > 3) {
-         modalAlert('danger', 'More than 3 bonus checkboxes are chosen.  Please correct.');
-      } else {
-         var choices = {}, choices2 = [];
-         // read choices to send
-         for (var i = 0; i < 32; i++) {
-            choices[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
-            // choices2[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
-            if ($('input[name=bonusCheck'+i+']').prop('checked')) {
-               choices[i] += '*';
-               // choices2[i] += '*';
-            }
-         }
-         $.ajax({
-            type: 'POST',
-            url: '/api/setouchoices',
-            data: {
-               'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-               'season': 2017,
-               'choices': JSON.stringify(choices)
-            },
-            success:function(retData){
-               modalAlert(retData.type,retData.message);
-            },
-            error: function(retData){
-               modalAlert(retData.type, retData.message);
-            }
-         });
-      }
-   }
-});
+// function ouSignup() {
+//    $.ajax({
+// 		type: 'POST',
+// 		url: '/api/getousignup',
+//       data: {
+//          'sport': 'nfl',
+//          'season': 2017
+//       },
+// 		success:function(retData){
+//          var outp;
+//          // first populate users
+//          outp = '<table><tr>';
+//          $.each(retData.users, function(i, rec){
+//             if (i%3 === 0)
+//                outp += '</tr><tr>';
+//             outp += '<td class="cellgutter">'+rec.user+'</td>';
+//          });
+//          outp += '</tr></table>';
+//          document.getElementById("ouList").innerHTML = outp;
+//          // next fill choices in if already signed up
+//          if(retData.choices) {
+//             $('#ouBtn').text('Save');
+//             outp = '<table class="table table-condensed"><tr><th>Team</th><th>Line</th><th class="center">Choice</th><th>B</th></tr>';
+//             $.each(retData.choices, function(i, rec){
+//                outp += '<tr class="lg"><td>'+rec.team.slice(0,6)+'</td><td>'+rec.line+'</td><td><form><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="0" checked>Over</input></label><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="1" >Under</input></label></form></td><td><input class="bonusCheck" name="bonusCheck'+i+'"type="checkbox" value="'+i+'" ></input></td></tr>';
+//             });
+//             document.getElementById('ouChoices').innerHTML = outp;
+//             // set all radio buttons as user picked
+//             $.each(retData.choices, function(i, rec){
+//                if (rec.pick) {
+//                   $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
+//                   if (rec.pick.slice(-1) == '*') {
+//                      $('input[name=bonusCheck'+i+']').prop("checked",true);
+//                   }
+//                }
+//             });
+//          }
+//       },
+//       error: function(retData){
+// 			modalAlert(retData.type, retData.message);
+// 		}
+// 	});
+// }
+// $('#ouBtn').on('click', function(e){
+//    if ($('#ouBtn').text() == 'Join') {
+//       $.ajax({
+//    		type: 'POST',
+//    		url: '/api/ousignup',
+//          data: {
+//             'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+//             'season': 2017
+//          },
+//    		success:function(retData){
+//             ouSignup();
+//             modalAlert(retData.type,retData.message);
+//    		},
+//    		error: function(retData){
+//             modalAlert(retData.type,retData.message);
+//    		}
+//    	});
+//    } else {
+//       if ($('.bonusCheck:checked').length > 3) {
+//          modalAlert('danger', 'More than 3 bonus checkboxes are chosen.  Please correct.');
+//       } else {
+//          var choices = {}, choices2 = [];
+//          // read choices to send
+//          for (var i = 0; i < 32; i++) {
+//             choices[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
+//             // choices2[i] = ($('input[name=pickRadio'+i+']:checked').val()==1)?'U':'O';
+//             if ($('input[name=bonusCheck'+i+']').prop('checked')) {
+//                choices[i] += '*';
+//                // choices2[i] += '*';
+//             }
+//          }
+//          $.ajax({
+//             type: 'POST',
+//             url: '/api/setouchoices',
+//             data: {
+//                'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+//                'season': 2017,
+//                'choices': JSON.stringify(choices)
+//             },
+//             success:function(retData){
+//                modalAlert(retData.type,retData.message);
+//             },
+//             error: function(retData){
+//                modalAlert(retData.type, retData.message);
+//             }
+//          });
+//       }
+//    }
+// });

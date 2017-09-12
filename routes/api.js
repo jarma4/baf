@@ -215,7 +215,7 @@ router.post('/changebet', requireLogin, function(req,res){
          // below query has id AND status in case first to act bet was already acted on but other people have been haven't updated locally
          Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields, function(err, acceptedBet){
             if(acceptedBet){
-               console.log('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
+               logger.info('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
                changeUser(req.session.user._id, 'bets', -1);
                Util.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
                // if first to act bet, remove for other people
@@ -223,7 +223,7 @@ router.post('/changebet', requireLogin, function(req,res){
                   Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
                      otherBets.forEach(function(otherBet) {
                         changeUser (otherBet.user2, 'bets', -1);
-                        console.log('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
+                        logger.info('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
                      });
                   }).then(function(){
                      Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
@@ -243,7 +243,7 @@ router.post('/changebet', requireLogin, function(req,res){
             if(err){
                console.log(err);
             } else {
-               console.log('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
+               logger.info('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
                res.send({'type':'success', 'message':'Reply Sent'});
                changeUser(req.session.user._id, 'bets', -1);
             }
@@ -254,7 +254,7 @@ router.post('/changebet', requireLogin, function(req,res){
             if(err)
                console.log(err);
             else {
-            	console.log('Bet _id='+req.body.id+' changed - '+new Date());
+            	logger.info('Bet _id='+req.body.id+' changed - '+new Date());
                res.send({'type':'success', 'message':'Change made'});
             }
          });
@@ -298,10 +298,11 @@ router.post('/weeklystats', requireLogin, function(req,res){
 
 router.post('/overallstats', requireLogin, function(req,res){
    var stats = [];
-   Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season}, function(err,records){
+   Records.find({user:{$ne: 'testuser'}, pct: {$exists: true}, sport: req.body.sport, season: req.body.season}, function(err,records){
       if (err)
          console.log(err);
       else
+         // check whether ANY records exist for the season, if not create all
          if(!records.length) {
             Users.find({}, {_id: 1}, function(err,users){
                users.forEach(function(user){
@@ -455,7 +456,7 @@ router.post('/postprop', requireLogin, function(req,res){
          console.log('Trouble adding prop');
          res.send({'type':'danger', 'message':'Trouble adding bet'});
       } else {
-         console.log('Prop added');
+         logger.info('Prop added');
          res.send({'type':'success', 'message':'Prop Added'});
       }
    });
@@ -469,10 +470,12 @@ router.get('/getprops', requireLogin, function(req,res){
 
 router.post('/acceptprop', requireLogin, function(req,res){
    Props.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
-      if (err)
+      if (err) {
          console.log("Prop accept error: "+err);
-      else
+      } else {
+         logger.info("Prop accepted: "+req.body.id);
          res.send({'type':'success', 'message':'Prop updated'});
+      }
    });
 });
 
@@ -718,7 +721,7 @@ router.get('/getfutures', function (req, res) {
 
 router.get('/getlogs', function (req, res) {
    if (fs.existsSync('json/log.json')) {
-      res.sendFile('./json/log.json', {'root':__dirname+'/..'});
+      res.sendFile('./json/log2.json', {'root':__dirname+'/..'});
    }
 });
 

@@ -33,7 +33,7 @@ gulp.task('start', function () {
       script: 'app.js',
       ext: 'js',
       ignore: ['frontend/*', 'public/*'],
-      env: { 'NODE_ENV': 'production' }
+      env: { 'NODE_ENV': 'development' }
    });
 });
 

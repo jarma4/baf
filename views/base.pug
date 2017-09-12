@@ -129,25 +129,27 @@ html
 						input#loginPassword.form-control(type='password', required)
 					.modal-footer
 						button#loginSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Sign in
-						//- button#loginRegister.btn.btn-primary.btn-lg.btn-block(data-dismiss='modal', data-toggle='modal', data-target='#registerModal') Register
-		//- #registerModal.modal.fade
-		//- 	.modal-dialog
-		//- 		.modal-content
-		//- 			.modal-header
-		//- 				button.close(type='button', data-dismiss='modal') #[span &times;]
-		//- 				h4.modal-title Register
-		//- 			.modal-body
-		//- 				form
-		//- 				label(for='registerUsername') Username
-		//- 				input#registerUsername.form-control(autofocus, required)
-		//- 				label(for='registerSMS') SMS
-		//- 				input#registerSMS.form-control(required)
-		//- 				label(for='registerPassword') Password
-		//- 				input#registerPassword.form-control(type='password', required)
-		//- 				label(for='registerPassword2') Confirm Password
-		//- 				input#registerPassword2.form-control(type='password', required)
-		//- 			.modal-footer
-		//- 				button#registerSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Register
+						button#loginRegister.btn.btn-primary.btn-lg.btn-block(data-dismiss='modal', data-toggle='modal', data-target='#registerModal') Register
+		#registerModal.modal.fade
+			.modal-dialog
+				.modal-content
+					.modal-header
+						button.close(type='button', data-dismiss='modal') #[span &times;]
+						h4.modal-title Register
+					.modal-body
+						form
+						label(for='registerUsername') Desired Username
+						input#registerUsername.form-control(autofocus, required)
+						label(for='registerSMS') Email
+						input#registerEmail.form-control(required)
+						label(for='registerSMS') SMS
+						input#registerSMS.form-control(required)
+						label(for='registerPassword') Password
+						input#registerPassword.form-control(type='password', required)
+						label(for='registerPassword2') Confirm Password
+						input#registerPassword2.form-control(type='password', required)
+					.modal-footer
+						button#registerSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Register
 		#wipModal.modal.fade
 			.modal-dialog
 				.modal-content

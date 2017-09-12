@@ -180,30 +180,31 @@ $('#loginSubmit').on('click', function(){
 	});
 });
 
-// $('#registerSubmit').on('click', function(){
-//    if (!$('#registerSMS').val() || !$('#registerUsername').val()) {
-//       modalAlert('danger', 'You have not completed all the fields');
-//       $('#registerModal').modal('show');
-//    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
-//       $.ajax({
-//          type: 'POST',
-//          url: '/admin/register',
-//          data: {
-//             'username': $('#registerUsername').val(),
-//             'sms': $('#registerSMS').val(),
-//             'password': $('#registerPassword').val()
-//          },
-//          success:function(retData){
-//             if (retData.type == 'success') {
-//                getUsers();
-//             }
-//             modalAlert(retData.type, retData.message);
-//          },
-//          error: function(retData){
-//             modalAlert(retData.type, retData.message);
-//          }
-//       });
-//    } else {
-//       modalAlert('danger', "Passwords don't match, please try again");
-//    }
-// });
+$('#registerSubmit').on('click', function(){
+   if (!$('#registerSMS').val() || !$('#registerUsername').val() || !$('#registerEmail').val()) {
+      modalAlert('danger', 'You have not completed all the fields');
+      $('#registerModal').modal('show');
+   } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
+      $.ajax({
+         type: 'POST',
+         url: '/admin/register',
+         data: {
+            'username': $('#registerUsername').val(),
+            'sms': $('#registerSMS').val(),
+            'email': $('#registerEmail').val(),
+            'password': $('#registerPassword').val()
+         },
+         success:function(retData){
+            if (retData.type == 'success') {
+               getUsers();
+            }
+            modalAlert(retData.type, retData.message, 5);
+         },
+         error: function(retData){
+            modalAlert(retData.type, retData.message);
+         }
+      });
+   } else {
+      modalAlert('danger', "Passwords don't match, please try again");
+   }
+});

@@ -103,10 +103,8 @@ function overallStats() {
 		success:function(retData){
 			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
 			$.each(retData, function(i,rec){
-            if (rec.pct){
-	            outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3).slice(1,5)+'</td></tr>';
-               $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
-            }
+            outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3)+'</td></tr>';
+            $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
 			});
 			outp += '</table>';
 			document.getElementById("overallStats").innerHTML = outp;
