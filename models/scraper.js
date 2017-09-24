@@ -7,7 +7,7 @@ var request = require('request'),
    Bets = require('./dbschema').Bets,
    Records = require('./dbschema').Records,
    Scores = require('./dbschema').Scores,
-   Ougame = require('./dbschema').Ougame,
+   OUgame = require('./dbschema').OUgame,
    Api = require('../routes/api'),
    mongoose = require('mongoose');
 
@@ -225,7 +225,7 @@ module.exports = {
       } else {
          url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
       }
-      // console.log('checking scores @ '+url);
+      console.log('checking scores @ '+url);
       request(url, function (err, response, body) {
       	if(!err && response.statusCode == 200) {
       		var $ = cheerio.load(body);
@@ -350,22 +350,20 @@ module.exports = {
       });
    },
 
-   updateStandings: function(){
-      var url = 'http://www.oddsshark.com/nba/ats-standings';
+   updateStandings: function(sport){
+      var url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
       request(url, function (err, response, body) {
          if(!err && response.statusCode == 200) {
             var $ = cheerio.load(body);
 
-            var teams = ['Golden State','LA Clippers','San Antonio','Oklahoma City','Cleveland','Houston','Memphis','Atlanta','Chicago','New Orleans','Miami','Washington','Toronto','Milwaukee','Boston','Utah','Indiana','Phoenix','Detroit','Dallas','Sacramento','Orlando','Charlotte','New York','LA Lakers','Minnesota','Brooklyn','Portland','Denver','Philadelphia'];
-
-            teams.forEach(function(name){
+            Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
-               var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*82;
-               Ougame.findOne({team: name}, function(err, rec) {
+               var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
+               OUgame.findOne({sport: sport, team: name}, function(err, rec) {
                   if (err)
-                     logger.error('Ougame find team error: '+err);
+                     logger.error('OUgame find team error: '+err);
                   else if(rec) {
-                     Ougame.update({team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
+                     OUgame.update({sport:sport, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
                         if (err)
                            logger.error('updateStandings error: '+err);
                      });
@@ -384,10 +382,10 @@ module.exports = {
       }
    },
 
-   initOugame: function(season, sport) {
+   initOUgame: function(season, sport) {
       var i = 0;
       for (var team in (sport == 'nfl')?nflTeams:nbaTeams) {
-         var tmp = new Ougame ({
+         var tmp = new OUgame ({
             sport: sport,
             season: season,
             team: team,
@@ -399,9 +397,9 @@ module.exports = {
             status: 'U'
          }).save(function(err){
             if(err) {
-               console.log('Trouble adding ouGame team');
+               console.log('Trouble adding OUgame team');
             } else {
-               console.log('ouGame added '+team);
+               console.log('OUgame added '+team);
             }
          });
       }
@@ -409,9 +407,9 @@ module.exports = {
 };
 
 var nflTeams = {
-      'Arizona': 'ARI', 'Atlanta': 'ATL', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Cincinatti': 'CIN', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Green Bay': 'GB', 'Houston': 'HOU', 'Indianapolis': 'IND', 'Jacksonville': 'JAC', 'Kansas City': 'KC', 'LA Chargers': 'LAC', 'LA Rams': 'LAR', 'Miami': 'MIA', 'Minnesota': 'MIN', 'NY Giants': 'NYG', 'NY Jets': 'NYJ', 'New England': 'NE', 'New Orleans': 'NO', 'Oakland': 'OAK', 'Philadelphia': 'PHI', 'Pittsburgh': 'PIT', 'San Francisco': 'SF', 'Seattle': 'SEA', 'Tampa Bay': 'TB', 'Tennessee': 'TEN', 'Washington': 'WAS'},
+      'Arizona': 'ARI', 'Atlanta': 'ATL', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Cincinnati': 'CIN', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Green Bay': 'GB', 'Houston': 'HOU', 'Indianapolis': 'IND', 'Jacksonville': 'JAC', 'Kansas City': 'KC', 'LA Chargers': 'LAC', 'LA Rams': 'LAR', 'Miami': 'MIA', 'Minnesota': 'MIN', 'NY Giants': 'NYG', 'NY Jets': 'NYJ', 'New England': 'NE', 'New Orleans': 'NO', 'Oakland': 'OAK', 'Philadelphia': 'PHI', 'Pittsburgh': 'PIT', 'San Francisco': 'SF', 'Seattle': 'SEA', 'Tampa Bay': 'TB', 'Tennessee': 'TEN', 'Washington': 'WAS'},
    nflTeams2 = {
-         'Cardinals': 'ARI', 'Falcons': 'ATL', 'Ravens': 'BAL', 'Bills': 'BUF', 'Panthers': 'CAR', 'Bears': 'CHI', 'Bengals': 'CIN', 'Browns': 'CLE', 'Cowboys': 'DAL', 'Broncos': 'DEN', 'Lions': 'DET', 'Packers': 'GB', 'Texans': 'HOU', 'Colts': 'IND', 'Jaguars': 'JAC', 'Chiefs': 'KC', 'Chargers': 'LAC', 'Rams': 'LAR', 'Dolphins': 'MIA', 'Vikings': 'MIN', 'Giants': 'NYG', 'Jets': 'NYJ', 'Patriots': 'NE', 'Saints': 'NO', 'Raiders': 'OAK', 'Eagles': 'PHI', 'Steelers': 'PIT', '49ers': 'SF', 'Seahawks': 'SEA', 'Buccaneers': 'TB', 'Titans': 'TEN', 'Redskins': 'WAS'},
+      'Cardinals': 'ARI', 'Falcons': 'ATL', 'Ravens': 'BAL', 'Bills': 'BUF', 'Panthers': 'CAR', 'Bears': 'CHI', 'Bengals': 'CIN', 'Browns': 'CLE', 'Cowboys': 'DAL', 'Broncos': 'DEN', 'Lions': 'DET', 'Packers': 'GB', 'Texans': 'HOU', 'Colts': 'IND', 'Jaguars': 'JAC', 'Chiefs': 'KC', 'Chargers': 'LAC', 'Rams': 'LAR', 'Dolphins': 'MIA', 'Vikings': 'MIN', 'Giants': 'NYG', 'Jets': 'NYJ', 'Patriots': 'NE', 'Saints': 'NO', 'Raiders': 'OAK', 'Eagles': 'PHI', 'Steelers': 'PIT', '49ers': 'SF', 'Seahawks': 'SEA', 'Buccaneers': 'TB', 'Titans': 'TEN', 'Redskins': 'WAS'},
    nbaTeams = {
       'Atlanta': 'ATL', 'Boston': 'BOS', 'Brooklyn': 'BKN', 'Charlotte': 'CHR', 'Chicago': 'CHI', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Golden State': 'GS', 'Houston': 'HOU', 'Indiana': 'IND', 'L.A. Clippers': 'LAC','L.A. Lakers': 'LAL', 'Memphis': 'MEM', 'Miami': 'MIA', 'Milwaukee': 'MIL', 'Minnesota': 'MIN', 'New Orleans': 'NOH', 'New York': 'NY', 'Oklahoma City': 'OKC', 'Orlando': 'ORL', 'Philadelphia': 'PHI', 'Phoenix': 'PHO', 'Portland': 'POR', 'Sacramento': 'SAC', 'San Antonio': 'SAN', 'Toronto': 'TOR', 'Utah': 'UTA', 'Washington': 'WAS', },
    nbaTeams2 = {

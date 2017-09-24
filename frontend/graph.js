@@ -1,6 +1,6 @@
 // below uses ChartJS library
 function drawChart(days) {
-   var colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "gray", "teal"],
+   var colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "lightgreen", "teal", "pink", "lightblue", "gray"],
       chartData = {
          labels: [],
          datasets: [],
