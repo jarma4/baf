@@ -63,6 +63,7 @@ function requireLogin (req, res, next) {
 // timer removes; if bet with same serial# comes in that is on stack, refused
 var betStack = [];
 
+// pulled out so EVERYONE bets can call multiple times along with single bets
 function saveBet (req){
    var today = new Date();
 
@@ -98,7 +99,8 @@ function saveBet (req){
    }
 }
 
-router.post('/makebet', requireLogin, function (req, res) {
+// pulled out as function so can be called internally by watch bets being auto sent
+function makeBet (req) {
    // check stack if bet has already come through, exit if so
    if (betStack.indexOf(req.body.serial) != -1) {
       console.log('previous bet found with serial#'+req.body.serial);
@@ -129,7 +131,11 @@ router.post('/makebet', requireLogin, function (req, res) {
    } else {
       console.log(saveBet(req));
    }
-   res.send({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
+};
+
+router.post('/makebet', requireLogin, function (req, res) {
+   makeBet(req);
+   res.send({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Sent'});
 });
 
 router.post('/getbets', requireLogin, function(req,res){

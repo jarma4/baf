@@ -225,7 +225,7 @@ module.exports = {
       } else {
          url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
       }
-      console.log('checking scores @ '+url);
+      // console.log('checking scores @ '+url);
       request(url, function (err, response, body) {
       	if(!err && response.statusCode == 200) {
       		var $ = cheerio.load(body);
