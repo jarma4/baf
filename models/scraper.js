@@ -64,11 +64,11 @@ function getOdds(sport) {
                games.forEach(function(game) {
                   if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
                      // check if supposed to send bet to recipient after watch hits
-                     if (watch.watch == 2) {
+                     if (watch.watch / 10 > 1) {
                         // Api.changeBet(watch);
                      }
                      // save watch as seen
-                     Bets.update({_id: watch._id}, {watch: 3}, function(err){
+                     Bets.update({_id: watch._id}, {watch: 2}, function(err){
                         if(err)
                            logger.error('trouble updating watch');
                      });
@@ -363,7 +363,7 @@ module.exports = {
                   if (err)
                      logger.error('OUgame find team error: '+err);
                   else if(rec) {
-                     OUgame.update({sport:sport, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':'Under'}, function(err, resp){
+                     OUgame.update({sport:sport, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
                         if (err)
                            logger.error('updateStandings error: '+err);
                      });

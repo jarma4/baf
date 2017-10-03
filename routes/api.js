@@ -83,7 +83,7 @@ function saveBet (req){
       fta: req.body.serial,
       paid: false,
       status: (req.body.watch === 'true')?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
-      watch: (req.body.watch === 'true')?(req.body.watchsend === 'true')?2:1:''
+      watch: (req.body.watch === 'true')?(req.body.watchsend === 'true')?11:1:''
    }).save(function(err){
       if(err) {
          logger.error('Trouble adding bet: '+err);

@@ -34,10 +34,17 @@ $('#oddsWatchSend').on('click', function(event) {
 $('#watchModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
 
+   $('#watchStatus').addClass('hidden');
+   $('#watchSend').prop('checked', false);
    $('#watchId').val(button.data('id'));
    $('#watchOddsNew').val(button.data('odds'));
-   $('#watchDeactivated').prop('checked', button.data('deactivated'));
    $('#watchTitle').text('Watch for: '+button.data('team1')+' '+button.data('odds')+' vs '+button.data('team2'));
+   if(button.data('watch') % 10 == 2) {
+      $('#watchStatus').removeClass('hidden');
+   }
+   if(button.data('watch') / 10 > 1) {
+      $('#watchSend').prop('checked', true);
+   }
 });
 
 $('#watchDelete').on('click', function(){
@@ -48,6 +55,7 @@ $('#watchDelete').on('click', function(){
 });
 
 $('#watchModify').on('click', function(){
+   if ($('#watch'))
    postApi('changebet',{
    		'action': 'change',
          'id': $('#watchId').val(),
