@@ -671,7 +671,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
          markPaid(bet._id, req.session.user._id);
       });
    }).sort({date: 1}).limit(Number(req.body.num));
-   Util.textUser(req.body.name, req.session.user._id, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+   Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
    res.send({'type':'success', 'message':'Offset debts recorded'});
 });
 

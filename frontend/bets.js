@@ -119,7 +119,11 @@ function getBets(status, target, addButton) {
          $('#'+target).empty();
          if(retData.length){
             var outp = '<table class="table table-condensed"><tr class="heading">';
+            // kluge to add title row
+            if (target == 'watchBets')
+               outp += '<tr class="modal-info"><td colspan=4 class="center  odds-date-row">Bets Being Watched</td></tr>';
             outp += '<th>You</th><th>Odds</th><th>Them</th>';
+            // some tables contain action buttons
             if (addButton)
                outp += '<th>Edit</th>';
             $.each(retData, function(i,rec){

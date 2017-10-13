@@ -32,7 +32,7 @@ $('.sportPick').on('click', function(){
          toggleSport('ncaa');
       // according to what page you're on, refresh data
       switch (window.location.pathname) {
-         case '/':
+         case '/', '/odds':
             getOdds();
             getBets(($('#sportNfl').hasClass('selected'))?10:($('#sportNba').hasClass('selected'))?11:12,'watchBets', 'watch');
             break;

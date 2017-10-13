@@ -20,7 +20,7 @@ module.exports = {
    },
    getWeek: function(date, sport){
       var seasonStart = {
-            nfl: new Date(2017,8,7),
+            nfl: new Date(2017,8,5),
             nba: new Date(2017,9,20),
             ncaa: new Date(2018,2,16)
          },

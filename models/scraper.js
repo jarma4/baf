@@ -51,7 +51,7 @@ function getOdds(sport) {
             games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
          });
          // go through odds Watches and act if necessary
-         Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, watch: {$in: [1,2]}}, function(err, watches){
+         Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, watch: 1}, function(err, watches){
             watches.forEach(function(watch){
                // if home team was chosen, reverse things so they match current odds
                if(watch.team1.slice(0,1)=='@') {
@@ -210,8 +210,8 @@ function addNbaGame(date) {
 
 module.exports = {
    refreshOddsInfo: function() {
-      // getOdds('ncaab');
       getOdds('nfl');
+      getOdds('nba');
    },
 
    checkScores: function(sport) {
