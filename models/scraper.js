@@ -51,7 +51,7 @@ function getOdds(sport) {
             games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
          });
          // go through odds Watches and act if necessary
-         Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, watch: 1}, function(err, watches){
+         Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]}, function(err, watches){
             watches.forEach(function(watch){
                // if home team was chosen, reverse things so they match current odds
                if(watch.team1.slice(0,1)=='@') {
@@ -64,8 +64,9 @@ function getOdds(sport) {
                games.forEach(function(game) {
                   if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
                      // check if supposed to send bet to recipient after watch hits
-                     if (watch.watch / 10 > 1) {
-                        // Api.changeBet(watch);
+                     if (watch.watch == 11) {
+                        watch.serial = Math.random();
+                        Api.makeBet(watch);
                      }
                      // save watch as seen
                      Bets.update({_id: watch._id}, {watch: 2}, function(err){
@@ -252,7 +253,7 @@ module.exports = {
                                        {team1:tm1},
                                        {team2:tm2},
                                        {winner:0},
-                                       ((sport=='nfl')?{week:wk}:{$and:[{date:{$gt:today.setHours(0,0)}}, {date:{$lt:today.setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:(Number(sc1) > Number(sc2))?1:2},function(err, resp) {
+                                       ((sport=='nfl')?{week:wk}:{$and:[{date:{$gte:today.setHours(0,0,0,0)}}, {date:{$lt:today.setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:(Number(sc1) > Number(sc2))?1:2},function(err, resp) {
                      if (err)
                         logger.error('checkScores error: '+err);
                      if (resp.n)
@@ -309,7 +310,7 @@ module.exports = {
                                           {team2: singleBet.team2.replace('@','')}]},
                                     {$and:[{team1: singleBet.team2.replace('@','')},
                                           {team2: singleBet.team1.replace('@','')}]}]},
-                              {$or:[{$and:[{date:{$gt: singleBet.gametime.setHours(0,0)}},
+                              {$or:[{$and:[{date:{$gte: singleBet.gametime.setHours(0,0,0,0)}},
                                           {date:{$lt: singleBet.gametime.setHours(23,59)}}]},
                                     {week: singleBet.week}]},
                               {season: singleBet.season}]}, function(err, game){
@@ -358,12 +359,13 @@ module.exports = {
 
             Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
+               console.log(name+' '+record);
                var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
-               OUgame.findOne({sport: sport, team: name}, function(err, rec) {
+               OUgame.findOne({sport: sport, season: 2017, team: name}, function(err, rec) {
                   if (err)
                      logger.error('OUgame find team error: '+err);
                   else if(rec) {
-                     OUgame.update({sport:sport, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
+                     OUgame.update({sport:sport, season: 2017, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
                         if (err)
                            logger.error('updateStandings error: '+err);
                      });

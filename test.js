@@ -16,7 +16,7 @@ var cat = require('request'),
    Logs = require('./models/dbschema').Logs;
 // mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
-scraper.updateStandings('nba');
+scraper.addNbaGames(new Date(2017,9,19), new Date(2018,0,3));
 //how to remove juice
 // var ml = [-500, 350];
 // var implied_odds, total = 0, nojuice = [];

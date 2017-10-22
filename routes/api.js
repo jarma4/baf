@@ -131,7 +131,7 @@ function makeBet (req) {
    } else {
       console.log(saveBet(req));
    }
-};
+}
 
 router.post('/makebet', requireLogin, function (req, res) {
    makeBet(req);
@@ -308,28 +308,6 @@ router.post('/overallstats', requireLogin, function(req,res){
       if (err)
          console.log(err);
       else
-         // check whether ANY records exist for the season, if not create all
-         if(!records.length) {
-            Users.find({}, {_id: 1}, function(err,users){
-               users.forEach(function(user){
-                  var sports = ['nfl', 'nba'];
-                  for (var i=0; i < sports.length; i++) {
-                     new Records({
-                        user: user,
-                        season: new Date().getFullYear(),
-                        sport: sports[i],
-                        win: 0,
-                        loss: 0,
-                        push : 0,
-                     }).save(function(err){
-                        if (err){
-                           console.log(err);
-                        }
-                     });
-                  }
-               });
-            });
-         }
          res.json(records);
    }).sort({pct:-1});
 });
@@ -431,23 +409,13 @@ router.post('/userstats', requireLogin, function(req,res){
 });
 
 router.post('/getscores', requireLogin, function(req,res){
-   if (req.body.sport=='nfl')
-      Scores.find({sport:'nfl', week: req.body.period, season: Number(req.body.season)}, function(err,scores){
-         if(err){
-            console.log(err);
-         } else {
-            res.json(scores);
-         }
-      });
-   else {
-      Scores.find({$and: [{sport: req.body.sport}, {date:{$gt:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}, function(err,scores){
-         if(err){
-            console.log(err);
-         } else {
-            res.json(scores);
-         }
-      });
-   }
+   Scores.find({$and: [{sport: req.body.sport}, {season: Number(req.body.season)}, (req.body.sport == 'nfl')?{week: req.body.period}:{$and:[{date:{$gte:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}]}, function(err,scores){
+      if(err){
+         console.log(err);
+      } else {
+         res.json(scores);
+      }
+   });
 });
 
 router.post('/postprop', requireLogin, function(req,res){

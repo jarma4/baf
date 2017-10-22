@@ -19,12 +19,12 @@ var username,
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB'},
    seasonStart = {
          nfl: new Date(2017,8,5),
-         nba: new Date(2017,9,20),
+         nba: new Date(2017,9,17),
          ncaa: new Date(2017,2,16)
       },
    inSeason = {
       nfl: 1,
-      nba: 0,
+      nba: 1,
       ncaa: 0
    };
 

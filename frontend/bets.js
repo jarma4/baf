@@ -39,7 +39,6 @@ $('#betModal').on('show.bs.modal', function (event) {
 $('#betSubmit').on('click', function(event) {
    postApi('makebet', {
       'user2': $('#userList').val(),
-	   'amount': $('#betAmount').val(),
 	   'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
       'type': $('#betType').val(),
 	   'team1': $('#betTeam1').val(),
@@ -50,6 +49,7 @@ $('#betSubmit').on('click', function(event) {
       'watch': $('#oddsWatch').is(":checked"),
       'watchsend': $('#oddsWatchSend').is(":checked")
 	});
+   getBets(($('#sportNfl').hasClass('selected'))?10:11,'watchBets','watch');
 });
 
 //below displays 4 panels on bets page
