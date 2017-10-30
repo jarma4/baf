@@ -67,7 +67,8 @@ var propsSchema = new mongoose.Schema({
    user2 : String,
    amount : Number,
    prop: String,
-   odds: Number
+   odds: Number,
+   winner: Number
 });
 
 var ouGameSchema = new mongoose.Schema({

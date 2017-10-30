@@ -76,7 +76,17 @@ block modals
             .modal-header
                button.close(type='button', data-dismiss='modal') #[span &times;]
                h4#statsTitle
-               #statsHistory
+               //- button#vsstats.btn-warning.pushRight Vs.
+               .panel.panel-primary
+                  .panel-heading
+                     | Versus Others
+                     a(data-toggle='collapse', href='#statsSplits')#statsSplitsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
+                  #statsSplits.panel-collapse.collapse
+               .panel.panel-primary
+                  .panel-heading
+                     | Game History
+                     a(data-toggle='collapse', href='#statsHistory')#statsHistoryTitle #[span.collapseIcon.glyphicon.glyphicon-chevron-down.hidden]
+                  #statsHistory.panel-collapse.collapse
 block scripts
    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js')
    script(type='text/javascript') getStats();

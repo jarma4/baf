@@ -12,7 +12,7 @@ var express = require('express'),
    Bets = require('../models/dbschema').Bets,
    Scores = require('../models/dbschema').Scores,
    Messages = require('../models/dbschema').Messages,
-   Props = require('../models/dbschema').Props,
+   // Props = require('../models/dbschema').Props,
    OUgame = require('../models/dbschema').OUgame,
    OUuser = require('../models/dbschema').OUuser,
    mongoose = require('mongoose');
@@ -142,8 +142,7 @@ router.post('/getbets', requireLogin, function(req,res){
    var sortedBets = [];
    Bets.find({$and:[
       {status:(req.body.status==1)?0:req.body.status},
-      {type: {$ne: 'give'}},
-      {type: {$ne: 'take'}},
+      {type: {$in: ['spread', 'over', 'under']}},
       (Number(req.body.all))?{$and:[
                                  {user1: {$ne: req.session.user._id}},
                                  {user2: {$ne: req.session.user._id}}]}
@@ -400,11 +399,36 @@ router.post('/userstats', requireLogin, function(req,res){
                     sport: req.body.sport,
                     season: req.body.season},
                     {status:{$in:[4,5,6]}},
-                    (req.body.week)?{week:req.body.week}:{}]}, function(err,bets){
-      if (err)
+                    (req.body.week)?{week:req.body.week}:{}]}, function(err, bets){
+      if (err) {
          console.log(err);
-      else
-         res.json(bets);
+      } else {
+         var winList = {};
+         bets.forEach(function(bet){
+            if (bet.status == 4) {
+               if (bet.user1 == req.body.user) {
+                  if (!winList[bet.user2])
+                     winList[bet.user2] = {win:0, loss:0};
+                  winList[bet.user2].win += 1;
+               } else {
+                  if (!winList[bet.user1])
+                     winList[bet.user1] = {win:0, loss:0};
+                  winList[bet.user1].loss += 1;
+               }
+            } if (bet.status == 5) {
+               if (bet.user1 == req.body.user) {
+                  if (!winList[bet.user2])
+                     winList[bet.user2] = {win:0, loss:0};
+                  winList[bet.user2].loss += 1;
+               } else {
+                  if (!winList[bet.user1])
+                     winList[bet.user1] = {win:0, loss:0};
+                  winList[bet.user1].win += 1;
+               }
+            }
+         });
+         res.json({bets, winList});
+      }
    }).sort({date:-1});
 });
 
@@ -418,32 +442,32 @@ router.post('/getscores', requireLogin, function(req,res){
    });
 });
 
-router.post('/postprop', requireLogin, function(req,res){
-   new Props({
-      date: new Date(),
-      user1: req.session.user._id,
-      user2: req.body.user2,
-      amount: req.body.amount,
-      prop: req.body.prop
-   }).save(function(err){
-      if(err) {
-         console.log('Trouble adding prop');
-         res.send({'type':'danger', 'message':'Trouble adding bet'});
-      } else {
-         logger.info('Prop added');
-         res.send({'type':'success', 'message':'Prop Added'});
-      }
-   });
-});
+// router.post('/postprop', requireLogin, function(req,res){
+//    new Props({
+//       date: new Date(),
+//       user1: req.session.user._id,
+//       user2: req.body.user2,
+//       amount: req.body.amount,
+//       prop: req.body.prop
+//    }).save(function(err){
+//       if(err) {
+//          console.log('Trouble adding prop');
+//          res.send({'type':'danger', 'message':'Trouble adding bet'});
+//       } else {
+//          logger.info('Prop added');
+//          res.send({'type':'success', 'message':'Prop Added'});
+//       }
+//    });
+// });
 
 router.get('/getprops', requireLogin, function(req,res){
-   Props.find({}, function(err,message){
-      res.json(message);
+   Bets.find({type: 'prop'}, function(err, props){
+      res.json(props);
    }).sort({date: -1}).limit(50);
 });
 
 router.post('/acceptprop', requireLogin, function(req,res){
-   Props.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
+   Bets.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
       if (err) {
          console.log("Prop accept error: "+err);
       } else {
@@ -669,6 +693,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
             }
          }
       });
+      console.log(debtList);
       // find match between 2 lists
       for (var person in debtList.isowed) {
          if (debtList.owes[person]) {
@@ -753,7 +778,7 @@ router.get('/doorbell', requireLogin, function(req,res){
       });
    });
    var propsPromise = new Promise(function (resolve, reject) {
-      Props.findOne({$and:[{user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
+      Bets.findOne({$and:[{type: 'prop'}, {user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
          if (err)
             reject(err);
          if (prop) {

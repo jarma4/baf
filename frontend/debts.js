@@ -81,7 +81,7 @@ $('#debtsModal').on('show.bs.modal', function (event) {
          $('#youowe').hide();
 			$.each(retData, function(i,rec){
             var date=new Date(rec.date);
-            var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'/'+rec.team2.replace('@','')+'</td><td>'+rec.user2.slice(0,6)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
+            var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':((rec.sport=='nba')?'<img class="icon" src="images/basketball.png"/> ':''))+rec.team1.replace('@','').slice(0,24)+((rec.type != 'prop')?'/':'')+rec.team2.replace('@','').slice(0,24)+'</td><td>'+rec.user2.slice(0,6)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
             if (rec.status == 4) {
                $('#oweyou tr:last').after(outp);
                $('#oweyou').show();

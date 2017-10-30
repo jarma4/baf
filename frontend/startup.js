@@ -129,7 +129,10 @@ function getUrlPos(url){
    var position;
    for (var i=0; i<urls.length; i++){
       if (url == urls[i]) {
-         position = i;
+        if (i === 0)
+	   position = 1;
+	else 
+	   position = i;
          break;
       }
    }

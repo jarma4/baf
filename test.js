@@ -12,11 +12,30 @@ var cat = require('request'),
    Users = require('./models/dbschema').Users,
    Bets = require('./models/dbschema').Bets,
    Scores = require('./models/dbschema').Scores,
+   Props = require('./models/dbschema').Props,
    Messages = require('./models/dbschema').Messages,
    Logs = require('./models/dbschema').Logs;
 // mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
-scraper.addNbaGames(new Date(2017,9,19), new Date(2018,0,3));
+Props.find({}, function(err, props){
+    props.forEach(function(prop){
+        console.log(prop.winner);
+        new Bets({
+            user1: prop.user1,
+            user2: prop.user2,
+            team1: prop.prop,
+            team2: '',
+            amount: prop.amount,
+            date: prop.date,
+            type: 'prop',
+            status: (prop.winner == 1)?4:(prop.winner == 2)?5:2,
+            paid: true
+        }).save(function(err){
+            if (err)
+                console.log('Error: '+err);
+        });
+    });
+});
 //how to remove juice
 // var ml = [-500, 350];
 // var implied_odds, total = 0, nojuice = [];

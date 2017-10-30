@@ -11,7 +11,7 @@ gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
       .pipe(concat('bundle.js'))
-      .pipe(uglify())
+      // .pipe(uglify())
       .pipe(gulp.dest('./public/js'));
 });
 
@@ -33,7 +33,7 @@ gulp.task('start', function () {
       script: 'app.js',
       ext: 'js',
       ignore: ['frontend/*', 'public/*'],
-      env: { 'NODE_ENV': 'production' }
+      env: { 'NODE_ENV': 'development' }
    });
 });
 

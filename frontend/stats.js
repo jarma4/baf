@@ -134,17 +134,28 @@ $('#statsModal').on('show.bs.modal', function (event) {
    $('#statsTitle').text('Stats history for: '+button.data('user'));
    getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').val(),(button.data('week'))?button.data('week'):'').then(function(retData) {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
-   	$.each(retData, function(i,rec){
+   	$.each(retData.bets, function(i,rec){
          var date=new Date(rec.date);
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
-         if (rec.user1 == button.data('user'))
+         if (rec.user1 == button.data('user')) {
             outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,6)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
-         else
+         } else {
             outp += ((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':'<img class="icon" src="images/basketball.png"/> ')+rec.team2.replace('@','')+'</td><td>'+rec.team1.replace('@','')+' ('+rec.user1.slice(0,6)+')</td><td>'+((rec.status==5)?'W':((rec.status==4)?'L':'P'));
          outp += '</td></tr>';
+         }
    	});
    	outp += '</table>';
    	document.getElementById("statsHistory").innerHTML = outp;
+      collapseIconAction('statsHistory');
+      // Splits table
+      outp = '<table class="table"><tr><th>Who</th><th>Wins</th><th>Loss</th></tr>';
+      $.each(retData.winList, function(i,rec){
+         var date=new Date(rec.date);
+   		outp += '<tr><td>'+i+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td></tr>';
+   	});
+   	outp += '</table>';
+   	document.getElementById("statsSplits").innerHTML = outp;
+      collapseIconAction('statsSplits');
    }).catch(function(retData){
 			modalAlert(retData.type, retData.message);
 	});

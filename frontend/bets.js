@@ -39,9 +39,9 @@ $('#betModal').on('show.bs.modal', function (event) {
 $('#betSubmit').on('click', function(event) {
    postApi('makebet', {
       'user2': $('#userList').val(),
-	   'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
+      'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
       'type': $('#betType').val(),
-	   'team1': $('#betTeam1').val(),
+      'team1': $('#betTeam1').val(),
       'team2': $('#betTeam2').val(),
       'sport': $('#betSport').val(),
       'gametime': $('#betGametime').val(),
