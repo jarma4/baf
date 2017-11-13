@@ -33,12 +33,13 @@ function drawChart(days) {
          season: $('#statsYear').val()
       },
       success: function(retData){
+         var iter = 0;
          chartData.labels = retData.xaxis;
-         $.each(retData.datasets, function(index, user){
+         $.each(retData.datasets, function(index, info){
             var obj = {
-               label: user.name,
-               borderColor: colors[index],
-               data: user.data
+               label: index,
+               borderColor: colors[iter++],
+               data: info.data
             };
             chartData.datasets.push(obj);
          });

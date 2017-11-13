@@ -359,7 +359,6 @@ module.exports = {
 
             Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
-               console.log(name+' '+record);
                var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
                OUgame.findOne({sport: sport, season: 2017, team: name}, function(err, rec) {
                   if (err)

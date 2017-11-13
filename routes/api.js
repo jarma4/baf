@@ -312,33 +312,14 @@ router.post('/overallstats', requireLogin, function(req,res){
 });
 
 router.post('/graphstats', requireLogin, function(req,res){
-   var userList = [],
-      total = {},         // rolling storage for win amount per user
-      numBets = {},       // rolling storage for number of bets per user
-      // seasonDate = new Date('Jan 28 2016'), // first date to store data per user
-      dates = [],          // xaxis data to be bet sent
-      userData = [];       // datasets for each user
-
-   // find users to get bet data for and intialize storage variables
-   Users.find({_id: {$ne: 'testuser'}}, {_id: 1}, function(err,users){
-      users.forEach(function(user){
-         userList.push(user._id);
-         userData.push({
-            name: user._id,
-            data: []
-         });
-         total[user._id] = 0;
-         numBets[user._id] = 0;
-      });
-      // console.log(numBets);
-   }).sort({_id:1});
-
+   var dates = [],
+      results = {};
    // find start date for desired period
    var startDate = new Date();
    if (Number(req.body.days)) {  // if a number of days are given, go back from today that many
       startDate.setDate(startDate.getDate() - req.body.days);
    } else { // else start at the begining of the season
-         startDate = (req.body.sport == 'nfl')?1:new Date(req.body.season, 9, 25);
+         startDate = (req.body.sport == 'nfl')?1:Util.seasonStart.nba;
    }
    // find all valid bets during period, keep numBets and process
    Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
@@ -346,11 +327,17 @@ router.post('/graphstats', requireLogin, function(req,res){
                      {status:{$in: [4,5,6]}},
                      {sport: req.body.sport},
                      {season: req.body.season},
-                     (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err,bets){
+                     (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err, bets){
       if (err) {
          console.log(err);
       } else {
          bets.forEach(function(bet, index){
+         	if (!results[bet.user1]) {
+               results[bet.user1]={total: 0, numBets: 0, data: []};
+            }
+         	if (!results[bet.user2]) {
+               results[bet.user2]={total: 0, numBets: 0, data: []};
+            }
             if (index === 0)
                startDate = bet.week;
             // check if stop date to store data
@@ -358,37 +345,33 @@ router.post('/graphstats', requireLogin, function(req,res){
                // store date for xaxis labels
                dates.push(startDate);
                // on date, save win % per user
-               userList.forEach(function(username, index){
-                  userData[index].data.push(total[username]/numBets[username]);
-               });
+               for (var username in results) {
+                  results[username].data.push(results[username].total/results[username].numBets);
+               }
+               console.log(results);
                // advance next date to stop on
                startDate += 1;
             }
             if (bet.status == 4) {
-               total[bet.user1]++;
-               numBets[bet.user1]++;
-               numBets[bet.user2]++;
+               results[bet.user1].total++;
             } else if (bet.status == 5) {
-               total[bet.user2]++;
-               numBets[bet.user1]++;
-               numBets[bet.user2]++;
-            } else if (bet.status == 6) {
-               total[bet.user1] +=0.5;
-               numBets[bet.user1]++;
-               total[bet.user2] +=0.5;
-               numBets[bet.user2]++;
+               results[bet.user2].total++;
+            } else {
+               results[bet.user1].total+=0.5;
+               results[bet.user2].total+=0.5;
             }
+            results[bet.user1].numBets++;
+            results[bet.user2].numBets++;
          });
          // push remaining info once done
          dates.push(startDate);
-         userList.forEach(function(username, index){
-            userData[index].data.push(total[username]/numBets[username]);
-         });
-
+         for (var username in results) {
+            results[username].data.push(results[username].total/results[username].numBets);
+         }
       }
       res.send({
-         xaxis : dates,
-         datasets: userData
+        xaxis : dates,
+        datasets: results
       });
    }).sort({week: 1});
 });

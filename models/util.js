@@ -19,13 +19,12 @@ module.exports = {
       });
    },
    getWeek: function(date, sport){
-      var seasonStart = {
-            nfl: new Date(2017,8,5),
-            nba: new Date(2017,9,17),
-            ncaa: new Date(2018,2,16)
-         },
-         dayTicks = 24 * 60 * 60 * 1000;
-      return Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
+      var dayTicks = 24 * 60 * 60 * 1000;
+      return Math.ceil((date - ((sport=='nba')?module.exports.seasonStart.nba:(sport=='nfl')?module.exports.seasonStart.nfl:module.exports.seasonStart.ncaa)) / dayTicks / 7);
+   },
+   seasonStart: {
+      nfl: new Date(2017,8,5),
+      nba: new Date(2017,9,17),
+      ncaa: new Date(2018,2,16)
    }
-
 };
