@@ -1,4 +1,4 @@
-var express = require('express'),
+let express = require('express'),
    bodyParser = require('body-parser'),
    fs = require('fs'),
    // Auth = require('./auth'),
@@ -61,11 +61,11 @@ function requireLogin (req, res, next) {
 
 // fix for duplicate bets: bets come in with random serial#, saved on stack
 // timer removes; if bet with same serial# comes in that is on stack, refused
-var betStack = [];
+let betStack = [];
 
 // pulled out so EVERYONE bets can call multiple times along with single bets
 function saveBet (req){
-   var today = new Date();
+   let today = new Date();
 
    new Bets({
       week: Util.getWeek(today, req.body.sport),
@@ -139,7 +139,7 @@ router.post('/makebet', requireLogin, function (req, res) {
 });
 
 router.post('/getbets', requireLogin, function(req,res){
-   var sortedBets = [];
+   let sortedBets = [];
    Bets.find({$and:[
       {status:(req.body.status==1)?0:req.body.status},
       {type: {$in: ['spread', 'over', 'under']}},
@@ -187,7 +187,7 @@ router.post('/changebet', requireLogin, function(req,res){
    switch (req.body.action) {
       case 'delete':  // delete bet
          // if not save later bet or future, decrement bet flag notice
-         var  tmp = new Promise(function(resolve, reject) {
+         let  tmp = new Promise(function(resolve, reject) {
             Bets.findOne({_id:req.body.id}, function(err, singleBet){
                if(err) {
                   console.log(err);
@@ -211,7 +211,7 @@ router.post('/changebet', requireLogin, function(req,res){
          });
          break;
       case 'accepted':   // bet accepted
-         var updateFields = {
+         let updateFields = {
             status: req.body.status,
             comment:req.body.comment
          };
@@ -269,7 +269,7 @@ router.post('/changebet', requireLogin, function(req,res){
 });
 
 router.post('/weeklystats', requireLogin, function(req,res){
-   var sortedBets = [];
+   let sortedBets = [];
    // console.log(getWeek(new Date(req.body.date));
    // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
    Bets.find({$and:[{season:2017}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
@@ -302,7 +302,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
 });
 
 router.post('/overallstats', requireLogin, function(req,res){
-   var stats = [];
+   let stats = [];
    Records.find({user:{$ne: 'testuser'}, pct: {$exists: true}, sport: req.body.sport, season: req.body.season}, function(err,records){
       if (err)
          console.log(err);
@@ -312,46 +312,45 @@ router.post('/overallstats', requireLogin, function(req,res){
 });
 
 router.post('/graphstats', requireLogin, function(req,res){
-   var dates = [],
-      results = {};
-   // find start date for desired period
-   var startDate = new Date();
-   if (Number(req.body.days)) {  // if a number of days are given, go back from today that many
-      startDate.setDate(startDate.getDate() - req.body.days);
-   } else { // else start at the begining of the season
-         startDate = (req.body.sport == 'nfl')?1:Util.seasonStart.nba;
-   }
+   let dates = [],
+      results = {},
+      currentWeek = 1;
+   // if (Util.getWeek(new Date(), 'nfl') > 9) {
+   // 	currentWeek = Util.getWeek(new Date(), 'nfl') / 2;
+   // 	console.log(currentWeek);
+   // }
    // find all valid bets during period, keep numBets and process
    Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
                                                       {user2: req.body.user}]},
                      {status:{$in: [4,5,6]}},
                      {sport: req.body.sport},
                      {season: req.body.season},
-                     (req.body.days)?{date: {$gte: startDate}}:{}]}, function(err, bets){
+                     {week: {$gte: currentWeek}}]}, function(err, bets){
       if (err) {
          console.log(err);
       } else {
          bets.forEach(function(bet, index){
-         	if (!results[bet.user1]) {
-               results[bet.user1]={total: 0, numBets: 0, data: []};
-            }
-         	if (!results[bet.user2]) {
-               results[bet.user2]={total: 0, numBets: 0, data: []};
-            }
-            if (index === 0)
-               startDate = bet.week;
             // check if stop date to store data
-            if (bet.week > startDate) {
+            if (bet.week > currentWeek) {
                // store date for xaxis labels
-               dates.push(startDate);
+               dates.push(currentWeek);
                // on date, save win % per user
-               for (var username in results) {
+               for (let username in results) {
                   results[username].data.push(results[username].total/results[username].numBets);
                }
-               console.log(results);
                // advance next date to stop on
-               startDate += 1;
+               currentWeek += 1;
             }
+            // if new user, create new record
+            if (!results[bet.user1]) {
+               results[bet.user1]={total: 0, numBets: 0};
+               results[bet.user1].data = Array(currentWeek-1).fill(NaN);
+            }
+            if (!results[bet.user2]) {
+               results[bet.user2]={total: 0, numBets: 0};
+               results[bet.user2].data = Array(currentWeek-1).fill(NaN);
+            }
+            // increment counters
             if (bet.status == 4) {
                results[bet.user1].total++;
             } else if (bet.status == 5) {
@@ -364,8 +363,8 @@ router.post('/graphstats', requireLogin, function(req,res){
             results[bet.user2].numBets++;
          });
          // push remaining info once done
-         dates.push(startDate);
-         for (var username in results) {
+         dates.push(currentWeek);
+         for (let username in results) {
             results[username].data.push(results[username].total/results[username].numBets);
          }
       }
@@ -386,27 +385,34 @@ router.post('/userstats', requireLogin, function(req,res){
       if (err) {
          console.log(err);
       } else {
-         var winList = {};
+         let winList = {};
          bets.forEach(function(bet){
-            if (bet.status == 4) {
-               if (bet.user1 == req.body.user) {
-                  if (!winList[bet.user2])
-                     winList[bet.user2] = {win:0, loss:0};
-                  winList[bet.user2].win += 1;
-               } else {
-                  if (!winList[bet.user1])
-                     winList[bet.user1] = {win:0, loss:0};
-                  winList[bet.user1].loss += 1;
+         	let target, status=bet.status;
+            if (bet.user1 == req.body.user) {
+               target = bet.user2;
+            } else {
+            	// flip things
+               target = bet.user1;
+               if (bet.status == 5) {
+                  status = 4
+               } else if (bet.status == 4) {
+               	status = 5;
                }
-            } if (bet.status == 5) {
+            }
+            // check if record exists
+            if (!winList[target]) {
+               winList[target] = {win:0, loss:0, push:0};
+            }
+            // record win loss push
+            if (status == 4) {
+               winList[target].win += 1;
+            } else if (status == 5) {
+               winList[target].loss += 1;
+            } else {
                if (bet.user1 == req.body.user) {
-                  if (!winList[bet.user2])
-                     winList[bet.user2] = {win:0, loss:0};
-                  winList[bet.user2].loss += 1;
+                  winList[bet.user2].push += 1;
                } else {
-                  if (!winList[bet.user1])
-                     winList[bet.user1] = {win:0, loss:0};
-                  winList[bet.user1].win += 1;
+                  winList[bet.user1].push += 1;
                }
             }
          });
@@ -507,9 +513,9 @@ router.post('/getousignup', requireLogin, function(req,res){
 });
 
 router.post('/setouchoices', requireLogin, function(req,res){
-   // var tmp = {};
-   // var tmp2 = JSON.parse(req.body.choices2);
-   // for (var i=0; i < tmp2.length; i++) {
+   // let tmp = {};
+   // let tmp2 = JSON.parse(req.body.choices2);
+   // for (let i=0; i < tmp2.length; i++) {
    //    tmp[i] = tmp2[i];
    // }
    OUuser.update({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), function(err){
@@ -577,8 +583,8 @@ function markPaid(betid, user) {
          console.log(err);
       } else {    // need to also mark debt flag in user db for notifications
          if(single.user1 != user){
-            var tmp = single.user1;
-            var tmp2 = single.team1;
+            let tmp = single.user1;
+            let tmp2 = single.team1;
             single.user1 = single.user2;
             single.team1 = single.team2;
             single.user2 = tmp;
@@ -611,12 +617,12 @@ router.post('/debtpaid', requireLogin, function(req,res){
 
 //retrieves both bets owed to someone else and someone else owing user
 router.get('/getdebts', requireLogin, function(req,res){
-   var sortedBets = [];
+   let sortedBets = [];
    Bets.find({$and:[{$or:[{user1: req.session.user},{user2: req.session.user}]},{status:{$in:[4,5]}}, {paid:false}]}, function(err,bets){
       bets.forEach(function(single){
          if (single.user1 != req.session.user._id){   //serve back to user as if bet initiator
-            var tmp = single.user1;
-            var tmp2 = single.team1;
+            let tmp = single.user1;
+            let tmp2 = single.team1;
             single.user1 = single.user2;
             single.team1 = single.team2;
             single.user2 = tmp;
@@ -651,7 +657,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 });
 
 router.get('/resolvedebts', requireLogin, function(req,res){
-   var debtList = {owes: {}, isowed: {}},
+   let debtList = {owes: {}, isowed: {}},
        results = [];
 
    Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: req.session.user._id}, {user2: req.session.user._id}]}]}, function(err, bets){
@@ -678,7 +684,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
       });
       console.log(debtList);
       // find match between 2 lists
-      for (var person in debtList.isowed) {
+      for (let person in debtList.isowed) {
          if (debtList.owes[person]) {
             results.push({name: person, num: Math.min(debtList.owes[person], debtList.isowed[person])});
          }
@@ -728,7 +734,7 @@ router.get('/users', requireLogin, function(req,res){
 
 // called when new page is loaded
 router.get('/doorbell', requireLogin, function(req,res){
-   var today = new Date(),
+   let today = new Date(),
       answer = {
          type: 'message',
          // username: req.session.user._id
@@ -739,7 +745,7 @@ router.get('/doorbell', requireLogin, function(req,res){
       answer.nba = true;
    if (fs.existsSync('json/ncaa_odds.json'))
       answer.ncaa = true;
-   var betsPromise = new Promise(function (resolve, reject) {
+   let betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){
          if (err)
             reject(err);
@@ -750,7 +756,7 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   var futuresPromise = new Promise(function (resolve, reject) {
+   let futuresPromise = new Promise(function (resolve, reject) {
       Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {
          if (err)
             reject(err);
@@ -760,7 +766,7 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   var propsPromise = new Promise(function (resolve, reject) {
+   let propsPromise = new Promise(function (resolve, reject) {
       Bets.findOne({$and:[{type: 'prop'}, {user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
          if (err)
             reject(err);
@@ -776,7 +782,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 });
 
 function changeUser(user, key, inc) {
-   var tmp = {};
+   let tmp = {};
    tmp[key] = inc;
    Users.update({_id: user}, {$inc: tmp}, function(err){
       if(err)

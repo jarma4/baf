@@ -148,10 +148,10 @@ $('#statsModal').on('show.bs.modal', function (event) {
    	document.getElementById("statsHistory").innerHTML = outp;
       collapseIconAction('statsHistory');
       // Splits table
-      outp = '<table class="table"><tr><th>Who</th><th>Wins</th><th>Loss</th></tr>';
+      outp = '<table class="table"><tr><th>Who</th><th>Wins</th><th>Loss</th><th>Push</th></tr>';
       $.each(retData.winList, function(i,rec){
          var date=new Date(rec.date);
-   		outp += '<tr><td>'+i+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td></tr>';
+   		outp += '<tr><td>'+i+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td></tr>';
    	});
    	outp += '</table>';
    	document.getElementById("statsSplits").innerHTML = outp;

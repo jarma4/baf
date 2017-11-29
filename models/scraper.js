@@ -314,32 +314,32 @@ module.exports = {
                                           {date:{$lt: singleBet.gametime.setHours(23,59)}}]},
                                     {week: singleBet.week}]},
                               {season: singleBet.season}]}, function(err, game){
-   				if(err)
-   					logger.error('tallyBets error: '+err);
-   				else if (game) {
-                  // console.log('found score');
-                  if (singleBet.type == 'spread') {
-   						if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
-   						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
-   							updateBet(singleBet.id,{status:4});
-   							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-   						} else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
-   						   (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
-   							updateBet(singleBet.id,{status:5});
-                        updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-   						} else {
-   							updateBet(singleBet.id,{status:6});
-                        updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-   						}
+                  if(err)
+                        logger.error('tallyBets error: '+err);
+                  else if (game) {
+                        // console.log('found score');
+                        if (singleBet.type == 'spread') {
+                              if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
+                                    (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
+                                    updateBet(singleBet.id,{status:4});
+                                    updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+                              } else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
+                                    (game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
+                                    updateBet(singleBet.id,{status:5});
+                                    updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+                              } else {
+                                    updateBet(singleBet.id,{status:6});
+                                    updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+                              }
                   } else {
                      if ((singleBet.type == 'over' && game.score1+game.score2 > singleBet.odds) ||
                         (singleBet.type == 'under' && game.score1+game.score2 < singleBet.odds)) {
-   							updateBet(singleBet.id,{status:4});
-   							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+                        updateBet(singleBet.id,{status:4});
+                        updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
                      } else if ((singleBet.type == 'under' && game.score1+game.score2 > singleBet.odds) ||
                         (singleBet.type == 'over' && game.score1+game.score2 < singleBet.odds)) {
                         updateBet(singleBet.id,{status:5});
-   							updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+                        updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
                      } else {
                         updateBet(singleBet.id,{status:6});
                         updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);

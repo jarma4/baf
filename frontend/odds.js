@@ -9,7 +9,7 @@ function getOdds (){
 		// data: reqString,
 		dataType: 'json',
       success:function(retData){
-         var sportColor, prevDate=1, gameNum=0, listCount=9;
+         var sportColor, prevDate=1, gameNum=0, listCount=11;
          // clear remnents of previous screens
          for (var i = 1; i < 5; i++) {
             $('#col'+i).empty();
