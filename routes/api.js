@@ -722,7 +722,7 @@ router.get('/nbaodds', function (req, res) {
 });
 
 router.get('/ncaaodds', function (req, res) {
-   res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/ncaaf_odds.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list

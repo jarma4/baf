@@ -26,8 +26,10 @@ function getOverunder() {
             outp2 += '<tr>';
             // go through teams and populate tables
             $.each(retData.standings, function(i, rec){
+               var gamesDiff = rec.line-rec.win;
+               var gamesLeft = ($('#sportNfl').hasClass('selected'))?16-rec.win-rec.loss:82-rec.win-rec.loss;
                // populate standings area
-               outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<0.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':(rec.status == 'Under')?'U':'P')+'</td><td>'+((rec.line-rec.win<0)?'met':Math.ceil(rec.line+0.5-rec.win)+'/'+(($('#sportNfl').hasClass('selected'))?16-rec.win-rec.loss:82-rec.win-rec.loss))+'</td></tr>';
+               outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<0.5)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':(rec.status == 'Under')?'U':'P')+'</td><td>'+((gamesDiff<0)?'met':((gamesDiff+0.5)>gamesLeft)?'not O':Math.ceil(gamesDiff+0.5)+'/'+gamesLeft)+'</td></tr>';
                // populate picks area
                outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
                for (var j = 0; j < retData.users.length; j++) {

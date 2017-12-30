@@ -213,6 +213,7 @@ module.exports = {
    refreshOddsInfo: function() {
       getOdds('nfl');
       getOdds('nba');
+      getOdds('ncaaf');
    },
 
    checkScores: function(sport) {
