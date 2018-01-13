@@ -33,7 +33,7 @@ function getOverunder() {
                // populate picks area
                outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
                for (var j = 0; j < retData.users.length; j++) {
-                  outp2 += '<td>'+retData.users[j][i]+'</td>';
+                  outp2 += ((retData.users[j][i].slice(0,1) == rec.status.slice(0,1))?'<td class="heading-success">':'<td>')+retData.users[j][i]+'</td>';
                   // calculate
                   points[j] += (retData.users[j][i].slice(0,1) == rec.status.slice(0,1))?((retData.users[j][i].endsWith('*'))?2:1):0;
                }

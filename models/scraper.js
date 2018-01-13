@@ -31,7 +31,7 @@ function getOdds(sport) {
                else {
                   var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
                   var temptime = $(this).parent().prev().text().split(':');
-                  matchup.date = new Date(tempdate+' '+'2017'+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
+                  matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
                   matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
                }
             });
@@ -353,11 +353,11 @@ module.exports = {
    },
 
    updateStandings: function(sport){
-      var url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
+      const url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
       request(url, function (err, response, body) {
          if(!err && response.statusCode == 200) {
-            var $ = cheerio.load(body);
-
+            const $ = cheerio.load(body);
+            // console.log('starting update '+sport);
             Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
                var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);

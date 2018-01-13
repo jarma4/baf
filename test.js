@@ -14,22 +14,11 @@ var cat = require('request'),
    Scores = require('./models/dbschema').Scores,
    Props = require('./models/dbschema').Props,
    Messages = require('./models/dbschema').Messages,
-   plivo = require('plivo'),
    Nexmo = require('nexmo'),
    Logs = require('./models/dbschema').Logs;
 // mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
-const nexmo = new Nexmo({
-   apiKey: '2e8b9d83',
-   apiSecret: '3ae01483'
- });
-
- nexmo.message.sendSms('15129997944', '15122937112', 'test message', function(err, resp){
-   if (err)
-      console.log(err)
-   else  
-      console.log(resp)
- });
+scraper.updateStandings('nfl');
 
 // var sms = plivo.RestAPI({
 //   authId: 'MANJRMMDLJYME1MMYYOG',

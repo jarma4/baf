@@ -1,11 +1,14 @@
-var Nexmo = require('nexmo'),
-   Users = require('./dbschema').Users,
+var  Users = require('./dbschema').Users,
+   // Nexmo = require('nexmo'),
+   sinchAuth = require('./sinch-auth'),
+   auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH),
+   sinchSms = require('./sinch-messaging'),
    mongoose = require('mongoose');
 
-const nexmo = new Nexmo({
-   apiKey: '2e8b9d83',
-   apiSecret: '3ae01483'
-});
+// const nexmo = new Nexmo({
+//    apiKey: process.env.BAF_NEXMOK,
+//    apiSecret: process.env.BAF_NEXMOS
+// });
     
 module.exports = {
    textUser: function (to, message, pref2){
@@ -14,7 +17,8 @@ module.exports = {
             console.log(err);
          } else if (user){
             if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-               nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+               // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+               sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
             }
          }
       });
