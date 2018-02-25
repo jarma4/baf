@@ -422,6 +422,7 @@ router.post('/userstats', requireLogin, function(req,res){
 });
 
 router.post('/getscores', requireLogin, function(req,res){
+   console.log(req.body);
    Scores.find({$and: [{sport: req.body.sport}, {season: Number(req.body.season)}, (req.body.sport == 'nfl')?{week: req.body.period}:{$and:[{date:{$gte:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}]}, function(err,scores){
       if(err){
          console.log(err);

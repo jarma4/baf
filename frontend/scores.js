@@ -40,6 +40,6 @@ $('.scoresInc').on('click', function(event){
       if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 24 && $(this).val()=='1'))
          showScores(Number(tmp[1])+$(this).val()*1);
    } else {
-      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2017'))+$(this).val()*(24*60*60*1000)));
+      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2018'))+$(this).val()*(24*60*60*1000)));
    }
 });

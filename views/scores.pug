@@ -7,11 +7,11 @@ block content
          .col-md-12
             #sportMenu
                ul
-                  li#sportNfl.sportPick.selected
+                  li#sportNfl.sportPick.hidden
                      a NFL
-                  li#sportNba.sportPick
+                  li#sportNba.sportPick.selected
                      a NBA
-                  li#sportNcaa.sportPick.dimmed
+                  li#sportNcaa.sportPick.hidden
                      a NCAA            
       .row.no-gutters
          .col-md-3
@@ -27,4 +27,4 @@ block content
                #scoresArea.panel-body
 
 block scripts
-   script(type='text/javascript') showScores(getWeek(new Date(), 'nfl'))
+   script(type='text/javascript') showScores(new Date())

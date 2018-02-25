@@ -18,7 +18,7 @@ var cat = require('request'),
    Logs = require('./models/dbschema').Logs;
 // mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
-scraper.updateStandings('nfl');
+// scraper.addNbaGames(new Date(), new Date(2018,3,11));
 
 // var sms = plivo.RestAPI({
 //   authId: 'MANJRMMDLJYME1MMYYOG',

@@ -188,6 +188,7 @@ function addNbaGame(date) {
       if(!err && response.statusCode === 200) {
          var $ = cheerio.load(body);
          $('.game').each(function(){
+            console.log($(this).find('.team-name').text());
             var tmp = new Scores({
                score1: 0,
                score2: 0,
