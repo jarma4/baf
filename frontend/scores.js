@@ -5,31 +5,34 @@ function showScores(period) {
    if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
       period = new Date();
    toggleSport(sport);
-   $.ajax({
-		type: 'POST',
-		url: '/api/getscores',
-      data: {
+   fetch('/api/getscores', {
+      credentials: 'same-origin',
+      method:'POST',
+      headers: {
+         'Accept': 'application/json, text/plain, */*',
+         'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
          'sport': sport,
          'season': 2017, //too specific to football, needs to fixed
          'period': period
-      },
-		success:function(retData){
-         if ($('#sportNfl').hasClass('selected')) {
-            $('#scoresPeriod').text('Week '+period);
-         } else {
-            $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());
-         }
-			var outp = '<table class="table"><tr><th>Away</th><th>Score</th><th>Home</th><th>Score</th></tr>';
-			$.each(retData, function(i,rec){
-				outp += '<tr><td>'+rec.team1+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec.score2+'</td></tr>';
-			});
-			outp += '</table>';
-			document.getElementById("scoresArea").innerHTML = outp;
-		},
-		error: function(retData){
-			modalAlert(retData.type, retData.message);
-		}
-	});
+      })
+   })
+   .then((res)=>res.json())
+   .then(retData => {
+      if ($('#sportNfl').hasClass('selected')) {
+         $('#scoresPeriod').text('Week '+period);
+      } else {
+         $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());
+      }
+      var outp = '<table class="table"><tr><th>Away</th><th>Score</th><th>Home</th><th>Score</th></tr>';
+      $.each(retData, function(i,rec){
+         outp += '<tr><td>'+rec.team1+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec.score2+'</td></tr>';
+      });
+      outp += '</table>';
+      document.getElementById("scoresArea").innerHTML = outp;
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
 }
 
 // back/forward button to get different scores

@@ -23,64 +23,65 @@ var username,
          ncaa: new Date(2017,2,16)
       },
    inSeason = {
-      nfl: 1,
+      nfl: 0,
       nba: 1,
       ncaa: 0
    };
 
 // called when new page loaded
 function doorBell(){
-	$.ajax({
-		type: 'GET',
-		url: '/api/doorbell',
-		success:function(retData){
-         if(retData.type == 'command'){
-            eval(retData.message);
-         } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
-            // username = retData.username; // keep around for things
-            if (retData.bets) {
-               $('#notify1').removeClass('hidden');
-               addAnimation('bounce', 15000, 'notify1');
-            }
-            if (retData.debts) {
-               $('#notify2').removeClass('hidden');
-            }
-            if (retData.futures) {
-               $('#notify3').removeClass('hidden');
-            }
-            if (retData.props) {
-               $('#notify4').removeClass('hidden');
-            }
-            if (retData.nfl) {
-               $('#sportNfl').removeClass('hidden');
-            }
-            if (retData.nba) {
-               $('#sportNba').removeClass('hidden');
-            }
-            if (retData.ncaa) {
-                  $('#sportNcaa').removeClass('hidden');
-            }
+	fetch('/api/doorbell', {
+      credentials: 'include'
+   })
+   .then(res =>res.json())
+   .then(retData => {
+      if(retData.type == 'command'){
+         eval(retData.message);
+      } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
+         // username = retData.username; // keep around for things
+         if (retData.bets) {
+            $('#notify1').removeClass('hidden');
+            addAnimation('bounce', 15000, 'notify1');
          }
-      },
-		error: function(retData){
-			modalAlert(retData.type,retData.message);
-		}
-	});
-}
+         if (retData.debts) {
+            $('#notify2').removeClass('hidden');
+         }
+         if (retData.futures) {
+            $('#notify3').removeClass('hidden');
+         }
+         if (retData.props) {
+            $('#notify4').removeClass('hidden');
+         }
+         if (retData.nfl) {
+            $('#sportNfl').removeClass('hidden');
+         }
+         if (retData.nba) {
+            $('#sportNba').removeClass('hidden');
+         }
+         if (retData.ncaa) {
+               $('#sportNcaa').removeClass('hidden');
+         }
+      }
+   })
+	.catch(retData => modalAlert(retData.type,retData.message));
+};
 
 // common function called everywhere
 function postApi(page, obj) {
-   $.ajax({
-		type: 'POST',
-		url: '/api/'+page,
-		data: obj,
-		success:function(retData){
-         modalAlert(retData.type, retData.message);
-		},
-		error: function(retData){
-         modalAlert(retData.type, retData.message);
-		}
-	});
+   fetch('/api/'+page, {
+      credentials: 'same-origin',
+      method:'POST',
+      headers: {
+         'Accept': 'application/json, text/plain, */*',
+         'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+         data: obj
+      })
+   })
+   .then(res => res.json())
+   .then(retData => modalAlert(retData.type, retData.message))
+   .catch(retData => modalAlert(retData.type, retData.message));
 }
 
 // multi use alert modal
@@ -101,28 +102,26 @@ function modalAlert(type, message, duration, pause){
 
 // Startup stuff
 function getUsers (){
-	$.ajax({
-		type: 'GET',
-		url: '/api/users',
-		success:function(retData){
-         window.userList = [];
-         $('#userList').empty();
-         $('#propUser2').empty().append('<option value="OPEN">OPEN</option>');
-			$.each(retData, function(i,user){
-				$('#userList').append('<option value="'+user._id+'">'+user._id+'</option>');
-            $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
-            window.userList.push(user._id);
-			});
-         $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
-         $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
-         $('#userList option[value="EVERYONE"]').attr("selected", "selected");
-         // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
-		},
-		error: function(retData){
-			modalAlert(retData.type,retData.message);
-		}
-	});
-}
+	fetch('/api/users', {
+      credentials: 'same-origin'
+   })
+   .then(res => res.json())
+	.then(retData => {
+      window.userList = [];
+      $('#userList').empty();
+      $('#propUser2').empty().append('<option value="OPEN">OPEN</option>');
+      $.each(retData, function(i,user){
+         $('#userList').append('<option value="'+user._id+'">'+user._id+'</option>');
+         $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
+         window.userList.push(user._id);
+      });
+      $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
+      $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
+      $('#userList option[value="EVERYONE"]').attr("selected", "selected");
+      // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
+   })
+	.catch(retData => modalAlert(retData.type,retData.message));
+};
 
 // below is for swiping action on touchscreens
 function getUrlPos(url){
@@ -162,25 +161,28 @@ function getWeek(date, sport){
 
 // Global stuff
 $('#loginSubmit').on('click', function(){
-   $.ajax({
-		type: 'POST',
-		url: '/admin/login',
-		data: {
+   fetch('/admin/login', {
+      credentials: 'same-origin',
+      method:'POST',
+      headers: {
+         'Accept': 'application/json, text/plain, */*',
+         'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
          'username': $('#loginUsername').val(),
          'password': $('#loginPassword').val()
-		},
-		success:function(retData){
-         if (retData.type == 'success'){
-            // username = $('#loginUsername').val();
-            getUsers();
-         }
-         modalAlert(retData.type, retData.message);
-         doorBell();
-		},
-		error: function(retData){
-         modalAlert(retData.type, retData.message);
-		}
-	});
+      }),
+   })
+   .then(res => res.json())
+	.then(retData => {
+      if (retData.type == 'success'){
+         // username = $('#loginUsername').val();
+         getUsers();
+      }
+      modalAlert(retData.type, retData.message);
+      doorBell();
+   })
+	.catch(retData => modalAlert(retData.type, retData.message));
 });
 
 $('#registerSubmit').on('click', function(){
@@ -188,25 +190,27 @@ $('#registerSubmit').on('click', function(){
       modalAlert('danger', 'You have not completed all the fields');
       $('#registerModal').modal('show');
    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
-      $.ajax({
-         type: 'POST',
-         url: '/admin/register',
-         data: {
+      fetch('/admin/register', {
+         credentials: 'same-origin',
+         method:'POST',
+         headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type':'application/json'
+         },
+         body:JSON.stringify({
             'username': $('#registerUsername').val(),
             'sms': $('#registerSMS').val(),
             'email': $('#registerEmail').val(),
             'password': $('#registerPassword').val()
-         },
-         success:function(retData){
-            if (retData.type == 'success') {
-               getUsers();
-            }
-            modalAlert(retData.type, retData.message, 5);
-         },
-         error: function(retData){
-            modalAlert(retData.type, retData.message);
+         })
+      })
+      .then(retData => {
+         if (retData.type == 'success') {
+            getUsers();
          }
-      });
+         modalAlert(retData.type, retData.message, 5);
+      })
+      .then(retData => modalAlert(retData.type, retData.message));
    } else {
       modalAlert('danger', "Passwords don't match, please try again");
    }

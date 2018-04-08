@@ -15,10 +15,11 @@ router.use(session({
      duration: 5 * 24 * 60 * 60 * 1000,
      activeDuration: 5 * 60 * 1000,
    }));
-router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
 
 router.post('/login', function(req,res){
-  // console.log(req);
+//   console.log(req);
    Users.findOne({'_id':req.body.username}, function(err, user){
       if(!user){
          logger.error('User '+req.body.username+' not found');

@@ -23,7 +23,8 @@ router = express.Router();
 
 module.exports = router;
 
-router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
 router.use(session({
   cookieName: 'session',
   secret: process.env.BAF_SESSION,
@@ -95,7 +96,7 @@ function saveBet (req){
    });
    if (req.body.watch=='false' && req.body.type != 'give' && req.body.type != 'take') {
       changeUser (req.body.user2, 'bets', 1);
-      Util.textUser(req.body.user2, ((req.body.sport=='nfl')?'NFL':'NBA')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
+      Util.textUser(req.body.user2, ((req.body.sport=='nba')?'NBA':'NFL')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
    }
 }
 
@@ -422,7 +423,6 @@ router.post('/userstats', requireLogin, function(req,res){
 });
 
 router.post('/getscores', requireLogin, function(req,res){
-   console.log(req.body);
    Scores.find({$and: [{sport: req.body.sport}, {season: Number(req.body.season)}, (req.body.sport == 'nfl')?{week: req.body.period}:{$and:[{date:{$gte:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}]}, function(err,scores){
       if(err){
          console.log(err);
@@ -723,7 +723,7 @@ router.get('/nbaodds', function (req, res) {
 });
 
 router.get('/ncaaodds', function (req, res) {
-   res.sendFile('./json/ncaaf_odds.json', {'root':__dirname+'/..'});
+   res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
 });
 
 // gets userlist for bet select list

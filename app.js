@@ -76,7 +76,7 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
-   updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
+   // updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
    updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 // backup daily odds

@@ -23,38 +23,41 @@ function drawChart(days) {
    Chart.defaults.global.elements.line.borderWidth = 2;
    Chart.defaults.global.elements.line.fill = false;
 
-   $.ajax({
-      type: 'POST',
-      url: '/api/graphstats',
-      data: {
+   fetch('/api/graphstats', {
+      credentials: 'same-origin',
+      method:'POST',
+      headers: {
+         'Accept': 'application/json, text/plain, */*',
+         'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
          user: 'ALL',
          days: days,
          sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
          season: $('#statsYear').val()
-      },
-      success: function(retData){
-         var iter = 0;
-         chartData.labels = retData.xaxis;
-         $.each(retData.datasets, function(index, info){
-            var obj = {
-               label: index,
-               borderColor: colors[iter++],
-               data: info.data
-            };
-            chartData.datasets.push(obj);
-         });
-         if (winChart)
-            winChart.destroy();
-         winChart = new Chart(document.getElementById("winGraph").getContext("2d"), {
-            type: 'line',
-            data: chartData,
-            options: chartOptions
-         });
-      },
-		error: function(retData){
-         modalAlert(retData.type, retData.message);
-		}
-   });
+      })
+   })
+   .then(res =>res.json())
+   .then(retData => {
+      var iter = 0;
+      chartData.labels = retData.xaxis;
+      $.each(retData.datasets, function(index, info){
+         var obj = {
+            label: index,
+            borderColor: colors[iter++],
+            data: info.data
+         };
+         chartData.datasets.push(obj);
+      });
+      if (winChart)
+         winChart.destroy();
+      winChart = new Chart(document.getElementById("winGraph").getContext("2d"), {
+         type: 'line',
+         data: chartData,
+         options: chartOptions
+      });
+   })
+	.catch(retData => modalAlert(retData.type, retData.message));
 }
 
 // change chart period - currently unused
