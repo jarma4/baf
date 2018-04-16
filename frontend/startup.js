@@ -26,8 +26,19 @@ var username,
       nfl: 0,
       nba: 1,
       ncaa: 0
+   },
+   postOptions = {
+      credentials: 'same-origin',
+      method:'POST',
+      headers: {
+         'Accept': 'application/json, text/plain, */*',
+         'Content-Type':'application/json'
+      }
+   },
+   getOptions = {
+      credentials: 'same-origin',
    };
-
+   
 // called when new page loaded
 function doorBell(){
 	fetch('/api/doorbell', {
@@ -75,9 +86,7 @@ function postApi(page, obj) {
          'Accept': 'application/json, text/plain, */*',
          'Content-Type':'application/json'
       },
-      body:JSON.stringify({
-         data: obj
-      })
+      body:JSON.stringify(obj)
    })
    .then(res => res.json())
    .then(retData => modalAlert(retData.type, retData.message))

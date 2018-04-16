@@ -8,6 +8,7 @@ $('#futureModal').on('show.bs.modal', function (event) {
 });
 
 $('#futureSubmit').on('click', function() {
+   console.log("askdjhf");
    postApi('makebet', {
 		   'amount': 2,
          'type': ($('#futureSide').val() == 'give')?'give':'take',
@@ -50,72 +51,60 @@ $('#futuresOffers').delegate('.futureOffer', 'click', function(event) {
 
 function getFutures() {
    // first see if there are any existing offers
-   $.ajax({
-		type: 'POST',
-		url: '/api/getfutureoffers',
-      data: {
-         status: 0
-      },
-      success:function(retData){
-         username = retData.sessionId; // being returned so buttons can be customized
-         var outp = '<table class="table table-condensed">';
-         $.each(retData.offers, function(i,rec){
-            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.type == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
-            $('#futuresOffers').addClass('in');
-            $('#futuresOffersTitle span.collapseIcon').removeClass('hidden');
-         });
-         outp += '</table>';
-         document.getElementById('futuresOffers').innerHTML = outp;
-      },
-		error: function(retData){
-         modalAlert(retData.type, retData.message);
-		}
-	});
-   // next check if there are any futures propostions
-   $.ajax({
-		type: 'GET',
-		url: '/api/getfutures',
-      success:function(retData){
-         $('#futuresGroup').empty();
-         $.each(retData.futures, function(i,single){
-            // create new/separate panel for each future
-            var newPanel = '<div class="panel panel-info"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-triangle-bottom"></span></a><em class="right">updated: '+retData.futures[i].time+'</em></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
-            // create new table for panel contents
-            var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
-            $.each(single.entries, function(i,rec){
-               outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-primary"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-primary" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
-            });
-            $('#futuresGroup').append(newPanel);
-            document.getElementById('futuresPanel'+i).innerHTML = outp;
-            $('#futuresTitle'+i).text(single.event);
-            if (new Date('2017/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
-               $('#futuresTitle'+i).next().next().addClass('heading-danger');
-         });
-      },
-		error: function(retData){
-         modalAlert(retData.type, retData.message);
-		}
-	});
-   // lastly get accepted future offers
-   $.ajax({
-      type: 'POST',
-      url: '/api/getfutureoffers',
-      data: {
-         status: 2
-      },
-      success:function(retData){
-         username = retData.sessionId; // being returned so buttons can be customized
-         var outp = '<table class="table table-condensed">';
-         $.each(retData.offers, function(i,rec){
-            outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' doesn\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
-            $('#futuresAccepted').addClass('in');
-            $('#futuresAcceptedTitle span.collapseIcon').removeClass('hidden');
-         });
-         outp += '</table>';
-         document.getElementById('futuresAccepted').innerHTML = outp;
-      },
-      error: function(retData){
-         modalAlert(retData.type, retData.message);
-      }
+   postOptions.body = JSON.stringify({
+      status: 0
    });
+   fetch('/api/getfutureoffers', postOptions)
+   .then(res => res.json())
+   .then(retData => {
+      username = retData.sessionId; // being returned so buttons can be customized
+      var outp = '<table class="table table-condensed">';
+      $.each(retData.offers, function(i,rec){
+         outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.type == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
+         $('#futuresOffers').addClass('in');
+         $('#futuresOffersTitle span.collapseIcon').removeClass('hidden');
+      });
+      outp += '</table>';
+      document.getElementById('futuresOffers').innerHTML = outp;
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
+   // next check if there are any futures propostions
+   fetch('/api/getfutures', getOptions)
+   .then(res => res.json())   
+   .then(retData => {
+      $('#futuresGroup').empty();
+      $.each(retData.futures, function(i,single){
+         // create new/separate panel for each future
+         var newPanel = '<div class="panel panel-info"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-triangle-bottom"></span></a><em class="right">updated: '+retData.futures[i].time+'</em></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
+         // create new table for panel contents
+         var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
+         $.each(single.entries, function(i,rec){
+            outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-primary"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-primary" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
+         });
+         $('#futuresGroup').append(newPanel);
+         document.getElementById('futuresPanel'+i).innerHTML = outp;
+         $('#futuresTitle'+i).text(single.event);
+         if (new Date('2017/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
+            $('#futuresTitle'+i).next().next().addClass('heading-danger');
+      });
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
+   // lastly get accepted future offers
+   postOptions.body = JSON.stringify({
+      status: 2
+   });
+   fetch('/api/getfutureoffers', postOptions)
+   .then(res => res.json())
+   .then(retData => {
+      username = retData.sessionId; // being returned so buttons can be customized
+      var outp = '<table class="table table-condensed">';
+      $.each(retData.offers, function(i,rec){
+         outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' doesn\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
+         $('#futuresAccepted').addClass('in');
+         $('#futuresAcceptedTitle span.collapseIcon').removeClass('hidden');
+      });
+      outp += '</table>';
+      document.getElementById('futuresAccepted').innerHTML = outp;
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
 }

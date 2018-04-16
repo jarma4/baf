@@ -67,7 +67,6 @@ let betStack = [];
 // pulled out so EVERYONE bets can call multiple times along with single bets
 function saveBet (req){
    let today = new Date();
-
    new Bets({
       week: Util.getWeek(today, req.body.sport),
       season: 2017, //today.getFullYear(),
@@ -83,18 +82,18 @@ function saveBet (req){
       sport: req.body.sport,
       fta: req.body.serial,
       paid: false,
-      status: (req.body.watch === 'true')?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
-      watch: (req.body.watch === 'true')?(req.body.watchsend === 'true')?11:1:''
+      status: (req.body.watch === true)?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
+      watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:''
    }).save(function(err){
-      if(err) {
+    if(err) {
          logger.error('Trouble adding bet: '+err);
          return ({'type':'danger', 'message':'Trouble adding bet'});
       } else {
          logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
-         return ({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Saved'});
+         return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
       }
    });
-   if (req.body.watch=='false' && req.body.type != 'give' && req.body.type != 'take') {
+   if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
       changeUser (req.body.user2, 'bets', 1);
       Util.textUser(req.body.user2, ((req.body.sport=='nba')?'NBA':'NFL')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
    }
@@ -118,9 +117,8 @@ function makeBet (req) {
    // check if first to act bet, if not zero serial which gets copied to fta and used later
    if (req.body.user2 !== 'EVERYONE2')
       req.body.serial = 0;
-
    // if EVERYONE bet, need to go through user db and send to each
-   if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && req.body.watch=='false') {
+   if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && req.body.watch == false) {
       Users.find({$and: [
                      {_id: {$nin:[req.session.user._id,'testuser']}},
                      (req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
@@ -130,13 +128,13 @@ function makeBet (req) {
          });
       });
    } else {
-      console.log(saveBet(req));
+      saveBet(req);
    }
 }
 
 router.post('/makebet', requireLogin, function (req, res) {
    makeBet(req);
-   res.send({'type':'success', 'message':(req.body.watch=='true')?'Odds watch set':'Bet Sent'});
+   res.send({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Sent'});
 });
 
 router.post('/getbets', requireLogin, function(req,res){

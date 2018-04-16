@@ -18,6 +18,7 @@ module.exports = {
          } else if (user){
             if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
                // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+               // console.log('Text '+user._id);
                sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
             }
          }

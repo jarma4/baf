@@ -24,63 +24,59 @@ function weeklyStats(date) {
    $('#weeklyStats').empty();
    $('#statsPeriod').text('Week '+ date);
    if (inSeason[($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa']) {
-      $.ajax({
-   		type: 'POST',
-   		url: '/api/weeklystats',
-         data: {
-            'date': date,
-            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa'
-         },
-   		success:function(retData){
-            if(retData.length){
-               var weeklyRecords = {},
-                  outp = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
-               $.each(retData, function(i,rec){
-                  // for Summary table; create structure if first time user seen
-                  if (!weeklyRecords[rec.user1])
-                     weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
-                  if (!weeklyRecords[rec.user2])
-                     weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0, tbd: 0};
-                  // increment proper counter
-                  switch  (rec.status) {
-                     case 2:
-                        weeklyRecords[rec.user1].tbd += 1;
-                        weeklyRecords[rec.user2].tbd += 1;
-                        break;
-                     case 4:
-                        weeklyRecords[rec.user1].wins += 1;
-                        weeklyRecords[rec.user2].losses += 1;
-                        break;
-                     case 5:
-                        weeklyRecords[rec.user2].wins += 1;
-                        weeklyRecords[rec.user1].losses += 1;
-                        break;
-                     case 6:
-                        weeklyRecords[rec.user1].push += 1;
-                        weeklyRecords[rec.user2].push += 1;
-                        break;
-                  }
-               });
-               // outp += '</table>';
-               // build Summary table
-               for (var player in weeklyRecords) {
-                  outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-week="'+$('#statsPeriod').text().split(' ')[1]+'" data-user="'+player+'">'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td><td>'+weeklyRecords[player].tbd+'</td></tr>';
+      postOptions.body = JSON.stringify({
+         'date': date,
+         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa'
+      });
+      fetch('/api/weeklystats', postOptions)
+      .then(res => res.json())
+      .then(retData => {
+         if(retData.length){
+            var weeklyRecords = {},
+               outp = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
+            $.each(retData, function(i,rec){
+               // for Summary table; create structure if first time user seen
+               if (!weeklyRecords[rec.user1])
+                  weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
+               if (!weeklyRecords[rec.user2])
+                  weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0, tbd: 0};
+               // increment proper counter
+               switch  (rec.status) {
+                  case 2:
+                     weeklyRecords[rec.user1].tbd += 1;
+                     weeklyRecords[rec.user2].tbd += 1;
+                     break;
+                  case 4:
+                     weeklyRecords[rec.user1].wins += 1;
+                     weeklyRecords[rec.user2].losses += 1;
+                     break;
+                  case 5:
+                     weeklyRecords[rec.user2].wins += 1;
+                     weeklyRecords[rec.user1].losses += 1;
+                     break;
+                  case 6:
+                     weeklyRecords[rec.user1].push += 1;
+                     weeklyRecords[rec.user2].push += 1;
+                     break;
                }
-               outp += '</table>';
-               // check whether Detail or Summary screen
-               // if ($('#statsType').text() == 'Detail')
-               //    document.getElementById('weeklyStats').innerHTML = outp;
-               // else
-               document.getElementById('weeklyStats').innerHTML = outp;
-
-               // open collapsed panel if not already open
-               collapseIconAction('weeklyStats');
+            });
+            // outp += '</table>';
+            // build Summary table
+            for (var player in weeklyRecords) {
+               outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-week="'+$('#statsPeriod').text().split(' ')[1]+'" data-user="'+player+'">'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td><td>'+weeklyRecords[player].tbd+'</td></tr>';
             }
-         },
-   		error: function(retData){
-   			modalAlert(retData.type, retData.message);
-   		}
-   	});
+            outp += '</table>';
+            // check whether Detail or Summary screen
+            // if ($('#statsType').text() == 'Detail')
+            //    document.getElementById('weeklyStats').innerHTML = outp;
+            // else
+            document.getElementById('weeklyStats').innerHTML = outp;
+
+            // open collapsed panel if not already open
+            collapseIconAction('weeklyStats');
+         }
+      })
+      .catch(retData => modalAlert(retData.type, retData.message));
    } else {
       $('#statsPeriod').text('Season over, no weekly');
    }
@@ -93,46 +89,41 @@ $('#statsYear').on('change', function(){
 
 // get overall stats and graph
 function overallStats() {
-   $.ajax({
-		type: 'POST',
-		url: '/api/overallstats',
-      data: {
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
-         'season': $('#statsYear').val()
-      },
-		success:function(retData){
-			var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
-			$.each(retData, function(i,rec){
-            outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3)+'</td></tr>';
-            $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
-			});
-			outp += '</table>';
-			document.getElementById("overallStats").innerHTML = outp;
-		},
-		error: function(retData){
-			modalAlert(retData.type, retData.message);
-		}
-	});
+   postOptions.body = JSON.stringify({
+      'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
+      'season': $('#statsYear').val()
+   });
+   fetch('/api/overallstats', postOptions)
+   .then(res => res.json())
+   .then(retData => {
+      var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
+      $.each(retData, function(i,rec){
+         outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3)+'</td></tr>';
+         $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
+      });
+      outp += '</table>';
+      document.getElementById("overallStats").innerHTML = outp;
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
 }
 
 function getUserStats (user, sport, season, week) {
-   return $.ajax({
-   	type: 'POST',
-   	url: '/api/userstats',
-      data: {
-         user: user,
-         sport: sport,
-         season: season,
-         week: week
-      }
+   postOptions.body = JSON.stringify({
+      user: user,
+      sport: sport,
+      season: season,
+      week: week
    });
+   return fetch('/api/userstats', postOptions);
 }
 
 //modal to show stats for each user of every bet in database for them
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').val(),(button.data('week'))?button.data('week'):'').then(function(retData) {
+   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').val(),(button.data('week'))?button.data('week'):'')
+   .then(res => res.json())
+   .then(retData => {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
    	$.each(retData.bets, function(i,rec){
          var date=new Date(rec.date);
@@ -156,7 +147,6 @@ $('#statsModal').on('show.bs.modal', function (event) {
    	outp += '</table>';
    	document.getElementById("statsSplits").innerHTML = outp;
       collapseIconAction('statsSplits');
-   }).catch(function(retData){
-			modalAlert(retData.type, retData.message);
-	});
+   })
+   .catch(retData => modalAlert(retData.type, retData.message));
 });
