@@ -41,9 +41,7 @@ var username,
    
 // called when new page loaded
 function doorBell(){
-	fetch('/api/doorbell', {
-      credentials: 'include'
-   })
+	fetch('/api/doorbell', getOptions)
    .then(res =>res.json())
    .then(retData => {
       if(retData.type == 'command'){
@@ -79,15 +77,8 @@ function doorBell(){
 
 // common function called everywhere
 function postApi(page, obj) {
-   fetch('/api/'+page, {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify(obj)
-   })
+   postOptions.body = JSON.stringify(obj);
+   fetch('/api/'+page, postOptions)
    .then(res => res.json())
    .then(retData => modalAlert(retData.type, retData.message))
    .catch(retData => modalAlert(retData.type, retData.message));
@@ -111,9 +102,7 @@ function modalAlert(type, message, duration, pause){
 
 // Startup stuff
 function getUsers (){
-	fetch('/api/users', {
-      credentials: 'same-origin'
-   })
+	fetch('/api/users', getOptions)
    .then(res => res.json())
 	.then(retData => {
       window.userList = [];
@@ -170,18 +159,11 @@ function getWeek(date, sport){
 
 // Global stuff
 $('#loginSubmit').on('click', function(){
-   fetch('/admin/login', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         'username': $('#loginUsername').val(),
-         'password': $('#loginPassword').val()
-      }),
-   })
+   postOptions.body = JSON.stringify({
+      'username': $('#loginUsername').val(),
+      'password': $('#loginPassword').val()
+   });
+   fetch('/admin/login', postOptions)
    .then(res => res.json())
 	.then(retData => {
       if (retData.type == 'success'){
@@ -199,20 +181,13 @@ $('#registerSubmit').on('click', function(){
       modalAlert('danger', 'You have not completed all the fields');
       $('#registerModal').modal('show');
    } else if($('#registerPassword').val() && ($('#registerPassword').val() == $('#registerPassword2').val())) {
-      fetch('/admin/register', {
-         credentials: 'same-origin',
-         method:'POST',
-         headers: {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type':'application/json'
-         },
-         body:JSON.stringify({
-            'username': $('#registerUsername').val(),
-            'sms': $('#registerSMS').val(),
-            'email': $('#registerEmail').val(),
-            'password': $('#registerPassword').val()
-         })
-      })
+      postOptions.body = JSON.stringify({
+         'username': $('#registerUsername').val(),
+         'sms': $('#registerSMS').val(),
+         'email': $('#registerEmail').val(),
+         'password': $('#registerPassword').val()
+      });
+      fetch('/admin/register', postOptions)
       .then(retData => {
          if (retData.type == 'success') {
             getUsers();

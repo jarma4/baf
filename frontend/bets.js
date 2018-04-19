@@ -7,18 +7,11 @@ function showBets () {
 
    //next dislplay accepted bets of other for info sake
    // $('#otherBets').hide(); //hide div to display until sure something there
-   fetch('/api/getbets', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         "status": 2,
-         "all": 1
-      })
-   })
+   postOptions.body = JSON.stringify({
+      "status": 2,
+      "all": 1
+   });
+   fetch('/api/getbets', postOptions)
    .then(res => res.json())
    .then(retData => {
       if(retData.length){
@@ -57,18 +50,11 @@ function showBets () {
 }
 
 function getBets(status, target, addButton) {
-   fetch('/api/getbets', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         "status": status,
-         "all": 0
-      })
-   })
+   postOptions.body = JSON.stringify({
+      "status": status,
+      "all": 0
+   });
+   fetch('/api/getbets', postOptions)
    .then(res => res.json())
    .then(retData => {
       $('#'+target).empty();

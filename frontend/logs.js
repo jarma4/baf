@@ -1,7 +1,5 @@
 function showLogs() {
-   fetch('/api/getlogs', {
-      credentials: 'include'
-   })
+   fetch('/api/getlogs', getOptions)
    .then(res =>res.json())
    .then(retData => {
       var outp = '<table class="table"><tr><th>Time</th><th>Msg</th></tr>';

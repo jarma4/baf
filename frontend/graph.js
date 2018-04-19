@@ -23,20 +23,13 @@ function drawChart(days) {
    Chart.defaults.global.elements.line.borderWidth = 2;
    Chart.defaults.global.elements.line.fill = false;
 
-   fetch('/api/graphstats', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         user: 'ALL',
-         days: days,
-         sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
-         season: $('#statsYear').val()
-      })
-   })
+   postOptions.body = JSON.stringify({
+      user: 'ALL',
+      days: days,
+      sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
+      season: $('#statsYear').val()
+   });
+   fetch('/api/graphstats', postOptions)
    .then(res =>res.json())
    .then(retData => {
       var iter = 0;

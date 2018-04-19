@@ -7,18 +7,11 @@ function getOverunder() {
    } else {
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
-      fetch('/api/getstandings', {
-         credentials: 'same-origin',
-         method:'POST',
-         headers: {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type':'application/json'
-         },
-         body:JSON.stringify({
-            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-            'season': $('#ouYear').val()
-         })
-      })
+      postOptions.body = JSON.stringify({
+         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+         'season': $('#ouYear').val()
+      });
+      fetch('/api/getstandings', postOptions)
       .then(res => res.json())
    	.then(retData => {
          var points = [],
@@ -74,18 +67,11 @@ $('#ouYear').on('change', function(e){
 });
 
 function ouSignup() {
-   fetch('/api/getousignup', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': $('#ouYear').val()
-      })
-   })
+   postOptions.body = JSON.stringify({
+      'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+      'season': $('#ouYear').val()
+   });
+   fetch('/api/getousignup', postOptions)
    .then(res => res.json())
    .then(retData => {
       var outp;
@@ -122,18 +108,11 @@ function ouSignup() {
 
 $('#ouBtn').on('click', function(e){
    if ($('#ouBtn').text() == 'Join') {
-      fetch('/api/ousignup', {
-         credentials: 'same-origin',
-         method:'POST',
-         headers: {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type':'application/json'
-         },
-         body:JSON.stringify({
-            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-            'season': 2017
-         })
-      })
+      postOptions.body = JSON.stringify({
+         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+         'season': 2017
+      });
+      fetch('/api/ousignup', postOptions)
       .then(res => res.json())
       .then(retData => {
          ouSignup();
@@ -154,19 +133,12 @@ $('#ouBtn').on('click', function(e){
                // choices2[i] += '*';
             }
          }
-         fetch('/api/setouchoices', {
-            credentials: 'same-origin',
-            method:'POST',
-            headers: {
-               'Accept': 'application/json, text/plain, */*',
-               'Content-Type':'application/json'
-            },
-            body:JSON.stringify({
-               'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-               'season': 2017,
-               'choices': JSON.stringify(choices)
-            })
-         })
+         postOptions.body = JSON.stringify({
+            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
+            'season': 2017,
+            'choices': JSON.stringify(choices)
+         });
+         fetch('/api/setouchoices', postOptions)
          .then(res => res.json())
          .then(retData => modalAlert(retData.type,retData.message))
          .catch(retData => modalAlert(retData.type,retData.message));

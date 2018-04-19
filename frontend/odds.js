@@ -3,9 +3,7 @@ function getOdds (){
    if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
       sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
    toggleSport(sport);
-	fetch('/api/'+sport+'odds', {
-      credentials: 'include'
-   })
+	fetch('/api/'+sport+'odds', getOptions)
    .then(res =>res.json())
    .then(retData => {
       var sportColor, prevDate=1, gameNum=0, listCount=11;

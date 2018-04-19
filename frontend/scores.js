@@ -5,19 +5,12 @@ function showScores(period) {
    if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
       period = new Date();
    toggleSport(sport);
-   fetch('/api/getscores', {
-      credentials: 'same-origin',
-      method:'POST',
-      headers: {
-         'Accept': 'application/json, text/plain, */*',
-         'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-         'sport': sport,
-         'season': 2017, //too specific to football, needs to fixed
-         'period': period
-      })
-   })
+   postOptions.body = JSON.stringify({
+      'sport': sport,
+      'season': 2017, //too specific to football, needs to fixed
+      'period': period
+   });
+   fetch('/api/getscores', postOptions)
    .then((res)=>res.json())
    .then(retData => {
       if ($('#sportNfl').hasClass('selected')) {

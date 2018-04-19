@@ -138,6 +138,7 @@ router.post('/makebet', requireLogin, function (req, res) {
 });
 
 router.post('/getbets', requireLogin, function(req,res){
+   console.log(req.body);
    let sortedBets = [];
    Bets.find({$and:[
       {status:(req.body.status==1)?0:req.body.status},
@@ -176,6 +177,7 @@ router.post('/getbets', requireLogin, function(req,res){
             }
             sortedBets.push(single);
          });
+         console.log(sortedBets);
          res.json(sortedBets);
       }
    }).sort({date:-1});

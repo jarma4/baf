@@ -36,20 +36,20 @@ block content
    a.btn.btn-primary.btn-lg.btn-block(type='button', data-toggle='modal', data-target='#changePasswordModal') Change Password
    a.btn.btn-primary.btn-lg.btn-block(type='button', href='/admin/logout') Logout
 
-   block modals
-      #changePasswordModal.modal.fade
-         .modal-dialog
-            .modal-content
-               .modal-header
-                  button.close(type='button', data-dismiss='modal') #[span &times;]
-                  h4 Change Password:
-               .modal-body
-                  form
-                     label(for='changePassword') New Password
-                     input#changePassword.form-control(type='password', required)
-                     label(for='changePassword2') Retype New Password
-                     input#changePassword2.form-control(type='password', required)
-               .modal-footer
-                     button#changeSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
+block modals
+   #changePasswordModal.modal.fade
+      .modal-dialog
+         .modal-content
+            .modal-header
+               button.close(type='button', data-dismiss='modal') #[span &times;]
+               h4 Change Password:
+            .modal-body
+               form
+                  label(for='changePassword') New Password
+                  input#changePassword.form-control(type='password', required)
+                  label(for='changePassword2') Retype New Password
+                  input#changePassword2.form-control(type='password', required)
+            .modal-footer
+                  button#changeSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Submit
 block scripts
    script(type='text/javascript') getPrefs()

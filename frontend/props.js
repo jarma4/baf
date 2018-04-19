@@ -24,9 +24,7 @@ $('#propSubmit').on('click', function(e){
 
 // Prop bet stuff
 function showProps() {
-   fetch('/api/getprops', {
-      credentials: 'include'
-   })
+   fetch('/api/getprops', getOptions)
    .then(res =>res.json())
    .then(retData => {
       var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th></tr>';
