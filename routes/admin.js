@@ -9,6 +9,8 @@ var express = require('express'),
    Users = require('../models/dbschema').Users,
    Mailer = require('nodemailer');
 
+require('dotenv').config()
+
 router.use(session({
      cookieName: 'session',
      secret: process.env.BAF_SESSION,

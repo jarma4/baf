@@ -5,6 +5,8 @@ session = require('client-sessions'),
 Users = require('../models/dbschema').Users,
 mongoose = require('mongoose');
 
+require('dotenv').config()
+
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 router.use(session({

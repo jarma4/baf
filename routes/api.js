@@ -17,6 +17,8 @@ let express = require('express'),
    OUuser = require('../models/dbschema').OUuser,
    mongoose = require('mongoose');
 
+require('dotenv').config()
+
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
 
 router = express.Router();
@@ -138,7 +140,7 @@ router.post('/makebet', requireLogin, function (req, res) {
 });
 
 router.post('/getbets', requireLogin, function(req,res){
-   console.log(req.body);
+   // console.log(req.body);
    let sortedBets = [];
    Bets.find({$and:[
       {status:(req.body.status==1)?0:req.body.status},
@@ -177,7 +179,6 @@ router.post('/getbets', requireLogin, function(req,res){
             }
             sortedBets.push(single);
          });
-         console.log(sortedBets);
          res.json(sortedBets);
       }
    }).sort({date:-1});
@@ -271,8 +272,6 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    let sortedBets = [];
-   // console.log(getWeek(new Date(req.body.date));
-   // {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*5)}}
    Bets.find({$and:[{season:2017}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
@@ -331,6 +330,7 @@ router.post('/graphstats', requireLogin, function(req,res){
          console.log(err);
       } else {
          bets.forEach(function(bet, index){
+            // console.log(`${index} ${currentWeek} ${bet.week} ${bet.user1} ${bet.user2} ${bet.team1} ${bet.team2}`);
             // check if stop date to store data
             if (bet.week > currentWeek) {
                // store date for xaxis labels
@@ -340,16 +340,16 @@ router.post('/graphstats', requireLogin, function(req,res){
                   results[username].data.push(results[username].total/results[username].numBets);
                }
                // advance next date to stop on
-               currentWeek += 1;
+               currentWeek = bet.week;
             }
             // if new user, create new record
             if (!results[bet.user1]) {
                results[bet.user1]={total: 0, numBets: 0};
-               results[bet.user1].data = Array(currentWeek-1).fill(NaN);
+               results[bet.user1].data = Array(dates.length).fill(NaN);
             }
             if (!results[bet.user2]) {
                results[bet.user2]={total: 0, numBets: 0};
-               results[bet.user2].data = Array(currentWeek-1).fill(NaN);
+               results[bet.user2].data = Array(dates.length).fill(NaN);
             }
             // increment counters
             if (bet.status == 4) {
@@ -641,56 +641,103 @@ router.get('/getdebts', requireLogin, function(req,res){
 });
 
 router.post('/resolvefinish', requireLogin, function(req,res){
-   // find and mark other guys wins
-   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 5}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err, bets){
-      bets.forEach(function(bet) {
-         markPaid(bet._id, req.body.name);
-      });
-   }).sort({date: 1}).limit(Number(req.body.num));
-   // find and mark own wins
-   Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 5}, {user1: req.body.name}, {user2: req.session.user._id}]},{$and:[{status: 4}, {user1: req.session.user._id}, {user2: req.body.name}]}]}]}, function(err,bets){
-      bets.forEach(function(bet) {
-         markPaid(bet._id, req.session.user._id);
-      });
-   }).sort({date: 1}).limit(Number(req.body.num));
-   Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+
+   function findAndMark(winner, loser){
+      Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}, function(err, bets){
+         bets.forEach(function(bet) {
+            markPaid(bet._id, winner);
+         });
+      }).sort({date: 1}).limit(Number(req.body.num));
+   }
+
+   if (req.body.name.includes('/')) {
+      findAndMark(req.session.user._id, req.body.name.split('/')[0]);
+      findAndMark(req.body.name.split('/')[0], req.body.name.split('/')[1]);
+      findAndMark(req.body.name.split('/')[1], req.session.user._id);
+      Util.textUser(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting debts between you & '+req.body.name.split('/')[1]+' - no further action required');
+      Util.textUser(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting debts between you & '+req.body.name.split('/')[0]+' - no further action required');
+   } else {
+      findAndMark(req.session.user._id, req.body.name);
+      findAndMark(req.body.name, req.session.user._id);
+      Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+   }
    res.send({'type':'success', 'message':'Offset debts recorded'});
 });
 
-router.get('/resolvedebts', requireLogin, function(req,res){
-   let debtList = {owes: {}, isowed: {}},
-       results = [];
+function getDebtList (person){
+   return new Promise (function(resolve, reject) {
+      let debtList = {owes: {}, isowed: {}};
 
-   Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: req.session.user._id}, {user2: req.session.user._id}]}]}, function(err, bets){
-      bets.forEach(function(bet){
-         if ((bet.status == 4 && bet.user1 == req.session.user._id) || (bet.status == 5 && bet.user2 == req.session.user._id)) {
-            // swap users in case the latter above
-            if (bet.user2 == req.session.user._id)
-               bet.user2 = bet.user1;
-            if (!debtList.isowed[bet.user2]) {
-               debtList.isowed[bet.user2] = 1;
+      Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: person}, {user2: person}]}]}, function(err, bets){
+         bets.forEach(function(bet){
+            if ((bet.status == 4 && bet.user1 == person) || (bet.status == 5 && bet.user2 == person)) {
+               // swap users in case the latter above
+               if (bet.user2 == person)
+                  bet.user2 = bet.user1;
+               if (!debtList.isowed[bet.user2]) {
+                  debtList.isowed[bet.user2] = 1;
+               } else {
+                  debtList.isowed[bet.user2] += 1;
+               }
             } else {
-               debtList.isowed[bet.user2] += 1;
+               // swap users in case the latter above
+               if (bet.user2 == person)
+                  bet.user2 = bet.user1;
+               if (!debtList.owes[bet.user2]) {
+                  debtList.owes[bet.user2] = 1;
+               } else {
+                  debtList.owes[bet.user2] += 1;
+               }
             }
-         } else {
-            // swap users in case the latter above
-            if (bet.user2 == req.session.user._id)
-               bet.user2 = bet.user1;
-            if (!debtList.owes[bet.user2]) {
-               debtList.owes[bet.user2] = 1;
-            } else {
-               debtList.owes[bet.user2] += 1;
-            }
-         }
+         });
+         resolve(debtList);      
       });
-      console.log(debtList);
-      // find match between 2 lists
-      for (let person in debtList.isowed) {
-         if (debtList.owes[person]) {
-            results.push({name: person, num: Math.min(debtList.owes[person], debtList.isowed[person])});
+   });
+}
+
+router.get('/resolvedebts', requireLogin, function(req,res){
+   let results = [],
+      promises = [];
+
+   getDebtList(req.session.user._id)
+   .then(function(debtList1){
+      promises.push(new Promise(function(resolve, reject){
+         // check isowed 2way list first
+         for (let debtor in debtList1.isowed) {
+            // find 2way match
+            if (debtList1.owes[debtor]) {
+               results.push({name: debtor, num: Math.min(debtList1.owes[debtor], debtList1.isowed[debtor])});
+            } else { //check for isowed 3way
+               promises.push(new Promise(function(resolve, reject){
+                  getDebtList(debtor)
+                  .then(function(debtList2){
+                     for (let debtor2 in debtList2.isowed) {
+                        if (debtList1.owes[debtor2]) {
+                           results.push({name: debtor+'/'+debtor2, num: Math.min(debtList1.owes[debtor2], debtList2.isowed[debtor2])});
+                        }
+                     }
+                     resolve();  //done with isowed 3way check
+                  });
+               }));
+            }
          }
-      }
-      res.send(results);
+         resolve();  //done with isowed 2way check
+      }));
+      //next go through original owes and look for 3way
+      // promises.push(new Promise(function(resolve, reject){
+      //    for (let ower in debtList1.owes) {
+      //       getDebtList(ower)
+      //       .then(function(debtList3){
+      //          if (debtList3.owes[ower]) {
+      //             results.push({name: debtor+'/'+debtor2, num: Math.min(debtList1.owes[debtor2], debtList2.isowed[debtor2])});
+      //          }
+      //       });
+      //    }
+      //    resolve();
+      // }));
+      Promise.all(promises).then(function(){
+         res.send(results);   
+      });
    });
 });
 

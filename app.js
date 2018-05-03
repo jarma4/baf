@@ -46,6 +46,7 @@ var express = require('express'),
 //    }
 // }
 
+require('dotenv').config()
 
 // enable middleware
 app.use(compression());
@@ -93,7 +94,7 @@ var oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
 // backup mongo datbases
 var backupDbCron = crontab.scheduleJob('0 1 * * 0', function () {
    var now = new Date();
-   var cmd = exec('mongodump -dbaf -ubaf -p$BAF_MONGO -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
+   var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr) {
          console.log(error);
          console.log(stderr);

@@ -5,6 +5,8 @@ var  Users = require('./dbschema').Users,
    sinchSms = require('./sinch-messaging'),
    mongoose = require('mongoose');
 
+require('dotenv').config()
+   
 // const nexmo = new Nexmo({
 //    apiKey: process.env.BAF_NEXMOK,
 //    apiSecret: process.env.BAF_NEXMOS

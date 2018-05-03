@@ -8,7 +8,6 @@ $('#futureModal').on('show.bs.modal', function (event) {
 });
 
 $('#futureSubmit').on('click', function() {
-   console.log("askdjhf");
    postApi('makebet', {
 		   'amount': 2,
          'type': ($('#futureSide').val() == 'give')?'give':'take',
@@ -33,7 +32,8 @@ $('#futureOfferSubmit').on('click', function(){
    postApi('changebet', {
          'id': $('#futureActId').val(),
          'status': 2,
-         'future': true
+         'user2': $('#futureSessionId').val(),
+         'action': 'change'
       });
    getFutures();
 });
@@ -84,7 +84,7 @@ function getFutures() {
          $('#futuresGroup').append(newPanel);
          document.getElementById('futuresPanel'+i).innerHTML = outp;
          $('#futuresTitle'+i).text(single.event);
-         if (new Date('2017/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
+         if (new Date('2018/'+retData.futures[i].time) < new Date(new Date().valueOf()-5*24*60*60*1000))
             $('#futuresTitle'+i).next().next().addClass('heading-danger');
       });
    })
@@ -96,7 +96,7 @@ function getFutures() {
    fetch('/api/getfutureoffers', postOptions)
    .then(res => res.json())
    .then(retData => {
-      username = retData.sessionId; // being returned so buttons can be customized
+      $('#futureSessionId').val(retData.sessionId);
       var outp = '<table class="table table-condensed">';
       $.each(retData.offers, function(i,rec){
          outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' doesn\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
