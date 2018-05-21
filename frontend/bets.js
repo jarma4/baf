@@ -68,7 +68,7 @@ function getBets(status, target, addButton) {
          if (addButton)
             outp += '<th>Edit</th>';
          $.each(retData, function(i,rec){
-            outp +='</tr><tr>';
+            outp +='</tr><tr'+((rec.watch==2)?' class="watchseen"':'')+'>';
             outp += '<td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.fta)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="comment" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
             if (addButton)
                outp += '<td><button class="btn btn-sm '+((addButton=='rescind')?'btn-danger':'btn-success')+'" data-toggle="modal" data-target="#'+((addButton=='accept')?'actionModal':(addButton=='rescind')?'rescindModal':'watchModal')+'" data-id="'+rec._id+'" data-odds="'+rec.odds+'" data-team1="'+rec.team1+'" data-team2="'+rec.team2+'" data-watch="'+rec.watch+'" data-status="'+rec.status+'" data-type="'+rec.type+'" data-sport="'+rec.sport+'" data-deactivated="'+((rec.watch==2)?true:false)+'"><span class="glyphicon glyphicon-'+((addButton=='rescind')?'remove':'hand-left')+'"></span></button></td>';

@@ -210,6 +210,9 @@ tr .heading {
 .bold {
    font-weight: bold;
 }
+.watchseen {
+   text-decoration: line-through;
+}
 // below defines modal color classes
 @each $color in (
 	default $theme-default,

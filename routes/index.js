@@ -7,7 +7,7 @@ mongoose = require('mongoose');
 
 require('dotenv').config()
 
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
 router.use(session({
     cookieName: 'session',
@@ -47,45 +47,45 @@ router.get('/', function(req, res) {
 });
 
 router.get('/odds', function(req, res) {
-    res.render('odds');
+    res.render('odds', {pagename:'odds'});
  });
 
  router.get('/bets', function(req, res) {
-    res.render('bets');
+    res.render('bets', {pagename:'bets'});
  });
 
 router.get('/stats', function(req, res) {
-   res.render('stats');
+   res.render('stats', {pagename:'stats'});
 });
 
 router.get('/messageboard', function(req, res) {
-   res.render('msg');
+   res.render('msg', {pagename:'msg'});
 });
 
 router.get('/scores', function(req, res) {
-   res.render('scores');
+   res.render('scores', {pagename:'scores'});
 });
 
 router.get('/props', function(req, res) {
-   res.render('props');
+   res.render('props', {pagename:'props'});
 });
 
 router.get('/overunder', function(req, res) {
-   res.render('overunder');
+   res.render('overunder', {pagename:'overunder'});
 });
 
 router.get('/options', function(req, res) {
-   res.render('options');
+   res.render('options', {pagename:'options'});
 });
 
 router.get('/futures', function(req, res) {
-   res.render('futures');
+   res.render('futures', {pagename:'futures'});
 });
 
 router.get('/login', function(req, res) {
-   res.render('login');
+   res.render('login', {pagename:'login'});
 });
 
 router.get('/log', function(req, res) {
-   res.render('log');
+   res.render('log', {pagename:'log'});
 });

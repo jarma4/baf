@@ -15,11 +15,12 @@ let express = require('express'),
    // Props = require('../models/dbschema').Props,
    OUgame = require('../models/dbschema').OUgame,
    OUuser = require('../models/dbschema').OUuser,
-   mongoose = require('mongoose');
+   mongoose = require('mongoose'),
+   webpush = require('web-push');
 
 require('dotenv').config()
 
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf',{useMongoClient: true});
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
 router = express.Router();
 
@@ -50,6 +51,9 @@ router.use(function (req, res, next) {
     next();
   }
 });
+
+webpush.setVapidDetails("mailto:admin@2dollarbets.com", process.env.BAF_VAPPUB, process.env.BAF_VAPPRI
+);
 
 function requireLogin (req, res, next) {
    // console.log('requirelogin'+req.user);
@@ -756,9 +760,14 @@ router.get('/getfutures', function (req, res) {
 });
 
 router.get('/getlogs', function (req, res) {
-   if (fs.existsSync('json/log.json')) {
-      res.sendFile('./json/log2.json', {'root':__dirname+'/..'});
-   }
+   // if (fs.existsSync('json/log.json')) {
+   //    res.sendFile('./json/log2.json', {'root':__dirname+'/..'});
+   // }
+   const payload = JSON.stringify({ title: "Push Test", body: 'body'});
+
+  // Pass object into sendNotification
+   webpush.sendNotification(subscription, payload)
+   .catch(err => console.error(err));
 });
 
 router.get('/nflodds', function (req, res) {
@@ -771,6 +780,12 @@ router.get('/nbaodds', function (req, res) {
 
 router.get('/ncaaodds', function (req, res) {
    res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
+});
+
+router.post("/pushsubscribe", (req, res) => {
+   console.log('pushsubscribe');
+   const subscription = req.body;
+   res.status(201).json({});
 });
 
 // gets userlist for bet select list

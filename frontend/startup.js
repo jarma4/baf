@@ -5,6 +5,7 @@ $(document).ready(function() {
    //    $("#wrapper").css('margin-left', '-360px');
    // }
    // $("#wrapper").css('margin-left', '0px');
+   initServiceWorker();
    doorBell();
 });
 
@@ -38,6 +39,36 @@ var username,
    getOptions = {
       credentials: 'same-origin',
    };
+
+   
+async function initServiceWorker(){
+   function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+         .replace(/\-/g, "+")
+         .replace(/_/g, "/");
+
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+   }
+   if ("serviceWorker" in navigator) {
+      const register = await navigator.serviceWorker.register("/js/worker.js", {
+         scope: "/"
+      });
+      const subscription = await register.pushManager.subscribe({
+         userVisibleOnly: true,
+         applicationServerKey: urlBase64ToUint8Array('BCStsAHlI_a_jYeD3x8km8xkiTnIv-2iR0oigfMZLZpT2WgUi9lv-8kA7WcdQwenhdMb9uqsrMLlp0ArtTjns5o')
+      });
+      postOptions.body = JSON.stringify(subscription);
+      fetch('/api/pushsubscribe', postOptions);
+      // .catch(retData => modalAlert(retData.type,retData.message));
+   }
+}
    
 // called when new page loaded
 function doorBell(){
