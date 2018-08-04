@@ -12,8 +12,8 @@ var request = require('request'),
    mongoose = require('mongoose');
 
 function getOdds(sport) {
-   var url = 'http://www.oddsshark.com/'+sport+'/odds';
-   // console.log('refeshing '+sport+' odds - '+new Date());
+   var url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+   // console.log(url);
    request(url, function (err, response, body) {
       if(!err && response.statusCode == 200) {
          var $ = cheerio.load(body);
@@ -212,9 +212,7 @@ function addNbaGame(date) {
 
 module.exports = {
    refreshOddsInfo: function() {
-      // getOdds('nfl');
-      getOdds('nba');
-      getOdds('ncaab');
+      getOdds('nfl');
    },
 
    checkScores: function(sport) {

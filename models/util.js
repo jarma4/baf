@@ -33,6 +33,13 @@ module.exports = {
    seasonStart: {
       nfl: new Date(2017,8,5),
       nba: new Date(2017,9,17),
-      ncaa: new Date(2018,2,16)
+      ncaa: new Date(2018,2,16),
+      soccer: new Date(2018,5,14)
+   },
+   inSeason: {
+      nfl: false,
+      nba: false,
+      ncaa: false,
+      soccer: true
    }
 };

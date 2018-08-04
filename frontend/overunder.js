@@ -1,6 +1,6 @@
 // Update status of special over/under wager these guys have
 function getOverunder() {
-   if(!inSeason[($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa'] && $('#ouYear').val() == new Date().getFullYear()){
+   if(1){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
@@ -8,8 +8,8 @@ function getOverunder() {
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
       postOptions.body = JSON.stringify({
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': $('#ouYear').val()
+         'sport': 'nfl',
+         'season': 2018
       });
       fetch('/api/getstandings', postOptions)
       .then(res => res.json())
@@ -68,8 +68,8 @@ $('#ouYear').on('change', function(e){
 
 function ouSignup() {
    postOptions.body = JSON.stringify({
-      'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-      'season': $('#ouYear').val()
+      'sport': 'nfl',
+      'season': 2018
    });
    fetch('/api/getousignup', postOptions)
    .then(res => res.json())
@@ -109,8 +109,8 @@ function ouSignup() {
 $('#ouBtn').on('click', function(e){
    if ($('#ouBtn').text() == 'Join') {
       postOptions.body = JSON.stringify({
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-         'season': 2017
+         'sport': 'nfl',
+         'season': 2018
       });
       fetch('/api/ousignup', postOptions)
       .then(res => res.json())
@@ -134,8 +134,8 @@ $('#ouBtn').on('click', function(e){
             }
          }
          postOptions.body = JSON.stringify({
-            'sport': ($('#sportNfl').hasClass('selected'))?'nfl':'nba',
-            'season': 2017,
+            'sport': 'nfl',
+            'season': 2018,
             'choices': JSON.stringify(choices)
          });
          fetch('/api/setouchoices', postOptions)

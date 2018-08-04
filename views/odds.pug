@@ -6,15 +6,7 @@ block content
    .container-fluid
       .row.no-gutters
          .col-md-12
-            #sportMenu
-               ul
-                  li#sportNfl.sportPick.hidden
-                     a NFL
-                  li#sportNba.sportPick.hidden.selected
-                     a NBA
-                  li#sportNcaa.sportPick.hidden
-                     a NCAA
-               em#timestamp.right.pushDown
+            include ./sportsmenu.pug
       .row.no-gutters
          .col-md-4
             #watchBets
@@ -23,7 +15,7 @@ block content
             #col2
          .col-md-4
             #col3
-         //- .col-md-2
+         //- .col-md-3
          //-    #col4
          //- .col-md-1
          //-    #col5

@@ -1,24 +1,25 @@
-let express = require('express'),
-   bodyParser = require('body-parser'),
-   fs = require('fs'),
-   // Auth = require('./auth'),
-   logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
-   session = require('client-sessions'),
-   bcrypt = require('bcrypt'),
-   // session = require('express-session'),
-   Util = require('../models/util'),
-   Users = require('../models/dbschema').Users,
-   Records = require('../models/dbschema').Records,
-   Bets = require('../models/dbschema').Bets,
-   Scores = require('../models/dbschema').Scores,
-   Messages = require('../models/dbschema').Messages,
-   // Props = require('../models/dbschema').Props,
-   OUgame = require('../models/dbschema').OUgame,
-   OUuser = require('../models/dbschema').OUuser,
-   mongoose = require('mongoose'),
-   webpush = require('web-push');
+const express = require('express'),
+      bodyParser = require('body-parser'),
+      fs = require('fs'),
+      // Auth = require('./auth'),
+      logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
+      session = require('client-sessions'),
+      bcrypt = require('bcrypt'),
+      // session = require('express-session'),
+      Util = require('../models/util'),
+      Users = require('../models/dbschema').Users,
+      Records = require('../models/dbschema').Records,
+      Bets = require('../models/dbschema').Bets,
+      Sports = require('../models/dbschema').Sports,
+      Scores = require('../models/dbschema').Scores,
+      Messages = require('../models/dbschema').Messages,
+      // Props = require('../models/dbschema').Props,
+      OUgame = require('../models/dbschema').OUgame,
+      OUuser = require('../models/dbschema').OUuser,
+      mongoose = require('mongoose'),
+      webpush = require('web-push');
 
-require('dotenv').config()
+require('dotenv').config();
 
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
@@ -52,8 +53,7 @@ router.use(function (req, res, next) {
   }
 });
 
-webpush.setVapidDetails("mailto:admin@2dollarbets.com", process.env.BAF_VAPPUB, process.env.BAF_VAPPRI
-);
+webpush.setVapidDetails("mailto:admin@2dollarbets.com", process.env.BAF_VAPPUB, process.env.BAF_VAPPRI);
 
 function requireLogin (req, res, next) {
    // console.log('requirelogin'+req.user);
@@ -763,30 +763,52 @@ router.get('/getlogs', function (req, res) {
    // if (fs.existsSync('json/log.json')) {
    //    res.sendFile('./json/log2.json', {'root':__dirname+'/..'});
    // }
-   const payload = JSON.stringify({ title: "Push Test", body: 'body'});
-
-  // Pass object into sendNotification
-   webpush.sendNotification(subscription, payload)
-   .catch(err => console.error(err));
-});
-
-router.get('/nflodds', function (req, res) {
-   res.sendFile('./json/nfl_odds.json', {'root':__dirname+'/..'});
-});
-
-router.get('/nbaodds', function (req, res) {
-   res.sendFile('./json/nba_odds.json', {'root':__dirname+'/..'});
-});
-
-router.get('/ncaaodds', function (req, res) {
-   res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
+   Users.findOne({_id: req.session.user}, function(err,user){
+      if (err) {
+         console.log(err);
+      } else if(user) {
+         // create message
+         const payload = JSON.stringify({ title: "Push Test", body: 'body'});
+         // Pass object into sendNotification
+         webpush.sendNotification(JSON.parse(user.push), payload)
+         .catch(err => console.error(err));
+      }
+   });
 });
 
 router.post("/pushsubscribe", (req, res) => {
    console.log('pushsubscribe');
+   Users.update({_id:req.session.user}, {push: JSON.stringify(req.body)}, function(err){
+      if(err){
+         console.log(err);
+      } else {
+         console.log('saved to db');
+      }
+   });
    const subscription = req.body;
    res.status(201).json({});
 });
+
+router.post('/getodds', function (req, res) {
+	console.log(req.body.sport)
+   res.sendFile('./json/'+req.body.sport+'_odds.json', {'root':__dirname+'/..'});
+}); 
+
+router.get('/nflodds', function (req, res) {
+   res.sendFile('./json/nfl_odds.json', {'root':__dirname+'/..'});
+});   
+
+router.get('/nbaodds', function (req, res) {
+   res.sendFile('./json/nba_odds.json', {'root':__dirname+'/..'});
+});   
+
+router.get('/ncaaodds', function (req, res) {
+   res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
+});   
+
+router.get('/soccerodds', function (req, res) {
+   res.sendFile('./json/soccer_odds.json', {'root':__dirname+'/..'});
+});   
 
 // gets userlist for bet select list
 router.get('/users', requireLogin, function(req,res){
@@ -800,14 +822,27 @@ router.get('/doorbell', requireLogin, function(req,res){
    let today = new Date(),
       answer = {
          type: 'message',
+         sports: []
          // username: req.session.user._id
       };
-   if (fs.existsSync('json/nfl_odds.json'))
-      answer.nfl = true;
-   if (fs.existsSync('json/nba_odds.json'))
-      answer.nba = true;
-   if (fs.existsSync('json/ncaa_odds.json'))
-      answer.ncaa = true;
+   // if (fs.existsSync('json/nfl_odds.json'))
+   //    answer.nfl = true;
+   // if (fs.existsSync('json/nba_odds.json'))
+   //    answer.nba = true;
+   // if (fs.existsSync('json/ncaa_odds.json'))
+   //    answer.ncaa = true;
+   // if (fs.existsSync('json/soccer_odds.json'))
+   //    answer.soccer = true;
+   let sportsPromise = new Promise(function (resolve, reject) {
+      Sports.find({inseason: true}, function(err, sports){
+         if (err)
+            reject(err);
+         sports.forEach(function(sport){
+            answer.sports.push(sport.sport);
+         });
+         resolve();
+      });
+   });
    let betsPromise = new Promise(function (resolve, reject) {
       Users.findOne({_id: req.session.user}, function(err,user){
          if (err)
@@ -839,7 +874,7 @@ router.get('/doorbell', requireLogin, function(req,res){
          resolve();
       });
    });
-   Promise.all([betsPromise, futuresPromise, propsPromise]).then(function(values){
+   Promise.all([sportsPromise, betsPromise, futuresPromise, propsPromise]).then(function(values){
       res.send(answer);
    });
 });

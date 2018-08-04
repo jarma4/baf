@@ -4,6 +4,7 @@ var usersSchema = new mongoose.Schema({
    _id : String,  //really username
    password : String,
    sms : String,
+   push: String,
    bets : Number,
    debts : Number,
    pref_nfl_everyone: Boolean,
@@ -69,6 +70,12 @@ var propsSchema = new mongoose.Schema({
    prop: String,
    odds: Number,
    winner: Number
+});
+
+var sportsSchema = new mongoose.Schema({
+   sport: String,
+   start : Date,
+   inseason : Boolean,
 });
 
 var ouGameSchema = new mongoose.Schema({
@@ -144,6 +151,7 @@ var Bets = mongoose.model('Bets', betsSchema);
 var Scores = mongoose.model('Scores', scoresSchema);
 var Messages = mongoose.model('Messages', msgSchema);
 var Props = mongoose.model('Props', propsSchema);
+var Sports = mongoose.model('Sports', sportsSchema);
 var OUgame = mongoose.model('OUgame', ouGameSchema);
 var OUuser = mongoose.model('OUuser', ouUserSchema);
 var Logs = mongoose.model('Logs', logsSchema);
@@ -155,6 +163,7 @@ module.exports = {
    Scores: Scores,
    Messages: Messages,
    Props: Props,
+   Sports: Sports,
    OUgame: OUgame,
    OUuser: OUuser,
    Logs: Logs

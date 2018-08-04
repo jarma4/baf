@@ -5,6 +5,7 @@ self.addEventListener("push", e => {
   console.log("Push Recieved...");
   self.registration.showNotification(data.title, {
     body: data.message,
-    icon: 'images/2db_48.png'
+    icon: '../images/2db_48.png',
+    requireInteraction: true
   });
 });

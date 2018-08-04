@@ -5,7 +5,7 @@ $(document).ready(function() {
    //    $("#wrapper").css('margin-left', '-360px');
    // }
    // $("#wrapper").css('margin-left', '0px');
-   initServiceWorker();
+   // initServiceWorker();
    doorBell();
 });
 
@@ -19,15 +19,17 @@ var username,
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB'},
    seasonStart = {
-         nfl: new Date(2017,8,5),
-         nba: new Date(2017,9,17),
-         ncaa: new Date(2017,2,16)
-      },
-   inSeason = {
-      nfl: 0,
-      nba: 1,
-      ncaa: 0
+      nfl: new Date(2017,8,5),
+      nba: new Date(2017,9,17),
+      ncaa: new Date(2017,2,16)
    },
+   inSeason = {
+      nfl: true,
+      nba: false,
+      ncaa: false,
+      soccer: false
+   },
+   // for FETCH calls
    postOptions = {
       credentials: 'same-origin',
       method:'POST',
@@ -57,9 +59,7 @@ async function initServiceWorker(){
       return outputArray;
    }
    if ("serviceWorker" in navigator) {
-      const register = await navigator.serviceWorker.register("/js/worker.js", {
-         scope: "/"
-      });
+      const register = await navigator.serviceWorker.register("/js/worker.js");
       const subscription = await register.pushManager.subscribe({
          userVisibleOnly: true,
          applicationServerKey: urlBase64ToUint8Array('BCStsAHlI_a_jYeD3x8km8xkiTnIv-2iR0oigfMZLZpT2WgUi9lv-8kA7WcdQwenhdMb9uqsrMLlp0ArtTjns5o')
@@ -92,15 +92,9 @@ function doorBell(){
          if (retData.props) {
             $('#notify4').removeClass('hidden');
          }
-         if (retData.nfl) {
-            $('#sportNfl').removeClass('hidden');
-         }
-         if (retData.nba) {
-            $('#sportNba').removeClass('hidden');
-         }
-         if (retData.ncaa) {
-               $('#sportNcaa').removeClass('hidden');
-         }
+         retData.sports.forEach((sport, i) => {
+            $('.sportPick.'+sport).removeClass('hidden');
+         });
       }
    })
 	.catch(retData => modalAlert(retData.type,retData.message));

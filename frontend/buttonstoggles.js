@@ -4,32 +4,21 @@ $('.toggleSidebar').on('click', function() {
 });
 
 function toggleSport(sport) {
-   if (sport == 'nba') {
-      $('#sportNba').addClass('selected');
-      $('#sportNfl').removeClass('selected');
-      $('#sportNcaa').removeClass('selected');
-      document.cookie = 'sport=nba;max-age=43200';
-   } else if (sport == 'nfl'){
-      $('#sportNfl').addClass('selected');
-      $('#sportNba').removeClass('selected');
-      $('#sportNcaa').removeClass('selected');
-      document.cookie = 'sport=nfl;max-age=43200';
-   } else {
-      $('#sportNcaa').addClass('selected');
-      $('#sportNfl').removeClass('selected');
-      $('#sportNba').removeClass('selected');
-      document.cookie = 'sport=ncaa;max-age=43200';
-   }
+   $('.sportPick').removeClass('selected');
+   $('.sportPick.'+sport).addClass('selected');
+   document.cookie = 'sport='+sport+';max-age=43200';
 }
 
 $('.sportPick').on('click', function(){
-   if (!$(this).hasClass('selected') && !$(this).hasClass('dimmed')) {
-      if ($(this).is($('#sportNfl')))
-         toggleSport('nfl');
-      else if ($(this).is($('#sportNba')))
-         toggleSport('nba');
-      else
-         toggleSport('ncaa');
+   if (!$(this).hasClass('selected')) {
+      let sport = $(this).attr('class').split(/\s+/)[1];
+      console.log(sport);
+      // if ($(this).is($('#sportNfl')))
+      //    toggleSport('nfl');
+      // else if ($(this).is($('#sportNba')))
+      //    toggleSport('nba');
+      // else
+      toggleSport(sport);
       // according to what page you're on, refresh data
       switch (window.location.pathname) {
          case '/':
