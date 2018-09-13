@@ -1,16 +1,15 @@
 function getOdds (){
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
-   console.log(sport);
    // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
    //    var sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';
    // toggleSport(sport);
    postOptions.body = JSON.stringify({
-      "sport": 'nfl'
+      "sport": sport
    });
 	fetch('/api/getodds', postOptions)
    .then(res =>res.json())
    .then(retData => {
-      var sportColor, prevDate=1, gameNum=0, listCount=12;
+      var sportColor, prevDate=1, gameNum=0, listCount=22;
       // clear remnents of previous screens
       for (var i = 1; i < 5; i++) {
          $('#col'+i).empty();

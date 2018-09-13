@@ -9,13 +9,15 @@ require('dotenv').config()
 
 // http site
 const app_http = express();
-app_http.use(compression());
+// app_http.use(compression());
+// app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
+	// res.sendfile('./public/react.html');
    res.redirect(301, 'https://2dollarbets.com');
 });
 app_http.listen(80, function(){
    console.log('redirecting on port 80');
-})
+});
 
 // https site
 const app_https = express();
@@ -50,13 +52,13 @@ const scraper = require('./models/scraper');
 
 // schedule worker jobs
 const oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
-   // checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0,1,4,6", scraper.checkScores,['nfl']),
+   checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0,1,4", scraper.checkScores,['nfl']),
    // checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
-   // tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4,6", scraper.tallyBets,['nfl']),
+   tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4,6", scraper.tallyBets,['nfl']),
    tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
-   // updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
+   updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
    // updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 // backup mongo datbases

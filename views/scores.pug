@@ -5,14 +5,7 @@ block content
    .container-fluid
       .row.no-gutters
          .col-md-12
-            #sportMenu
-               ul
-                  li#sportNfl.sportPick.hidden
-                     a NFL
-                  li#sportNba.sportPick.hidden.selected
-                     a NBA
-                  li#sportNcaa.sportPick.hidden
-                     a NCAA            
+            include ./sportsmenu.pug            
       .row.no-gutters
          .col-md-3
             .panel.panel-primary
@@ -27,4 +20,4 @@ block content
                #scoresArea.panel-body
 
 block scripts
-   script(type='text/javascript') showScores(new Date())
+   script(type='text/javascript') showScores(getWeek(new Date(),'nfl'))

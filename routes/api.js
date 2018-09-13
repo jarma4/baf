@@ -75,7 +75,7 @@ function saveBet (req){
    let today = new Date();
    new Bets({
       week: Util.getWeek(today, req.body.sport),
-      season: 2017, //today.getFullYear(),
+      season: 2018, //today.getFullYear(),
       gametime: req.body.gametime,
       date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
       user1: req.session.user._id,
@@ -276,7 +276,7 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
    let sortedBets = [];
-   Bets.find({$and:[{season:2017}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
+   Bets.find({$and:[{season:2018}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
       if(err){
          console.log(err);
       } else {
@@ -790,7 +790,6 @@ router.post("/pushsubscribe", (req, res) => {
 });
 
 router.post('/getodds', function (req, res) {
-	console.log(req.body.sport)
    res.sendFile('./json/'+req.body.sport+'_odds.json', {'root':__dirname+'/..'});
 }); 
 

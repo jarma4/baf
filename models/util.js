@@ -11,7 +11,8 @@ require('dotenv').config()
 //    apiKey: process.env.BAF_NEXMOK,
 //    apiSecret: process.env.BAF_NEXMOS
 // });
-    
+var textList = {};
+
 module.exports = {
    textUser: function (to, message, pref2){
       Users.findOne({_id: to}, function(err,user){
@@ -20,8 +21,19 @@ module.exports = {
          } else if (user){
             if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
                // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
-               // console.log('Text '+user._id);
-               sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+               // increment list for user to be checked later
+               if (textList[to]) {
+                  textList[to]++;
+               } else {
+                  textList[to] = 1;
+               }
+               // only text user once every 2 minutes
+               setTimeout(function(){
+                  if (textList[to]) {
+                     sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+                     textList[to] = 0;
+                  }
+               }, 90000);
             }
          }
       });
@@ -31,10 +43,10 @@ module.exports = {
       return Math.ceil((date - ((sport=='nba')?module.exports.seasonStart.nba:(sport=='nfl')?module.exports.seasonStart.nfl:module.exports.seasonStart.ncaa)) / dayTicks / 7);
    },
    seasonStart: {
-      nfl: new Date(2017,8,5),
-      nba: new Date(2017,9,17),
-      ncaa: new Date(2018,2,16),
-      soccer: new Date(2018,5,14)
+      nfl: new Date(2018,8,5),
+      nba: new Date(2018,9,17),
+      ncaa: new Date(2019,2,16),
+      soccer: new Date(2019,5,14)
    },
    inSeason: {
       nfl: false,

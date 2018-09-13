@@ -26,7 +26,7 @@ function drawChart(days) {
    postOptions.body = JSON.stringify({
       user: 'ALL',
       days: days,
-      sport: ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
+      sport: $('.sportPick.selected').attr('class').split(/\s+/)[1],
       season: $('#statsYear').val()
    });
    fetch('/api/graphstats', postOptions)

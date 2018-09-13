@@ -1,19 +1,20 @@
 function showScores(period) {
-   var sport = document.cookie.split('=')[1];
-   if (sport !== 'nba' && sport !== 'nfl' && sport !== 'ncaa')
-      sport = ($('#sportNfl').hasClass('selected'))?'nfl':'nba';
-   if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
-      period = new Date();
+   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
+   // var sport = document.cookie.split('=')[1];
+   // if (sport !== 'nba' && sport !== 'nfl' && sport !== 'ncaa')
+   //    sport = ($('#sportNfl').hasClass('selected'))?'nfl':'nba';
+   // if (sport == 'nba' && $('#sportNfl').hasClass('selected'))
+   //    period = new Date();
    toggleSport(sport);
    postOptions.body = JSON.stringify({
       'sport': sport,
-      'season': 2017, //too specific to football, needs to fixed
+      'season': 2018, //too specific to football, needs to fixed
       'period': period
    });
    fetch('/api/getscores', postOptions)
    .then((res)=>res.json())
    .then(retData => {
-      if ($('#sportNfl').hasClass('selected')) {
+      if (sport == 'nfl') {
          $('#scoresPeriod').text('Week '+period);
       } else {
          $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());

@@ -105,7 +105,7 @@ function updateBet(id,object){
 }
 
 function updatePct (user, sport) {
-   Records.findOne({user: user, sport: sport, season: 2017}, function(err, record) {
+   Records.findOne({user: user, sport: sport, season: 2018}, function(err, record) {
       Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
          if (err)
             console.log('pct error');
@@ -130,10 +130,10 @@ function updateRecord(user, category, sport, season) {
 }
 
 function updateWinnerLoser(winner, loser, push, sport){
-   updateRecord(winner, (push)?'push':'win', sport, 2017).then(function(){
+   updateRecord(winner, (push)?'push':'win', sport, 2018).then(function(){
       updatePct(winner, sport);
    });
-   updateRecord(loser, (push)?'push':'loss', sport, 2017).then(function(){
+   updateRecord(loser, (push)?'push':'loss', sport, 2018).then(function(){
       updatePct(loser, sport);
    });
    // update debt counters
@@ -149,12 +149,12 @@ function updateWinnerLoser(winner, loser, push, sport){
    }
 }
 
-function addNflGame (wk, yr, sprt) {
+function addNflWeek (wk, yr, sprt) {
    var url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
    request(url, function (err, response, body) {
       if(!err && response.statusCode === 200) {
          var $ = cheerio.load(body), pingpong = 0, team1;
-         $('.team-name').each(function(){
+         $('.team-name.desktop-name').each(function(){
             if (pingpong++%2) {
                new Scores({
                   score1: 0,
@@ -193,7 +193,7 @@ function addNbaGame(date) {
                score1: 0,
                score2: 0,
                winner: 0,
-               season: 2017,
+               season: 2018,
                sport: 'nba',
                date: dateCopy,
                team1: nbaTeams2[$(this).find('.team-name').first().text()],
@@ -213,6 +213,7 @@ function addNbaGame(date) {
 module.exports = {
    refreshOddsInfo: function() {
       getOdds('nfl');
+      getOdds('ncaaf');
    },
 
    checkScores: function(sport) {
@@ -222,7 +223,7 @@ module.exports = {
          today.setHours(today.getHours()-1);
       if (sport=='nfl') {
          wk = Util.getWeek(new Date(), sport);
-         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2017';
+         url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2018';
       } else {
          url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
       }
@@ -360,11 +361,11 @@ module.exports = {
             Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
                var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
-               OUgame.findOne({sport: sport, season: 2017, team: name}, function(err, rec) {
+               OUgame.findOne({sport: sport, season: 2018, team: name}, function(err, rec) {
                   if (err)
                      logger.error('OUgame find team error: '+err);
                   else if(rec) {
-                     OUgame.update({sport:sport, season: 2017, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
+                     OUgame.update({sport:sport, season: 2018, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
                         if (err)
                            logger.error('updateStandings error: '+err);
                      });
@@ -376,6 +377,12 @@ module.exports = {
       });
    },
 
+   addNflGames: function(start, end, year) {
+      for(let wk = start; wk <= end; wk++){
+         addNflWeek(wk, year, 'nfl');
+      }
+   },
+   
    addNbaGames: function(startDate, endDate) {
       while (startDate <= endDate) {
          addNbaGame(startDate);

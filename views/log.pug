@@ -10,41 +10,46 @@ html
 		link(href='images/favicon.png', rel='icon', type='image/png')
 		link(href='manifest.json', rel='manifest')
 	body
+		i.material-icons menu
 		nav
 			.nav-wrapper
-				a.brand-logo 2DB
-					//- img(src="images/2db_sm.png")
-				a.sidenav-trigger(href="#" data-target="mobile-demo") #[i.material-icons]menu
-				i.material-icons menu
-				ul#nav-mobile.right.hide-on-med-and-down
-					li Odds
-					li Bets
-					li Stats
-					li Scores
-					li Futures
-					li Options
-				ul#mobile-target.sidenav
-					li Odds
-					li Bets
-					li Stats
-					li Scores
-					li Futures
-					li Options
-		.row
-			.col.s12.m6
-				.card.blue-grey.darken-3
-					.card-content.white-text
-						span.card-title Card Title
-						p I am a very simple card. I am good at containing small bits of information. I am convenient because I require little markup to use effectively.
-					.card-action
-						a(href='#') This is a link
-				.card.blue-grey.darken-1
-					.card-content.white-text
-						table
-							tr
-								td Cell
-								td Cell
-								td cell
+				a.center.brand-logo(href='#') 2DB
+				a.sidenav-trigger(href="#" data-target="mobile-demo") #[i.material-icons] menu
+				ul.hide-on-med-and-down
+					li.active
+						a(href='#') Odds
+					li 
+						a(href='#') Bets
+					li 
+						a(href='#') Stats
+					li 
+						a(href='#') Scores
+					li 
+						a(href='#') Futures
+					li 
+						a(href='#') Options
+				//- ul#mobile-target.sidenav
+				//- 	li Odds
+				//- 	li Bets
+				//- 	li Stats
+				//- 	li Scores
+				//- 	li Futures
+				//- 	li Options
+		//- .row
+		//- 	.col.s12.m6
+		//- 		.card.blue-grey.darken-3
+		//- 			.card-content.white-text
+		//- 				span.card-title Card Title
+		//- 				p I am a very simple card. I am good at containing small bits of information. I am convenient because I require little markup to use effectively.
+		//- 			.card-action
+		//- 				a(href='#') This is a link
+		//- 		.card.blue-grey.darken-1
+		//- 			.card-content.white-text
+		//- 				table
+		//- 					tr
+		//- 						td Cell
+		//- 						td Cell
+		//- 						td cell
 
 		script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js")
-		script(src='js/bundle.js')
+		//- script(src='js/bundle.js')

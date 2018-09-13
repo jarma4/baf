@@ -4,6 +4,18 @@ block content
    span.title Over/Under Game
    .container-fluid
       .row.no-gutters
+            .col-md-12
+               #sportMenu
+                  ul
+                     li.sportPick.nfl.selected
+                        a NFL
+                     li.sportPick.nba
+                        a NBA
+               select#ouYear.btn-default.right.pushbottom
+                  option(value='2018') 2018
+                  option(value='2017') 2017
+                  option(value='2016') 2016
+      .row.no-gutters
          .col-md-4
             .panel.panel-warning.signup
                .panel-heading

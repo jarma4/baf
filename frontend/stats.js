@@ -11,9 +11,10 @@ $('.statsInc').on('click', function(event){
 });
 
 function getStats() {
-   var sport = document.cookie.split('=')[1];
-   if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
-      sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
+   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
+   // var sport = document.cookie.split('=')[1];
+   // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
+   //    sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
    toggleSport(sport);
    weeklyStats(getWeek(new Date(), sport));
    overallStats();
@@ -21,12 +22,13 @@ function getStats() {
 }
 // Stats stuff
 function weeklyStats(date) {
+   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    $('#weeklyStats').empty();
    $('#statsPeriod').text('Week '+ date);
-   if (inSeason[($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa']) {
+   if (inSeason[sport]) {
       postOptions.body = JSON.stringify({
          'date': date,
-         'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa'
+         'sport': sport
       });
       fetch('/api/weeklystats', postOptions)
       .then(res => res.json())
@@ -90,7 +92,7 @@ $('#statsYear').on('change', function(){
 // get overall stats and graph
 function overallStats() {
    postOptions.body = JSON.stringify({
-      'sport': ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa',
+      'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
       'season': $('#statsYear').val()
    });
    fetch('/api/overallstats', postOptions)
@@ -121,7 +123,7 @@ function getUserStats (user, sport, season, week) {
 $('#statsModal').on('show.bs.modal', function (event) {
    var button=$(event.relatedTarget);
    $('#statsTitle').text('Stats history for: '+button.data('user'));
-   getUserStats(button.data('user'), ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa', $('#statsYear').val(),(button.data('week'))?button.data('week'):'')
+   getUserStats(button.data('user'), $('.sportPick.selected').attr('class').split(/\s+/)[1], $('#statsYear').val(),(button.data('week'))?button.data('week'):'')
    .then(res => res.json())
    .then(retData => {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';

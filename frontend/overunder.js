@@ -1,6 +1,6 @@
 // Update status of special over/under wager these guys have
 function getOverunder() {
-   if(1){
+   if(0){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
@@ -8,8 +8,8 @@ function getOverunder() {
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
       postOptions.body = JSON.stringify({
-         'sport': 'nfl',
-         'season': 2018
+         'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
+         'season': $('#ouYear').val()
       });
       fetch('/api/getstandings', postOptions)
       .then(res => res.json())
