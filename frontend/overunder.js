@@ -1,10 +1,12 @@
 // Update status of special over/under wager these guys have
 function getOverunder() {
-   if(0){
+   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
+
+   if (inSeason[sport]< 0){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
-   } else {
+   } else if (inSeason[sport] == 1){
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
       postOptions.body = JSON.stringify({
@@ -26,7 +28,7 @@ function getOverunder() {
          // go through teams and populate tables
          $.each(retData.standings, function(i, rec){
             var gamesDiff = rec.line-rec.win;
-            var gamesLeft = ($('#sportNfl').hasClass('selected'))?16-rec.win-rec.loss:82-rec.win-rec.loss;
+            var gamesLeft = ($('.sportPick.nfl').hasClass('selected'))?16-rec.win-rec.loss:82-rec.win-rec.loss;
             // populate standings area
             outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':(rec.status == 'Under')?'U':'P')+'</td><td>'+((gamesDiff<0)?'met':((gamesDiff+0.5)>gamesLeft)?'not O':Math.ceil(gamesDiff+0.5)+'/'+gamesLeft)+'</td></tr>';
             // populate picks area
@@ -68,8 +70,8 @@ $('#ouYear').on('change', function(e){
 
 function ouSignup() {
    postOptions.body = JSON.stringify({
-      'sport': 'nfl',
-      'season': 2018
+      'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
+      'season': $('#ouYear').val()
    });
    fetch('/api/getousignup', postOptions)
    .then(res => res.json())
@@ -109,8 +111,8 @@ function ouSignup() {
 $('#ouBtn').on('click', function(e){
    if ($('#ouBtn').text() == 'Join') {
       postOptions.body = JSON.stringify({
-         'sport': 'nfl',
-         'season': 2018
+         'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
+         'season': $('#ouYear').val()
       });
       fetch('/api/ousignup', postOptions)
       .then(res => res.json())
@@ -134,8 +136,8 @@ $('#ouBtn').on('click', function(e){
             }
          }
          postOptions.body = JSON.stringify({
-            'sport': 'nfl',
-            'season': 2018,
+            'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
+            'season': $('#ouYear').val(),
             'choices': JSON.stringify(choices)
          });
          fetch('/api/setouchoices', postOptions)

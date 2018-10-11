@@ -20,7 +20,7 @@ module.exports = {
             console.log(err);
          } else if (user){
             if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-               // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+               // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
                // increment list for user to be checked later
                if (textList[to]) {
                   textList[to]++;
@@ -30,7 +30,7 @@ module.exports = {
                // only text user once every 2 minutes
                setTimeout(function(){
                   if (textList[to]) {
-                     sinchSms.sendMessage('+1'+user.sms, message + ' ( http://2dollarbets.com/bets )');
+                     sinchSms.sendMessage('+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
                      textList[to] = 0;
                   }
                }, 90000);
@@ -47,11 +47,11 @@ module.exports = {
       nba: new Date(2018,9,17),
       ncaa: new Date(2019,2,16),
       soccer: new Date(2019,5,14)
-   },
-   inSeason: {
-      nfl: false,
-      nba: false,
-      ncaa: false,
-      soccer: true
    }
+   // inSeason: {
+   //    nfl: false,
+   //    nba: false,
+   //    ncaa: false,
+   //    soccer: true
+   // }
 };

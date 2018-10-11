@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
    nodemon = require('gulp-nodemon'),
-   uglify = require('gulp-uglify'),
+//   uglify = require('gulp-uglify'),
+   terser = require('gulp-terser'),
    sass = require('gulp-sass'),
    cssnano = require('gulp-cssnano'),
    // rename = require('gulp-rename'),
@@ -11,7 +12,7 @@ gulp.task('scripts', function(){
    gulp.src('./frontend/*.js')
       .pipe(plumber())
       .pipe(concat('bundle.js'))
-      // .pipe(uglify())
+      .pipe(terser())
       .pipe(gulp.dest('./public/js'));
 });
 

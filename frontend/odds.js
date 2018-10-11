@@ -9,9 +9,9 @@ function getOdds (){
 	fetch('/api/getodds', postOptions)
    .then(res =>res.json())
    .then(retData => {
-      var sportColor, prevDate=1, gameNum=0, listCount=22;
+      var sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
       // clear remnents of previous screens
-      for (var i = 1; i < 5; i++) {
+      for (var i = 1; i < 4; i++) {
          $('#col'+i).empty();
       }
       // store info globally to be used elsewhere

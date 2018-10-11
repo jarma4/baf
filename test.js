@@ -1,21 +1,35 @@
 const Scraper = require('./models/scraper');
+// const fs = require('fs');
+const request = require('request');
+// const exec = require('child_process').exec;
+const cheerio = require('cheerio');
+OUgame = require('./models/dbschema').OUgame;
+OUuser = require('./models/dbschema').OUuser;
+const mongoose = require('mongoose');
 
-// require('dotenv').config();
+require('dotenv').config();
 
-// mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
+OUgame.find({season:2017, sport:'nba'}, (err, teams)=>{
+   if(!err) {
+      teams.forEach(record => {
+         new OUgame({
+            line: 0,
+            loss: 0,
+            win: 0, 
+            projection:0,
+            status: 'Under',
+            team: record.team,
+            season:2018,
+            sport:'nba'
+         }).save(err =>{
+            if(err)
+               console.log('record not saved');
+         })
+         
+      });
+   }
+})
 // Scraper.addNflGames(2,17,2018);
 
-let list = {
-   jarma: 4,
-   john: 2,
-   sergio: 1
-};
-
-for(let i = 1; i < list.jarma; i++){
-   setTimeout(function(){
-      if (list.jarma)
-         console.log('jarma');
-      list.jarma = 0;
-   }, 500);
-}

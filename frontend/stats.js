@@ -25,7 +25,7 @@ function weeklyStats(date) {
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    $('#weeklyStats').empty();
    $('#statsPeriod').text('Week '+ date);
-   if (inSeason[sport]) {
+   if (inSeason[sport] == 1) {
       postOptions.body = JSON.stringify({
          'date': date,
          'sport': sport
