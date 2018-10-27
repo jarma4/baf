@@ -96,6 +96,10 @@ span.glyphicon-menu-hamburger {
 	display: block;
 	clear: both;
 }
+
+.btnIcon {
+	background-color: transparent;
+}
 // make more room for panels which already have padding
 .container-fluid {
   padding-right: 0;
@@ -160,6 +164,9 @@ img.logo-md {
 }
 .pushUp {
 	margin-top: -5px;
+}
+.pushUp2 {
+	margin-top: -9px;
 }
 .pushRight {
 	margin-left: 10px;

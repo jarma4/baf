@@ -24,7 +24,7 @@
       "express-session": "^1.15.6",
       "help": "^3.0.2",
       "jsonfile": "^4.0.0",
-      "mongoose": "^5.0.18",
+      "mongoose": "^5.3.4",
       "nexmo": "^2.2.1",
       "node-crontab": "0.0.8",
       "nodemailer": "^4.6.4",

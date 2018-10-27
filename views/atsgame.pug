@@ -1,0 +1,22 @@
+extends base
+
+block content
+	span.title ATS Game
+	.container-fluid
+		.row
+			.col-md-4
+				.panel.panel-success
+					.panel-heading
+						| Scoreboard
+					#atsScoreboard
+			.col-md-4
+				.panel.panel-primary
+					.panel-heading
+						span#week
+						button#atsSubmit.btn.btn-warning.right.pushup2 Save
+					#atsPicks
+						//- button#ouSave.btn.btn-success(type='submit', name='status', value='1') Save
+
+block scripts
+	script(type='text/javascript').
+		getAtsgame()

@@ -12,21 +12,21 @@ $(document).ready(function() {
 //global variables
 var username,
    // used for swiping between pages
-   urls = ['/', '/odds', '/bets', '/stats', '/scores', '/futures', '/overunder', '/props', '/options'],
+   urls = ['/', '/odds', '/bets', '/stats', '/scores', '/futures', '/overunder', '/atsgame', '/props', '/options'],
    // declared global so that charts can be updated between functions
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB'},
+   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
    seasonStart = {
-      nfl: new Date(2018,8,6),
-      nba: new Date(2018,9,17),
+      nfl: new Date(2018,8,5),
+      nba: new Date(2018,9,16),
       ncaa: new Date(2018,2,16)
    },
    inSeason = {
       // 0 out of season; 1 in season, -1 signup
       nfl: 1,
-      nba: -1,
+      nba: 1,
       ncaa: 0,
       soccer: 0
    },

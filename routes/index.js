@@ -5,9 +5,7 @@ session = require('client-sessions'),
 Users = require('../models/dbschema').Users,
 mongoose = require('mongoose');
 
-require('dotenv').config()
-
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
+require('dotenv').config();
 
 router.use(session({
     cookieName: 'session',
@@ -88,4 +86,8 @@ router.get('/login', function(req, res) {
 
 router.get('/log', function(req, res) {
    res.render('log', {pagename:'log'});
+});
+
+router.get('/atsgame', function(req, res) {
+   res.render('atsgame', {pagename:'atgame'});
 });

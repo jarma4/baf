@@ -3,13 +3,14 @@ const https = require('https'),
       fs = require('fs'),
       crontab = require('node-crontab'),
       exec = require('child_process').exec,
-      compression = require('compression');
+		compression = require('compression'),
+		Util = require('./models/util');
 
 require('dotenv').config()
 
 // http site
 const app_http = express();
-// app_http.use(compression());
+app_http.use(compression());
 // app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
 	// res.sendfile('./public/react.html');
@@ -53,13 +54,15 @@ const scraper = require('./models/scraper');
 // schedule worker jobs
 const oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo),
    checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0,1,4", scraper.checkScores,['nfl']),
-   // checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
+   checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']),
    tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4,6", scraper.tallyBets,['nfl']),
-   // tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
+   tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']),
    clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets),
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
    updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
-   // updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+   updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+   publishAtsCron = crontab.scheduleJob("38 21 * * 5", scraper.publishAtsOdds);
+   tallyAtsCron = crontab.scheduleJob("0 7 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
 
 // backup mongo datbases
 const backupDbCron = crontab.scheduleJob('0 1 * * 0', function () {

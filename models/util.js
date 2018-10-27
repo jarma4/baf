@@ -1,11 +1,11 @@
 var  Users = require('./dbschema').Users,
    // Nexmo = require('nexmo'),
    sinchAuth = require('./sinch-auth'),
-   auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH),
    sinchSms = require('./sinch-messaging'),
    mongoose = require('mongoose');
-
-require('dotenv').config()
+	
+require('dotenv').config();
+auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
    
 // const nexmo = new Nexmo({
 //    apiKey: process.env.BAF_NEXMOK,

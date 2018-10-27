@@ -59,7 +59,10 @@ var scoresSchema = new mongoose.Schema({
    winner: Number,
    week : Number,
    sport : String,
-   season: Number
+	season: Number,
+	spread: Number,
+   ats: Number,
+   index: Number
 });
 
 var propsSchema = new mongoose.Schema({
@@ -139,32 +142,40 @@ var logsSchema = new mongoose.Schema({
    level: Number,
    message: String
 });
-// mongoose.model('Users', usersSchema);
-// mongoose.model('Bets', betsSchema);
-// mongoose.model('Scores', scoresSchema);
-// mongoose.model('Messages', msgSchema);
-// mongoose.model('Props', propsSchema);
-// mongoose.model('OUgame', standingsSchema);
-var Users = mongoose.model('Users', usersSchema);
-var Records = mongoose.model('Records', recordsSchema);
-var Bets = mongoose.model('Bets', betsSchema);
-var Scores = mongoose.model('Scores', scoresSchema);
-var Messages = mongoose.model('Messages', msgSchema);
-var Props = mongoose.model('Props', propsSchema);
-var Sports = mongoose.model('Sports', sportsSchema);
-var OUgame = mongoose.model('OUgame', ouGameSchema);
-var OUuser = mongoose.model('OUuser', ouUserSchema);
-var Logs = mongoose.model('Logs', logsSchema);
+
+var atsSchema = new mongoose.Schema({
+   user: String,
+   season: Number,
+   week: Number,
+   sport: String,
+   0: Number,
+   1: Number,
+   2: Number,
+   3: Number,
+   4: Number,
+   5: Number,
+   6: Number,
+   7: Number,
+   8: Number,
+   9: Number,
+   10: Number,
+   11: Number,
+   12: Number,
+   13: Number,
+   14: Number,
+   15: Number
+});
 
 module.exports = {
-   Users: Users,
-   Records: Records,
-   Bets: Bets,
-   Scores: Scores,
-   Messages: Messages,
-   Props: Props,
-   Sports: Sports,
-   OUgame: OUgame,
-   OUuser: OUuser,
-   Logs: Logs
+   Users : mongoose.model('Users', usersSchema),
+   Records : mongoose.model('Records', recordsSchema),
+   Bets : mongoose.model('Bets', betsSchema),
+   Scores : mongoose.model('Scores', scoresSchema),
+   Messages : mongoose.model('Messages', msgSchema),
+   Props : mongoose.model('Props', propsSchema),
+   Sports : mongoose.model('Sports', sportsSchema),
+   OUgame : mongoose.model('OUgame', ouGameSchema),
+   OUuser : mongoose.model('OUuser', ouUserSchema),
+   Logs : mongoose.model('Logs', logsSchema),
+   Ats : mongoose.model('Ats', atsSchema)
 };
