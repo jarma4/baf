@@ -61,19 +61,27 @@ const oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo)
    dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
    updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
    updateStandingsCron = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
-   publishAtsCron = crontab.scheduleJob("38 21 * * 5", scraper.publishAtsOdds);
-   tallyAtsCron = crontab.scheduleJob("0 7 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
+   publishAtsCron = crontab.scheduleJob("0 18 * * 5", scraper.publishAtsOdds);
+   addAtsCron = crontab.scheduleJob("50 6 * * 2", scraper.addAtsScores,[2018, Util.getWeek(new Date(), 'nfl')]);
+   tallyAtsCron = crontab.scheduleJob("14 20 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
 
-// backup mongo datbases
-const backupDbCron = crontab.scheduleJob('0 1 * * 0', function () {
-   const now = new Date();
+const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
+	const now = new Date();
+	// copy mongo db's to backup area
    var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
       if (error || stderr) {
          console.log(error);
          console.log(stderr);
       }
-   });
-   console.log('DB backup - '+now);
+	});
+	// move weekly ATS game odds file to backup area
+	cmd = exec('mv json/ats_* backup/ats', function(error, stdout, stderr) {
+      if (error || stderr) {
+         console.log(error);
+         console.log(stderr);
+      }
+	});
+   console.log('Backups - '+now);
 });
 
 

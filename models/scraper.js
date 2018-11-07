@@ -9,6 +9,7 @@ var request = require('request'),
 	Scores = require('./dbschema').Scores,
 	OUgame = require('./dbschema').OUgame,
 	Ats = require('./dbschema').Ats,
+	Odds = require('./dbschema').Odds,
 	Api = require('../routes/api');
 	// mongoose = require('mongoose');
 
@@ -414,68 +415,100 @@ module.exports = {
 		}
 	},
 	addAtsScores: function(season, week){
-		fs.readFile('json/ats_'+season+'_'+week+'.json', (err, data) => {
+		Odds.find({season: season, sport: 'nfl', week: week, ats: 0}, (err, games) => {
 			if (err) {
-				console.log('Error reading Ats file: '+err);
+				console.log('Error reading Odds: '+err);
 			} else {
-				JSON.parse(data).games.forEach(game => {
-					Scores.findOne({season: 2018, sport: 'nfl', week: week, team1: game.team1, team2: game.team2.replace('@','')}, (err, score) => {
-						let ats;
-						if (score.score1 + game.spread > score.score2)
-							ats = 1;
-						else if (score.score1 + game.spread < score.score2)
-							ats = 2;
-						else
-							ats = 3;
-						Scores.update({season: 2018, sport: 'nfl', week: week, team1: game.team1, team2: game.team2.replace('@','')}, {spread: game.spread, ats: ats, index: game.index}, err =>{
-							if (err)
-								console.log('Problem updating score ats: '+err);
-							else
-								console.log('Updated score ats');
-						});
-						// console.log(`${score.team1}(${game.spread}) ${score.score1} ${score.team2} ${score.score2} -- ${ats}`);
+				games.forEach(game => {
+					Scores.findOne({season: season, sport: 'nfl', week: week, winner: {$ne:0}, team1: game.team1, team2: game.team2.replace('@','')}, (err, score) => {
+                  if (score) {
+                     let ats;
+                     if (score.score1 + game.spread > score.score2)
+                        ats = 1;
+                     else if (score.score1 + game.spread < score.score2)
+                        ats = 2;
+                     else
+								ats = 3;
+							console.log(`${game.team1} ${game.team2} ${ats}`);
+                     Odds.update({season: season, sport: 'nfl', week: week, team1: game.team1, team2: game.team2}, {ats: ats}, err =>{
+                        if (err)
+                           console.log('Problem updating Odds ats: '+err);
+                        else
+                           console.log('Updated Odds ats');
+                     });
+                     // console.log(`${score.team1}(${game.spread}) ${score.score1} ${score.team2} ${score.score2} -- ${ats}`);
+                  }
 					});
 				});
 			}
 		});
 	},
 	publishAtsOdds: function() {
-		let current = JSON.parse(fs.readFileSync('json/nfl_odds.json'));
-		current.games.forEach(game => {
-			if (Util.getWeek(new Date(game.date), 'nfl') != Util.getWeek(new Date(), 'nfl')) {
-				current.games.pop();
-			}
-		});
-		fs.writeFileSync('json/ats_2018_'+Util.getWeek(new Date(), 'nfl')+'.json', JSON.stringify(current));
+		let index = 0;
+      let current = JSON.parse(fs.readFileSync('json/nfl_odds.json'));
+      current.games.forEach(game => {
+         if (Util.getWeek(new Date(game.date), 'nfl') == Util.getWeek(new Date(), 'nfl')) {
+            new Odds({
+               team1: game.team1,
+               team2: game.team2,
+               spread: game.spread,
+               date: game.date,
+               sport: 'nfl',
+               week: Util.getWeek(new Date(), 'nfl'),
+               season: 2018,
+               index: index++
+            }).save(err => {
+               if(err)
+                  console.log('Error saving: '+err);
+            });
+         }
+      });
+		console.log('Copied ATS odds for week');
 	},
-	tallyAts: (season, week) => {
-		Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
-			if (err) {
-				console.log("Test error: "+err);
-			} else {
-				players.forEach(choices => {
-					let index=0, score = 0, promises=[];
-					for (let key in choices.toObject()) {
-						if(key != '_id' && key != 'user') {
-							promises.push(Scores.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
-								if(result){
-									if(choices[key] == result.ats) {
-										++score;
+	getAts: (season, week) => {
+		return new Promise((resolve, reject) => {
+			let results = [], playerPromises = [];
+			Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
+				if (err) {
+					console.log("Test error: "+err);
+				} else {
+					playerPromises.push(new Promise((resolve, reject) =>{
+							players.forEach(choices => {
+								let index=0, score = 0, choicesPromises=[];
+								for (let key in choices.toObject()) {
+									if(key != '_id' && key != 'user') {
+										choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
+											if(result){
+												if(choices[key] == result.ats) {
+													++score;
+												}
+											}
+										}));
 									}
 								}
-							}));
-						}
-					}
-					Promise.all(promises).then(() => {
-						Records.update({season: season, sport: 'ats', user: choices.user}, {$inc:{win: score}}, err => {
-							console.log('updating record');
-							if (err)
-								console.log('Error incrementing ATS record: '+err);
-						});
+								Promise.all(choicesPromises).then(() => {
+									results.push({user: choices.user, win: score});
+									resolve();
+								});
+							});
+					}));
+					Promise.all(playerPromises).then(() => {
+						resolve(results);
 					});
-				});
-			}
+				}
+			}).sort({user:1});
 		});
+	},
+	tallyAts: (season, week) => {
+		module.exports.getAts(season, week).then(results => {
+         results.forEach(record => {
+            Records.update({season: season, sport: 'ats', user: record.user}, {$inc:{win: record.win}}, err => {
+               console.log('updating record');
+               if (err)
+                  console.log('Error incrementing ATS record: '+err);
+            });
+         });
+      });
 	}
 };
 

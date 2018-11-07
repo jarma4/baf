@@ -61,7 +61,6 @@ var scoresSchema = new mongoose.Schema({
    sport : String,
 	season: Number,
 	spread: Number,
-   ats: Number,
    index: Number
 });
 
@@ -165,6 +164,17 @@ var atsSchema = new mongoose.Schema({
    14: Number,
    15: Number
 });
+var oddsSchema = new mongoose.Schema({
+   sport: String,
+   season : Number,
+   week: Number,
+   date: Date,
+   team1 : String,
+   team2 : String,
+   spread: Number,
+	index: Number,
+	ats: Number
+});
 
 module.exports = {
    Users : mongoose.model('Users', usersSchema),
@@ -177,5 +187,6 @@ module.exports = {
    OUgame : mongoose.model('OUgame', ouGameSchema),
    OUuser : mongoose.model('OUuser', ouUserSchema),
    Logs : mongoose.model('Logs', logsSchema),
-   Ats : mongoose.model('Ats', atsSchema)
+   Ats : mongoose.model('Ats', atsSchema),
+   Odds : mongoose.model('Odds', oddsSchema)
 };

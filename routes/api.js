@@ -7,6 +7,7 @@ const express = require('express'),
 		bcrypt = require('bcrypt'),
 		// session = require('express-session'),
 		Util = require('../models/util'),
+		Scraper = require('../models/scraper'),
 		Users = require('../models/dbschema').Users,
 		Records = require('../models/dbschema').Records,
 		Bets = require('../models/dbschema').Bets,
@@ -17,6 +18,7 @@ const express = require('express'),
 		OUgame = require('../models/dbschema').OUgame,
 		OUuser = require('../models/dbschema').OUuser,
 		Ats = require('../models/dbschema').Ats,
+		Odds = require('../models/dbschema').Odds,
 		mongoose = require('mongoose'),
 		webpush = require('web-push');
 
@@ -564,25 +566,38 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/getatsscoreboard', requireLogin, (req,res) => {
-	Records.find({season: Number(req.body.season), sport: 'ats'}, (err, scoreboard) => {
+	Records.find({season: Number(req.body.season), sport: 'ats'}, (err, totals) => {
 		if (err)
 			console.log("ATS scoreboard error: "+err);
 		else {
-			res.json(scoreboard);
+			Scraper.getAts(req.body.season, req.body.week).then((results) => {
+				res.json({weekly: results, totals: totals});
+			});
 		}
-	});
+	}).sort({user:1});
 });
 
 router.post('/getatspicks', requireLogin, function(req,res){
-   // console.log(req.body);
-	let ats = JSON.parse(fs.readFileSync('./json/ats_'+req.body.season+'_'+req.body.week+'.json'));
-	Ats.findOne({user: req.session.user._id, week: Number(req.body.week), season: Number(req.body.season), sport: 'nfl'}, function(err, picks){
-      // console.log(picks);
+   let promises = [];
+   let day = new Date().getDay();
+	let hour = new Date().getHours();
+	let userQuery; 
+   if ((day == 5 && hour >= 18) || day == 6 || (day == 0 && hour < 12)) {
+		userQuery = req.session.user._id;
+	} else {
+		userQuery = {$exists: true};
+	}
+   // let ats = JSON.parse(fs.readFileSync('./json/ats_'+req.body.season+'_'+req.body.week+'.json'));
+   promises.push(Odds.find({season: Number(req.body.season), week: Number(req.body.week), sport: 'nfl'}, (err, ats) =>{
+         if (err)
+            console.log('Error getting weeks ATS odds: '+err);
+   }));
+	promises.push(Ats.find({user: userQuery, week: Number(req.body.week), season: Number(req.body.season), sport: 'nfl'}, (err, picks) =>{
 		if (err) {
 			console.log(err);
-		} else if (!picks) {
+		} else if (!picks.length) {
 			console.log('new ats player');
-			picks = new Ats({
+			picks.push(new Ats({
 				'user' : req.session.user._id,
 				'season' : Number(req.body.season),
 				'sport' : 'nfl',
@@ -603,24 +618,33 @@ router.post('/getatspicks', requireLogin, function(req,res){
 				'13': 1,
 				'14': 1,
 				'15': 1,
-			});
-			picks.save(err => {
+         }).save(err => {
 				if (err)
 					console.log('Error saving new ATS user: '+err);
-			});
+			}));
+         console.log(picks);
 		}
-		res.send({'picks': picks, 'ats': ats});
-	});
+	}));
+   Promise.all(promises).then((result) => {
+      res.send({'picks': result[1], 'ats': result[0]}); // not deterministic?
+   });
 });
 
 router.post('/updateats', requireLogin, (req,res) => {
-	Ats.update({user: req.session.user._id, season: Number(req.body.season), sport: 'nfl', week: req.body.week}, JSON.parse(req.body.picks), function(err){
-		if (err)
-			console.log("ATS change error: "+err);
-		else {
-			res.send({'type':'success', 'message':'Picks updated'});
-		}
-	});
+	let day = new Date().getDay();
+	let hour = new Date().getHours();
+
+	if((day == 0 && hour >= 12) || day == 1) {
+		res.send({'type':'danger', 'message':'Games started, no changes'});
+	} else {
+		Ats.update({user: req.session.user._id, season: Number(req.body.season), sport: 'nfl', week: req.body.week}, JSON.parse(req.body.picks), function(err){
+			if (err)
+				console.log("ATS change error: "+err);
+			else {
+				res.send({'type':'success', 'message':'Picks updated'});
+			}
+		});
+	}
 });
 
 router.post('/setprefs', requireLogin, function(req,res){
