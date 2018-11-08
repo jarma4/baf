@@ -570,7 +570,7 @@ router.post('/getatsscoreboard', requireLogin, (req,res) => {
 		if (err)
 			console.log("ATS scoreboard error: "+err);
 		else {
-			Scraper.getAts(req.body.season, req.body.week).then((results) => {
+         Scraper.getAts(req.body.season, req.body.week).then((results) => {
 				res.json({weekly: results, totals: totals});
 			});
 		}

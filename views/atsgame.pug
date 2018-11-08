@@ -12,11 +12,15 @@ block content
 			.col-md-4
 				.panel.panel-primary
 					.panel-heading
-						span#week
+						span#atsWeek
+						button.atsInc.btn.btn-default.right.pushUp.hidden(value=1)
+							span.glyphicon.glyphicon-chevron-right
+						button.atsInc.btn.btn-default.right.pushUp.hidden(value=-1)
+							span.glyphicon.glyphicon-chevron-left
 						button#atsSubmit.btn.btn-warning.right.pushup2.hidden Save
 					#atsPicks
-						//- button#ouSave.btn.btn-success(type='submit', name='status', value='1') Save
 
 block scripts
 	script(type='text/javascript').
-		getAtsgame()
+		getAtsScoreboard()
+		getAtsPicks(2018, getWeek(new Date(), 'nfl'))

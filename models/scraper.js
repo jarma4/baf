@@ -228,7 +228,7 @@ module.exports = {
 			url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2018';
 		} else {
 			url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
-		}
+      }
 		// console.log('checking scores @ '+url);
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
@@ -455,7 +455,8 @@ module.exports = {
                date: game.date,
                sport: 'nfl',
                week: Util.getWeek(new Date(), 'nfl'),
-               season: 2018,
+					season: 2018,
+					ats: 0,
                index: index++
             }).save(err => {
                if(err)
@@ -466,38 +467,36 @@ module.exports = {
 		console.log('Copied ATS odds for week');
 	},
 	getAts: (season, week) => {
-		return new Promise((resolve, reject) => {
-			let results = [], playerPromises = [];
-			Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
-				if (err) {
-					console.log("Test error: "+err);
-				} else {
-					playerPromises.push(new Promise((resolve, reject) =>{
-							players.forEach(choices => {
-								let index=0, score = 0, choicesPromises=[];
-								for (let key in choices.toObject()) {
-									if(key != '_id' && key != 'user') {
-										choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
-											if(result){
-												if(choices[key] == result.ats) {
-													++score;
-												}
-											}
-										}));
-									}
-								}
-								Promise.all(choicesPromises).then(() => {
-									results.push({user: choices.user, win: score});
-									resolve();
-								});
-							});
-					}));
-					Promise.all(playerPromises).then(() => {
-						resolve(results);
-					});
-				}
-			}).sort({user:1});
-		});
+      let results = [], playerPromises = [];
+		return Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
+         if (err) {
+            console.log("Test error: "+err);
+         } else {
+            playerPromises.push(new Promise((resolve, reject) =>{
+               players.forEach(choices => {
+                  let index=0, score = 0, choicesPromises=[];
+                  for (let key in choices.toObject()) {
+                     if(key != '_id' && key != 'user') {
+                        choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
+                           if(result){
+                              if(choices[key] == result.ats) {
+                                 ++score;
+                              }
+                           }
+                        }));
+                     }
+                  }
+                  Promise.all(choicesPromises).then(() => {
+                     results.push({user: choices.user, win: score});
+                     resolve();
+                  });
+               });
+            }));
+            Promise.all(playerPromises).then(() => {
+               resolve(results);
+            });
+         }
+      }).sort({user:1});
 	},
 	tallyAts: (season, week) => {
 		module.exports.getAts(season, week).then(results => {

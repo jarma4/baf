@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
-console.log(Util.getWeek(new Date('Nov 6 2018'), 'nfl'));
+Scraper.tallyBets('nba');
 
 // Records.findOne({user: user, sport: sport, season: 2018}, function (err, record) {
 		// 	if (!record) {
