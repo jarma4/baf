@@ -62,9 +62,8 @@ span.glyphicon-menu-hamburger {
 }
 // everywhere
 .title {
-	position: absolute;
-	top: 20;
-	// display: inline-block;
+	position: relative;
+	top: -5px;
    font-size: 1.5em;
 	font-weight: bold;
 	font-style: italic;
@@ -163,14 +162,14 @@ img.logo-md {
 	margin-top: 10px;
 }
 .pushUp {
-	margin-top: -5px;
-}
-.pushUp2 {
 	margin-top: -9px;
 }
-.pushRight {
-	margin-left: 10px;
-}
+// .ddd {
+// 	margin-top: -9px;
+// }
+// .pushRight {
+// 	margin-left: 10px;
+// }
 // bets page
 .popover {
 	background-color: white;

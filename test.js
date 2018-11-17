@@ -14,7 +14,33 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
-Scraper.tallyBets('nba');
+Scraper.tallyAts(2018,10);
+
+// let season=2018; 
+// let week=10;
+// Ats.findOne({user: 'jarma4', season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, choices) => {
+//    if (err) {
+//       console.log("Test error: "+err);
+//    } else {
+//       let index=0, score = 0, choicesPromises=[];
+//       for (let key in choices.toObject()) {
+//          if(key != '_id' && key != 'user') {
+//             choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
+//                if(result){
+//                   if(choices[key] == result.ats) {
+//                      console.log(`--------${choices.user} ${key} ${result.team1} ${result.team2}`)
+//                      ++score;
+//                   }
+//                }
+//             }));
+//          }
+//       }
+//       Promise.all(choicesPromises).then(() => {
+//          results.push({user: choices.user, win: score});
+//          console.log(results);
+//       });
+//    }
+// });
 
 // Records.findOne({user: user, sport: sport, season: 2018}, function (err, record) {
 		// 	if (!record) {

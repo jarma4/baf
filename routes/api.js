@@ -570,9 +570,7 @@ router.post('/getatsscoreboard', requireLogin, (req,res) => {
 		if (err)
 			console.log("ATS scoreboard error: "+err);
 		else {
-         Scraper.getAts(req.body.season, req.body.week).then((results) => {
-				res.json({weekly: results, totals: totals});
-			});
+         res.json(totals);
 		}
 	}).sort({user:1});
 });
@@ -587,46 +585,54 @@ router.post('/getatspicks', requireLogin, function(req,res){
 	} else {
 		userQuery = {$exists: true};
 	}
-   // let ats = JSON.parse(fs.readFileSync('./json/ats_'+req.body.season+'_'+req.body.week+'.json'));
-   promises.push(Odds.find({season: Number(req.body.season), week: Number(req.body.week), sport: 'nfl'}, (err, ats) =>{
-         if (err)
-            console.log('Error getting weeks ATS odds: '+err);
+   //first get picks for user(s); add promise
+   promises.push(new Promise((resolve, reject) => {
+      Ats.find({user: userQuery, week: Number(req.body.week), season: Number(req.body.season), sport: 'nfl'}, (err, picks) =>{
+         if (err) {
+            console.log(err);
+         } else if (!picks.length) {
+            console.log('new ats player');
+            let newrecord = new Ats({
+               'user' : req.session.user._id,
+               'season' : Number(req.body.season),
+               'sport' : 'nfl',
+               'week' : Util.getWeek(new Date(), 'nfl'),
+               '0': 1,
+               '1': 1,
+               '2': 1,
+               '3': 1,
+               '4': 1,
+               '5': 1,
+               '6': 1,
+               '7': 1,
+               '8': 1,
+               '9': 1,
+               '10': 1,
+               '11': 1,
+               '12': 1,
+               '13': 1,
+               '14': 1,
+               '15': 1,
+            });
+            newrecord.save(err=>{
+               if (err)
+                  console.log('Error: '+err);
+            });
+            resolve([newrecord]);
+         } else {
+            resolve(picks);
+         }
+      }).sort({user:1});
    }));
-	promises.push(Ats.find({user: userQuery, week: Number(req.body.week), season: Number(req.body.season), sport: 'nfl'}, (err, picks) =>{
-		if (err) {
-			console.log(err);
-		} else if (!picks.length) {
-			console.log('new ats player');
-			picks.push(new Ats({
-				'user' : req.session.user._id,
-				'season' : Number(req.body.season),
-				'sport' : 'nfl',
-				'week' : Util.getWeek(new Date(), 'nfl'),
-				'0': 1,
-				'1': 1,
-				'2': 1,
-				'3': 1,
-				'4': 1,
-				'5': 1,
-				'6': 1,
-				'7': 1,
-				'8': 1,
-				'9': 1,
-				'10': 1,
-				'11': 1,
-				'12': 1,
-				'13': 1,
-				'14': 1,
-				'15': 1,
-         }).save(err => {
-				if (err)
-					console.log('Error saving new ATS user: '+err);
-			}));
-         console.log(picks);
-		}
-	}));
+
+   // next get odds to send later; add promise
+   promises.push(Odds.find({season: Number(req.body.season), week: Number(req.body.week), sport: 'nfl'}, (err, ats) =>{
+      if (err)
+         console.log('Error getting weeks ATS odds: '+err);
+   }));
+   
    Promise.all(promises).then((result) => {
-      res.send({'picks': result[1], 'ats': result[0]}); // not deterministic?
+      res.send({'picks': result[0], 'ats': result[1]}); // not deterministic?
    });
 });
 
