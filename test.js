@@ -12,10 +12,42 @@ const Ats = require('./models/dbschema').Ats;
 const Odds = require('./models/dbschema').Odds;
 const mongoose = require('mongoose');
 require('dotenv').config();
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf')
 
-Scraper.tallyAts(2018,10);
+Scraper.tallyAts(2018, 13, 'nfl');
 
+function getAts(season, week) {
+	let results = [], playerPromises = [];
+	return new Promise((resolve, reject) =>{
+		Odds.find({sport:'nfl', season: season, week: week}, (err, odds) => {
+			Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
+				if (err) {
+					console.log("Test error: "+err);
+				} else {
+               players.forEach(choices => {
+                  // console.log(choices);
+					   playerPromises.push(new Promise((resolve, reject) =>{
+                     let index=0, score = 0;
+							for (let key=0; key < odds.length; key++) {
+                        console.log(choices[key], odds[key].ats);
+                        if(choices[key] == odds[key].ats) {
+                           // console.log(`--------${choices.user} ${result.team1} ${result.team2}`);
+                           ++score;
+								}
+							}
+							console.log(choices.user, score);
+							results.push({user: choices.user, win: score});
+							resolve();
+						}));
+					});
+					Promise.all(playerPromises).then(() => {
+						resolve (results);
+					});
+				}
+			}).sort({user:1});
+		});
+	});
+}
 // let season=2018; 
 // let week=10;
 // Ats.findOne({user: 'jarma4', season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, choices) => {

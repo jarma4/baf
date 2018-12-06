@@ -579,6 +579,8 @@ router.post('/getatspicks', requireLogin, function(req,res){
    let promises = [];
    let day = new Date().getDay();
 	let hour = new Date().getHours();
+   let minutes = new Date().getMinutes();
+   
 	let userQuery; 
    if ((day == 5 && hour >= 18) || day == 6 || (day == 0 && hour < 12)) {
 		userQuery = req.session.user._id;
@@ -629,7 +631,7 @@ router.post('/getatspicks', requireLogin, function(req,res){
    promises.push(Odds.find({season: Number(req.body.season), week: Number(req.body.week), sport: 'nfl'}, (err, ats) =>{
       if (err)
          console.log('Error getting weeks ATS odds: '+err);
-   }));
+   }).sort((Number(req.body.week)>13)?{index:1}:{}));  // odds sent unsorted prior to week 13 BUT picks were being saved in index order, so make sure to always send odds in original order from those weeks so picks make sense; going forward should be in index order
    
    Promise.all(promises).then((result) => {
       res.send({'picks': result[0], 'ats': result[1]}); // not deterministic?

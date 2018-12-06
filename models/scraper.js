@@ -429,7 +429,6 @@ module.exports = {
                         ats = 2;
                      else
 								ats = 3;
-							console.log(`${game.team1} ${game.team2} ${ats}`);
                      Odds.update({season: season, sport: 'nfl', week: week, team1: game.team1, team2: game.team2}, {ats: ats}, err =>{
                         if (err)
                            console.log('Problem updating Odds ats: '+err);
@@ -466,60 +465,91 @@ module.exports = {
       });
 		console.log('Copied ATS odds for week');
 	},
-	getAts: (season, week) => {
+	// getAts: (season, week) => {
+   //    let results = [], playerPromises = [];
+	// 	return new Promise((resolve, reject) =>{ 
+	// 		Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
+	// 			if (err) {
+	// 				console.log("Test error: "+err);
+	// 			} else {
+	// 				playerPromises.push(new Promise((resolve, reject) =>{
+   //                console.log('playerPromise');
+	// 					players.forEach(choices => {
+   //                   let index=0, score = 0, choicesPromises=[];
+	// 						for (let key in choices.toObject()) {
+	// 							if(key != '_id' && key != 'user') {
+	// 								choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
+	// 									if(result){
+	// 										if(choices[key] == result.ats) {
+   //                                  // console.log(`--------${choices.user} ${result.team1} ${result.team2}`)
+   //                                  ++score;
+	// 										}
+	// 									}
+	// 								}));
+	// 							}
+	// 						}
+	// 						Promise.all(choicesPromises).then(() => {
+	// 							results.push({user: choices.user, win: score});
+	// 							resolve();
+	// 						});
+	// 					});
+	// 				}));
+	// 				Promise.all(playerPromises).then(() => {
+	// 					resolve (results);
+	// 				});
+	// 			}
+	// 		}).sort({user:1});
+	// 	});
+   // },
+   getAts: (season, week, sort) => {
       let results = [], playerPromises = [];
-		return new Promise((resolve, reject) =>{ 
-			Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
-				if (err) {
-					console.log("Test error: "+err);
-				} else {
-					playerPromises.push(new Promise((resolve, reject) =>{
-						players.forEach(choices => {
-                     let index=0, score = 0, choicesPromises=[];
-							for (let key in choices.toObject()) {
-								if(key != '_id' && key != 'user') {
-									choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
-										if(result){
-											if(choices[key] == result.ats) {
-                                    // console.log(`--------${choices.user} ${result.team1} ${result.team2}`)
-                                    ++score;
-											}
-										}
-									}));
-								}
-							}
-							Promise.all(choicesPromises).then(() => {
-								results.push({user: choices.user, win: score});
-								resolve();
-							});
-						});
-					}));
-					Promise.all(playerPromises).then(() => {
-						resolve (results);
-					});
-				}
-			}).sort({user:1});
-		});
-	},
+      return new Promise((resolve, reject) =>{
+         Odds.find({sport:'nfl', season: season, week: week}, (err, odds) => {
+            Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
+               if (err) {
+                  console.log("Test error: "+err);
+               } else {
+                  players.forEach(choices => {
+                     playerPromises.push(new Promise((resolve, reject) =>{
+                        let index=0, score = 0;
+                        for(let key=0; key < odds.length; key++) {
+                           if(choices[key] == odds[key].ats) {
+                              ++score;
+                           }
+                        }
+                        results.push({user: choices.user, win: score});
+                        resolve();
+                     }));
+                  });
+                  Promise.all(playerPromises).then(() => {
+                     resolve (results);
+                  });
+               }
+            }).sort({user: 1});
+         }).sort({index: 1});  //wasn't being sorted prior to week 14; frontend has it's own algorithm similar to this one when displaying, this used when saving weekly totals
+      });
+   },
 	tallyAts: (season, week) => {
 		module.exports.getAts(season, week).then(results => {
          let high = 0;
          let winners = [];
          results.forEach(record => {
-            if (record.win > high) {
+            if (record.win > high) {  // check if new high for the week
                winners = [record.user];
                high = record.win;
-            } else if (record.win == high) {
+            } else if (record.win == high) {  // check if multiple people with high
                winners.push(record.user);
-            }
+				}
+				// update each user's win total
             Records.update({season: season, sport: 'ats', user: record.user}, {$inc:{win: record.win}}, err => {
                console.log('updating record');
                if (err)
                   console.log('Error incrementing ATS record: '+err);
             });
-         });
+			});
+			// mark weekly winner
          winners.forEach(winner => {
-            Records.update({season: season, sport: 'ats', user: winner}, {$inc:{pct: 1}}, err => {
+            Records.update({season: season, sport: 'ats', user: winner}, {$inc:{pct: 1/winners.length}}, err => {
                if (err)
                   console.log('Error incrementing $5 bonus winner: '+err);
             });

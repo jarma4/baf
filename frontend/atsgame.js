@@ -1,15 +1,7 @@
 function getAtsScoreboard() {
-	let season = 2018;
-	let week = getWeek(new Date(),'nfl');
-   let day = new Date().getDay();
-	let hour = new Date().getHours();
 
-	// get scoreboard
-	if(day == 3 || day == 4 || (day == 5 && hour > 18))
-		week -= 1;
    postOptions.body = JSON.stringify({
-      'week': week,
-      'season': season
+      'season': 2018
    });
    fetch('/api/getatsscoreboard', postOptions)
    .then(res => res.json())
@@ -31,11 +23,11 @@ function getAtsPicks(season, week) {
 	let hour = new Date().getHours()
 
 	$('#atsWeek').text('Week ' + week + ' Picks');
+	// Wed-Fri too early to pick
    if (week == getWeek(new Date(), 'nfl') && (day == 3 || day == 4 || (day == 5 && hour < 18))){
 		$('.atsInc').removeClass('hidden');
       document.getElementById("atsPicks").innerHTML = '<h4 class="center">Come back Fri after 6</h4>';
-   } else {
-      // get picks
+   } else { // get picks Fri 6pm - Sun 12pm; show everyones picks Sun 12pm - Tues
       postOptions.body = JSON.stringify({
          'season': season,
          'week': week
@@ -59,18 +51,21 @@ function getAtsPicks(season, week) {
 
          retData.ats.forEach((rec, i) => {
 				if (getWeek(new Date(rec.date),'nfl') == week) {
-               if (retData.picks.length > 1) {
+               if (retData.picks.length > 1) {  // showing everyone's picks
                   outp += '<tr><td>'+rec.team1.slice(0,3)+((Number(rec.spread)>=0)?'+':'')+rec.spread+'</td>';
 						retData.picks.forEach((user, j) => {  // show each user's pick
+
+							// rec from ats are out of order, need to pick right one
+
 							if (Number(user[i])==rec.ats) {
 								totals[j] += 1;
 								classAdd = ' class="text-success"';
 							} else {
 								classAdd = '';
 							}
-                     outp += '<td'+classAdd+'>'+((user[i] == '1')?rec.team1.slice(0,3):rec.team2.replace('@','').slice(0,3))+'</td>';
+                     outp += '<td'+classAdd+'>'+((user[i] == '1')?rec.team1.slice(0,3):(user[i] == '2')?rec.team2.replace('@','').slice(0,3):'none')+'</td>';
                   });						
-               } else {
+               } else {  // showing pick screen
                   outp += '<tr><td class="td-odds"><button class="btn '+((retData.picks[0][i] == '1')?'btn-success':'btn-default')+' btn-toggle" data-game="'+i+'" data-team="1"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/nfl_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
                   outp += '<td class="td-odds"><button class="btn '+((retData.picks[0][i] == '2')?'btn-success':'btn-default')+' btn-toggle" data-game="'+i+'" data-team="2"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm2_'+i+'" class="logo-md" src="images/nfl_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></td></tr>';
                }

@@ -67,9 +67,9 @@ const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateSta
 const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 // for the ATS game
-const publishAtsCron = crontab.scheduleJob("0 18 * * 5", scraper.publishAtsOdds);
-const addAtsCron = crontab.scheduleJob("*/10 15-23 * * 0,1", scraper.addAtsScores,[2018, Util.getWeek(new Date(),'nfl')]);
-// const tallyAtsCron = crontab.scheduleJob("0 7 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
+const publishAtsCron = crontab.scheduleJob("57 20 * * 5", scraper.publishAtsOdds);
+const addAtsCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4", scraper.addAtsScores,[2018, Util.getWeek(new Date(),'nfl')]);
+// const tallyAtsCron = crontab.scheduleJob("0 9 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 	const now = new Date();
