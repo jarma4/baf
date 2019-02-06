@@ -566,13 +566,13 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/getatsscoreboard', requireLogin, (req,res) => {
-	Records.find({season: Number(req.body.season), sport: 'ats'}, (err, totals) => {
-		if (err)
-			console.log("ATS scoreboard error: "+err);
-		else {
-         res.json(totals);
-		}
-	}).sort({user:1});
+	Records.find({season: Number(req.body.season), sport: 'ats'}).sort({user:1})
+	.then(totals => {
+		Odds.count({season: Number(req.body.season)})
+		.then (count => {
+			res.send({totals, count});
+		});
+	});
 });
 
 router.post('/getatspicks', requireLogin, function(req,res){
@@ -582,7 +582,7 @@ router.post('/getatspicks', requireLogin, function(req,res){
    let minutes = new Date().getMinutes();
    
 	let userQuery; 
-   if ((day == 5 && hour >= 18) || day == 6 || (day == 0 && hour < 12)) {
+   if (day == 6 || (day == 0 && hour < 12)) {
 		userQuery = req.session.user._id;
 	} else {
 		userQuery = {$exists: true};

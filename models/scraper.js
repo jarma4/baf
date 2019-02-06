@@ -1,4 +1,4 @@
-var request = require('request'),
+const request = require('request'),
 	fs = require('fs'),
 	cheerio = require('cheerio'),
 	logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
@@ -10,7 +10,8 @@ var request = require('request'),
 	OUgame = require('./dbschema').OUgame,
 	Ats = require('./dbschema').Ats,
 	Odds = require('./dbschema').Odds,
-	Api = require('../routes/api');
+	Api = require('../routes/api'),
+	puppeteer = require('puppeteer');
 	// mongoose = require('mongoose');
 
 function getOdds(sport) {
@@ -48,6 +49,8 @@ function getOdds(sport) {
 				else {
 					games[gameIndex].spread = 0;
 				}
+				games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
+				games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
 				games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
 				games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
 				games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
@@ -82,18 +85,80 @@ function getOdds(sport) {
 				});
 			});
 
-			var now = new Date();
-			var sendData = {
-				'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
-				'week':  Util.getWeek(now, sport),
-				'games': games};
-			if (games.length) { // only write if something was found
-				//console.log(games);
-				var success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
-			}
+			checkHalftime().then(halftime => {
+				// halftime = [{
+				// 	"team1": "SAN",
+				// 	"score1": "53",
+				// 	"team2": "SAC",
+				// 	"score2": "54"
+				// }];
+				// got through games@halftime and mark in games array
+				halftime.forEach(rec =>{
+					for(let game of games) {
+						if(game.team1 == rec.team1) {
+							game.inhalftime = true;
+							break;
+						}
+					};
+				});
+
+				var now = new Date();
+				var sendData = {
+					'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
+					'week':  Util.getWeek(now, sport),
+					'games': games};
+				if (games.length) { // only write if something was found
+					// console.log('writing to odds');
+					var success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
+				}
+			});
 		}
 	});
 }
+
+function checkHalftime() {
+	return new Promise(async (resolve, reject) => {
+		let day = new Date().getDay();
+		let hour = new Date().getHours();
+      let results = [];
+      
+      if((day > 0 && day < 6 && hour > 18 && hour < 23) || ((day == 0 || day == 6) && hour > 15 && hour < 23)) {
+         const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+         const page = await browser.newPage();
+         await page.goto('https://www.oddsshark.com/nba/scores');
+         // console.log('checking halftime',new Date());
+         let content = await page.content();
+         await browser.close();
+         // fs.writeFile('page.html', content, _ => console.log('HTML saved'));
+         var $ = cheerio.load(content);
+         
+         $('.matchup.live').each((idx, game) => {
+            if ($(game).children('.status').text() == 'end - 2nd') {
+               results.push({
+                  team1: $(game).find('.text').eq(0).text(),
+                  score1: $(game).find('.total-score').eq(0).text(),
+                  team2: $(game).find('.text').eq(1).text(), 
+                  score2: $(game).find('.total-score').eq(1).text()
+               });
+               Scores.findOneAndUpdate({$and:[{season:2018},
+                  {sport:'nba'}, 
+                  {$and:[{date:{$gte:new Date().setHours(0,0,0,0)}}, {date:{$lt:new Date().setHours(23,59)}},
+                  {'1h1': 0}]}, 
+                  {team1: $(game).find('.text').eq(0).text()}, 
+                  {team2: $(game).find('.text').eq(1).text()}]}, {'1h1': $(game).find('.total-score').eq(0).text(), '1h2': $(game).find('.total-score').eq(1).text()}, (err, rec) => {
+                     if(err) {
+                        console.log('Error updating firsthalf score: ', err);
+                     } else if (rec) {
+								console.log(`Updated firsthalf score ${rec.team1} vs ${rec.team2}`);
+                     }
+               });
+            }
+         });
+      }
+
+		resolve (results);
+	});
+};
 
 function updateBet(id,object){
 	if (object.status == 6)  // special case for marking tie game
@@ -214,7 +279,7 @@ function addNbaGame(date) {
 
 module.exports = {
 	refreshOddsInfo: function() {
-		getOdds('nfl');
+		// getOdds('nfl');
 		getOdds('nba');
 	},
 
@@ -262,6 +327,63 @@ module.exports = {
 							if (resp.n)
 								logger.info(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
 						});
+					}
+				});
+			}
+		});
+	},
+
+   getHalftimeScores2: async () => {
+		let today = new Date();
+		let results = [];
+		const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+		const page = await browser.newPage();
+		await page.goto('https://www.oddsshark.com/nba/scores');
+		console.log('checking halftime');
+		let content = await page.content();
+		await browser.close();
+		// fs.writeFile('page.html', content, _ => console.log('HTML saved'));
+		var $ = cheerio.load(content);
+		
+		$('.matchup.live').each((idx, game) => {
+			if ($(game).children('.status').text() == 'end - 2nd') {
+				results.push({
+					team1: $(game).find('.text').eq(0).text(),
+					score1: $(game).find('.total-score').eq(0).text(),
+					team2: $(game).find('.text').eq(1).text(), 
+					score2: $(game).find('.total-score').eq(1).text()
+				});
+			}
+		});
+
+		return results;
+   },
+
+            
+	getHalftimeScores: async () => {
+		let today = new Date();
+		const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+		const page = await browser.newPage();
+		await page.goto('https://www.oddsshark.com/nba/scores');
+		console.log('checking halftime');
+		let content = await page.content();
+		await browser.close();
+		// fs.writeFile('page.html', content, _ => console.log('HTML saved'));
+		var $ = cheerio.load(content);
+		$('.matchup.live').each((idx, game) => {
+			if ($(game).children('.status').text() == 'end - 2nd') {
+				console.log($(game).find('.text').eq(0).text(),$(game).find('.total-score').eq(0).text());
+				console.log($(game).find('.text').eq(1).text(), $(game).find('.total-score').eq(1).text());
+				Scores.findOneAndUpdate({$and:[{season:2018},
+														{sport:'nba'}, 
+                                          {$and:[{date:{$gte:today.setHours(0,0,0,0)}}, {date:{$lt:today.setHours(23,59)}},
+                                          {'1h1': 0}]}, 
+														{team1: $(game).find('.text').eq(0).text()}, 
+														{team2: $(game).find('.text').eq(1).text()}]}, {'1h1': $(game).find('.total-score').eq(0).text(), '1h2': $(game).find('.total-score').eq(1).text()}, err => {
+					if(err) {
+						console.log('Error updating firsthalf score: ', err);
+					} else {
+						console.log('Updated firsthalf score');
 					}
 				});
 			}
@@ -444,63 +566,36 @@ module.exports = {
 	},
 	publishAtsOdds: function() {
 		let index = 0;
-      let current = JSON.parse(fs.readFileSync('json/nfl_odds.json'));
+		let current = JSON.parse(fs.readFileSync('json/nfl_odds.json'));
+		let week = Util.getWeek(new Date(), 'nfl');
       current.games.forEach(game => {
-         if (Util.getWeek(new Date(game.date), 'nfl') == Util.getWeek(new Date(), 'nfl')) {
-            new Odds({
-               team1: game.team1,
-               team2: game.team2,
-               spread: game.spread,
-               date: game.date,
-               sport: 'nfl',
-               week: Util.getWeek(new Date(), 'nfl'),
-					season: 2018,
-					ats: 0,
-               index: index++
-            }).save(err => {
-               if(err)
-                  console.log('Error saving: '+err);
-            });
+         if (Util.getWeek(new Date(game.date), 'nfl') == week) {  //only look at this week
+				Odds.updateOne({team1: game.team1, team2: game.team2, week: week}, {spread: game.spread}, (err, result) => {
+					if(result.nModified) {
+						console.log('Odds modified');
+					} else if (!result.n) {
+						new Odds({
+							team1: game.team1,
+							team2: game.team2,
+							spread: game.spread,
+							date: game.date,
+							sport: 'nfl',
+							week: week,
+							season: 2018,
+							ats: 0,
+							index: index++
+						}).save(err2 => {
+							if(err2)
+								console.log('Error saving new odds: '+err);
+							else
+								console.log('New ATS odds saved');
+						});
+					}
+				});
          }
       });
 		console.log('Copied ATS odds for week');
 	},
-	// getAts: (season, week) => {
-   //    let results = [], playerPromises = [];
-	// 	return new Promise((resolve, reject) =>{ 
-	// 		Ats.find({season: season, week: week}, {'user': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1, '13': 1, '14': 1, '15': 1}, (err, players) => {
-	// 			if (err) {
-	// 				console.log("Test error: "+err);
-	// 			} else {
-	// 				playerPromises.push(new Promise((resolve, reject) =>{
-   //                console.log('playerPromise');
-	// 					players.forEach(choices => {
-   //                   let index=0, score = 0, choicesPromises=[];
-	// 						for (let key in choices.toObject()) {
-	// 							if(key != '_id' && key != 'user') {
-	// 								choicesPromises.push(Odds.findOne({sport:'nfl', season: season, week: week, index: key}, (err, result) => {
-	// 									if(result){
-	// 										if(choices[key] == result.ats) {
-   //                                  // console.log(`--------${choices.user} ${result.team1} ${result.team2}`)
-   //                                  ++score;
-	// 										}
-	// 									}
-	// 								}));
-	// 							}
-	// 						}
-	// 						Promise.all(choicesPromises).then(() => {
-	// 							results.push({user: choices.user, win: score});
-	// 							resolve();
-	// 						});
-	// 					});
-	// 				}));
-	// 				Promise.all(playerPromises).then(() => {
-	// 					resolve (results);
-	// 				});
-	// 			}
-	// 		}).sort({user:1});
-	// 	});
-   // },
    getAts: (season, week, sort) => {
       let results = [], playerPromises = [];
       return new Promise((resolve, reject) =>{

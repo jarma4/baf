@@ -22,5 +22,6 @@ block content
 
 block scripts
 	script(type='text/javascript').
-		getAtsPicks(2018, getWeek(new Date(), 'nfl'))
+		let wk = getWeek(new Date(), 'nfl')
+		getAtsPicks(2018, (wk < 17)?wkl:17)
 		getAtsScoreboard()

@@ -60,6 +60,76 @@ function getOdds (){
 	.catch(retData => modalAlert(retData.type,retData.message));
 }
 
+function getOdds2 (){
+   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
+   // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
+   //    var sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';
+   // toggleSport(sport);
+   postOptions.body = JSON.stringify({
+      "sport": sport
+   });
+	fetch('/api/getodds', postOptions)
+   .then(res =>res.json())
+   .then(retData => {
+      var sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
+      // clear remnents of previous screens
+      for (var i = 1; i < 4; i++) {
+         $('#col'+i).empty();
+      }
+      // store info globally to be used elsewhere
+      window.oddsDb = retData.games;
+
+      var outp = '<table class="table">';
+      $.each(retData.games, function(i,rec){
+         let checkDisabled = '', checkDisabled2 = 'disabled ', btnColor1, btnColor2, date = new Date(rec.date);
+
+         // gray out and disable if game already started
+         if (date > new Date()) {
+            btnColor1 = 'primary';
+            btnColor2 = 'default';
+         } else {
+            checkDisabled = 'disabled ';
+            btnColor1 = 'default';
+            btnColor2 = 'default';
+         }
+
+         if (rec.inhalftime) {
+				checkDisabled2 = '';
+				btnColor2 = 'primary';
+         }
+         // non mobile will see multiple columns so start new if current full
+         if (gameNum%listCount === 0 && gameNum/listCount > 0) {
+            outp += '</table>';
+            document.getElementById('col'+gameNum/listCount).innerHTML = outp;
+            outp = '<table class="table">';
+         }
+         // draw date row if needed
+         var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+         if (tmpDate > prevDate)
+				outp += '<tr class="modal-warning"><td colspan=5 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
+			// visitor spread
+         outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
+			//over under
+         outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
+         // first/second half
+			outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="firsthalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">1H '+rec.firsthalf+'</button><button '+checkDisabled2+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="secondhalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">2H '+rec.secondhalf+'</button></td>';
+			// home spread
+         outp += '<td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
+         prevDate = tmpDate;
+         gameNum++;
+      });
+      outp += '</table>';
+      document.getElementById('col'+Math.ceil(gameNum/listCount)).innerHTML = outp;
+      // set sprite position for each logo on buttons
+      $.each(retData.games, function(i, rec){
+         $('#tm1_'+i).css('object-position', spritePosition(sport, rec.team1));
+         $('#tm2_'+i).css('object-position', spritePosition(sport, rec.team2.substr(1)));
+      });
+      $('#timestamp').text('updated:'+retData.time);
+   })
+	.catch(retData => modalAlert(retData.type,retData.message));
+}
+
 // prepopulate modal items with data from database
 $('#betModal').on('show.bs.modal', function (event) {
    var vs1, vs2, odds, button = $(event.relatedTarget);
@@ -71,15 +141,23 @@ $('#betModal').on('show.bs.modal', function (event) {
       vs2 = window.oddsDb[button.data('game')].team2;
       if (button.data('type') == 'spread')
          odds = window.oddsDb[button.data('game')].spread;
-      else
-         odds = window.oddsDb[button.data('game')].over;
+      else if (button.data('type') == 'over' || button.data('type') == 'under')
+			odds = window.oddsDb[button.data('game')].over;
+		else if (button.data('type') == 'firsthalf')
+			odds = window.oddsDb[button.data('game')].firsthalf;
+		else
+			odds = window.oddsDb[button.data('game')].secondhalf;
    } else {
       vs1 = window.oddsDb[button.data('game')].team2;
       vs2 = window.oddsDb[button.data('game')].team1;
       if (button.data('type') == 'spread')
          odds = 0 - window.oddsDb[button.data('game')].spread;  //odds are for 1st team, need to reverse when taking second
-      else
-         odds = window.oddsDb[button.data('game')].over;
+      else if (button.data('type') == 'over' || button.data('type') == 'under')
+			odds = window.oddsDb[button.data('game')].over;
+		else if (button.data('type') == 'firsthalf')
+			odds = window.oddsDb[button.data('game')].firsthalf;
+		else
+			odds = window.oddsDb[button.data('game')].secondhalf;
    }
 
    // now ordered, prepopulate items
@@ -93,8 +171,10 @@ $('#betModal').on('show.bs.modal', function (event) {
    $('#betGametime').val(button.data('gametime'));
    if (button.data('type') == 'spread')
       $('#betTitle').text('You want: '+vs1+' '+odds+' vs '+vs2);
-   else
-      $('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
+   else if (button.data('type') == 'over' || button.data('type') == 'under')
+		$('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
+	else
+		$('#betTitle').text('You want: '+vs1+' '+odds+' vs '+vs2);
    resetOddsWatch();
 });
 

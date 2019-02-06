@@ -30,7 +30,7 @@ $('.sportPick').on('click', function(){
             getStats();
             break;
          case '/scores':
-            showScores(($('#sportNfl').hasClass('selected'))?getWeek(new Date(), 'nfl'):new Date());
+            showScores(($('.sportPick.selected').attr('class').split(/\s+/)[1] == 'nfl')?getWeek(new Date(), 'nfl'):new Date());
             break;
          case '/overunder':
             getOverunder();

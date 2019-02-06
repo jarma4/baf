@@ -56,6 +56,8 @@ var scoresSchema = new mongoose.Schema({
    score1 : Number,
    team2 : String,
    score2 : Number,
+   '1h1' : Number,
+   '1h2' : Number,
    winner: Number,
    week : Number,
    sport : String,

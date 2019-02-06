@@ -52,24 +52,26 @@ https.createServer(options, app_https).listen(443, function () {
 const scraper = require('./models/scraper');
 
 // schedule worker jobs
-const oddsCron = crontab.scheduleJob("*/10 7-22 * * *", scraper.refreshOddsInfo);
+const oddsCron = crontab.scheduleJob("*/10 7-18 * * *", scraper.refreshOddsInfo);
+const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets);
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
 
-const checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0,1,4", scraper.checkScores,['nfl']);
-const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4", scraper.tallyBets,['nfl']);
+const checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0", scraper.checkScores,['nfl']);
+const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0", scraper.tallyBets,['nfl']);
 
+// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 const checkScoresNbaCron = crontab.scheduleJob("*/6 0,20-23 * * *", scraper.checkScores,['nba']);
 const tallyBetsNbaCron = crontab.scheduleJob("*/10 0,20-23 * * *", scraper.tallyBets,['nba']);
 
 // for the Over Under game
-const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2", scraper.updateStandings,['nfl']);
+// const updateStandingsCron = crontab.scheduleJob("0 6 * * 1", scraper.updateStandings,['nfl']);
 const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 // for the ATS game
-const publishAtsCron = crontab.scheduleJob("57 20 * * 5", scraper.publishAtsOdds);
-const addAtsCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4", scraper.addAtsScores,[2018, Util.getWeek(new Date(),'nfl')]);
-// const tallyAtsCron = crontab.scheduleJob("0 9 * * 2", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
+// const publishAtsCron = crontab.scheduleJob("0 19 * * 5", scraper.publishAtsOdds);
+// const addAtsCron = crontab.scheduleJob("*/10 15-23 * * 0", scraper.addAtsScores,[2018, Util.getWeek(new Date(),'nfl')]);
+// const tallyAtsCron = crontab.scheduleJob("0 9 * * 1", scraper.tallyAts,[2018, Util.getWeek(new Date(), 'nfl')]);
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 	const now = new Date();

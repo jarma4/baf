@@ -1,7 +1,6 @@
 var gulp = require('gulp'),
    nodemon = require('gulp-nodemon'),
-//   uglify = require('gulp-uglify'),
-   terser = require('gulp-terser'),
+	terser = require('gulp-terser'),
    sass = require('gulp-sass'),
    cssnano = require('gulp-cssnano'),
    // rename = require('gulp-rename'),

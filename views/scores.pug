@@ -20,4 +20,4 @@ block content
                #scoresArea.panel-body
 
 block scripts
-   script(type='text/javascript') showScores(getWeek(new Date(),'nfl'))
+   script(type='text/javascript') showScores(($('.sportPick.selected').attr('class').split(/\s+/)[1] == 'nfl')?getWeek(new Date(),'nfl'):new Date())
