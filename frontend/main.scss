@@ -1,6 +1,10 @@
 @import '_slate';
 @import '_sidebar';
 
+#btn-override {
+	padding: 8px 5px;
+}
+
 #sportMenu {
 	ul {
 		margin: 0;

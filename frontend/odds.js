@@ -108,13 +108,13 @@ function getOdds2 (){
          if (tmpDate > prevDate)
 				outp += '<tr class="modal-warning"><td colspan=5 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
 			// visitor spread
-         outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
+         outp += '<tr><td class="td-odds"><button id=btn-override '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
 			//over under
-         outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
+         outp += '<td class="td-odds td-middle"><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
          // first/second half
-			outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="firsthalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">1H '+rec.firsthalf+'</button><button '+checkDisabled2+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="secondhalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">2H '+rec.secondhalf+'</button></td>';
+			outp += '<td class="td-odds td-middle"><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="firsthalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">1H '+rec.firsthalf+'</button><button id=btn-override '+checkDisabled2+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="secondhalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">2H '+rec.secondhalf+'</button></td>';
 			// home spread
-         outp += '<td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
+         outp += '<td class="td-odds"><button id=btn-override '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
          prevDate = tmpDate;
          gameNum++;
       });
@@ -174,7 +174,7 @@ $('#betModal').on('show.bs.modal', function (event) {
    else if (button.data('type') == 'over' || button.data('type') == 'under')
 		$('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
 	else
-		$('#betTitle').text('You want: '+vs1+' '+odds+' vs '+vs2);
+		$('#betTitle').text('You want '+((button.data('type') == 'firsthalf')?'First Half':'Second Half')+': '+vs1+' '+odds+' vs '+vs2);
    resetOddsWatch();
 });
 
