@@ -29,11 +29,16 @@ html
 					li
 						a.toggleSidebar(href='/futures') #[span.glyphicon.glyphicon-time] Futures
 					li
-						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-retweet] OverUnder
-					li
-						a.toggleSidebar(href='/atsgame') #[span.glyphicon.glyphicon-check] ATS
-					li
 						a.toggleSidebar(href='/props') #[span.glyphicon.glyphicon-glass] Prop Bets
+					//- li
+					//- 	.ul_hr &nbsp
+					li.subsection
+						a.toggleSidebar(href='/overunder') #[span.glyphicon.glyphicon-retweet] OverUnder
+					li.subsection
+						a.toggleSidebar(href='/atsgame') #[span.glyphicon.glyphicon-check] ATS
+					//- li
+					//- 	.ul_hr &nbsp
+				ul.sidebar-nav.on_bottom
 					li
 						a.toggleSidebar(href='/options') #[span.iconspan.glyphicon.glyphicon-cog] Options
 			#page-content-wrapper
@@ -48,7 +53,7 @@ html
 					span#notify3.text-info.glyphicon.glyphicon-time.hidden
 				a.right.statusIcon(href='/props')
 					span#notify4.text-info.glyphicon.glyphicon-glass.hidden
-				block content
+				block content 
 
 		//- need to stay in base because used for nfl & nba views
 		#debtsModal.modal.fade
