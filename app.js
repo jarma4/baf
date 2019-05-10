@@ -52,7 +52,7 @@ https.createServer(options, app_https).listen(443, function () {
 const scraper = require('./models/scraper');
 
 // schedule worker jobs
-const oddsCron = crontab.scheduleJob("*/10 7-18 * * *", scraper.refreshOddsInfo);
+const oddsCron = crontab.scheduleJob("*/10 7-21 * * *", scraper.refreshOddsInfo);
 // const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets);
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);

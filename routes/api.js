@@ -4,7 +4,7 @@ const express = require('express'),
 		// Auth = require('./auth'),
 		logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
 		session = require('client-sessions'),
-		bcrypt = require('bcrypt'),
+		bcrypt = require('bcryptjs'),
 		// session = require('express-session'),
 		Util = require('../models/util'),
 		Scraper = require('../models/scraper'),
@@ -147,7 +147,6 @@ router.post('/makebet', requireLogin, function (req, res) {
 });
 
 router.post('/getbets', requireLogin, function(req,res){
-	// console.log(req.body);
 	let sortedBets = [];
 	Bets.find({$and:[
 		{status:(req.body.status==1)?0:req.body.status},

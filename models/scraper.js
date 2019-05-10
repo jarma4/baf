@@ -15,8 +15,8 @@ const request = require('request'),
 	// mongoose = require('mongoose');
 
 function getOdds(sport) {
+	// console.log('checking odds');
 	var url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
-	console.log(url);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
 			var $ = cheerio.load(body);
@@ -55,7 +55,9 @@ function getOdds(sport) {
 				games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
 				games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
 			});
+
 			// go through odds Watches and act if necessary
+			// console.log('checking watches');
 			Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]}, function(err, watches){
 				watches.forEach(function(watch){
 					// if home team was chosen, reverse things so they match current odds
