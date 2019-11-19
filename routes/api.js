@@ -78,7 +78,7 @@ function saveBet (req){
 	let today = new Date();
 	new Bets({
 		week: Util.getWeek(today, req.body.sport),
-		season: 2018, //today.getFullYear(),
+		season: 2019, //today.getFullYear(),
 		gametime: req.body.gametime,
 		date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
 		user1: req.session.user._id,
@@ -278,7 +278,7 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
 	let sortedBets = [];
-	Bets.find({$and:[{season:2018}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
+	Bets.find({$and:[{season:2019}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
 		if(err){
 			console.log(err);
 		} else {

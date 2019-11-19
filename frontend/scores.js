@@ -8,7 +8,7 @@ function showScores(period) {
    toggleSport(sport);
    postOptions.body = JSON.stringify({
       'sport': sport,
-      'season': 2018, //too specific to football, needs to fixed
+      'season': 2019, //too specific to football, needs to fixed
       'period': period
    });
    fetch('/api/getscores', postOptions)
@@ -19,9 +19,11 @@ function showScores(period) {
       } else {
          $('#scoresPeriod').text(monthName[period.getMonth()]+' '+period.getDate());
       }
-      var outp = '<table class="table"><tr><th>Away</th><th>1H</th><th>Final</th><th>Home</th><th>1H</th><th>Final</th></tr>';
+      // var outp = '<table class="table"><tr><th>Away</th><th>1H</th><th>Final</th><th>Home</th><th>1H</th><th>Final</th></tr>';
+      var outp = '<table class="table"><tr><th>Away</th><th>Final</th><th>Home</th><th>Final</th></tr>';
       $.each(retData, function(i,rec){
-         outp += '<tr><td>'+rec.team1+'</td><td>'+rec['1h1']+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec['1h2']+'</td><td>'+rec.score2+'</td></tr>';
+         // outp += '<tr><td>'+rec.team1+'</td><td>'+rec['1h1']+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec['1h2']+'</td><td>'+rec.score2+'</td></tr>';
+         outp += '<tr><td>'+rec.team1+'</td><td>'+rec.score1+'</td><td>'+rec.team2+'</td><td>'+rec.score2+'</td></tr>';
       });
       outp += '</table>';
       document.getElementById("scoresArea").innerHTML = outp;
@@ -37,6 +39,6 @@ $('.scoresInc').on('click', function(event){
       if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 24 && $(this).val()=='1'))
          showScores(Number(tmp[1])+$(this).val()*1);
    } else {
-      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2019'))+$(this).val()*(24*60*60*1000)));
+      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2019'))+$(this).val()*(25*60*60*1000)));
    }
 });

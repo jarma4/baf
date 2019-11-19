@@ -19,21 +19,22 @@
       "cheerio": "^1.0.0-rc.3",
       "client-sessions": "^0.8.0",
       "compression": "^1.7.4",
-      "dotenv": "^8.0.0",
-      "express": "^4.16.4",
-      "express-session": "^1.16.1",
+      "dotenv": "^8.1.0",
+      "express": "^4.17.1",
+      "express-session": "^1.17.0",
       "help": "^3.0.2",
       "jsonfile": "^5.0.0",
-      "mongoose": "^5.5.6",
+      "mongoose": "^5.7.4",
       "node-crontab": "0.0.8",
       "node-sass": "^4.12.0",
-      "nodemailer": "^6.1.1",
-      "pino": "^5.12.3",
-      "pug": "^2.0.3",
-      "puppeteer": "^1.15.0",
+      "nodemailer": "^6.3.1",
+      "pino": "^5.13.4",
+      "pug": "^2.0.4",
+      "puppeteer": "^1.20.0",
       "request": "^2.88.0",
-      "serve-static": "^1.14.0",
-      "web-push": "^3.3.3"
+      "serve-static": "^1.14.1",
+      "telnyx": "^1.2.3",
+      "web-push": "^3.4.0"
    },
    "devDependencies": {
       "gulp-concat": "^2.6.0",
@@ -41,6 +42,6 @@
       "gulp-nodemon": "^2.4.2",
       "gulp-plumber": "^1.2.1",
       "gulp-sass": "^4.0.2",
-      "gulp-terser": "^1.1.7"
+      "gulp-terser": "^1.2.0"
    }
 }

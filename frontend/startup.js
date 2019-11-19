@@ -19,9 +19,9 @@ var username,
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
    seasonStart = {
-      nfl: new Date(2018,8,5),
-      nba: new Date(2018,9,16),
-      ncaa: new Date(2018,2,16)
+      nfl: new Date(2019,8,3),
+      nba: new Date(2019,9,22),
+      ncaa: new Date(2019,2,16)
    },
    inSeason = {
       // 0 out of season; 1 in season, -1 signup

@@ -1,11 +1,12 @@
-var  Users = require('./dbschema').Users,
+const  Users = require('./dbschema').Users,
    // Nexmo = require('nexmo'),
    sinchAuth = require('./sinch-auth'),
    sinchSms = require('./sinch-messaging'),
    mongoose = require('mongoose');
 	
 require('dotenv').config();
-auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
+const telnyx = require('telnyx')(process.env.BAF_TELNYX);
+// auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
    
 // const nexmo = new Nexmo({
 //    apiKey: process.env.BAF_NEXMOK,
@@ -30,7 +31,15 @@ module.exports = {
                // only text user once every 2 minutes
                setTimeout(function(){
                   if (textList[to]) {
-                     sinchSms.sendMessage('+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
+                     // console.log('text sending to '+user.sms);
+                     telnyx.messages.create({
+                        'from': '+18705888055', // Your Telnyx number
+                        'to': '+1'+user.sms,
+                        'text': message+' ( https://2dollarbets.com/bets )'
+                     }).then(function(response){
+                        console.log('texted',message); // asynchronously handled
+                     });
+                     // sinchSms.sendMessage('+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
                      textList[to] = 0;
                   }
                }, 90000);
@@ -43,8 +52,8 @@ module.exports = {
       return Math.ceil((date - ((sport=='nba')?module.exports.seasonStart.nba:(sport=='nfl')?module.exports.seasonStart.nfl:module.exports.seasonStart.ncaa)) / dayTicks / 7);
    },
    seasonStart: {
-      nfl: new Date(2018,8,5),
-      nba: new Date(2018,9,17),
+      nfl: new Date(2019,8,3),
+      nba: new Date(2019,9,22),
       ncaa: new Date(2019,2,16),
       soccer: new Date(2019,5,14)
    }

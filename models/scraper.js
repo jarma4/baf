@@ -16,13 +16,13 @@ const request = require('request'),
 
 function getOdds(sport) {
 	// console.log('checking odds');
-	var url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+	let url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
-			var $ = cheerio.load(body);
+			let $ = cheerio.load(body);
 
 			// get matchup w/ team names & date
-			var pingpong = 0,
+			let pingpong = 0,
 			games = [],
 			matchup = new Object({});
 			$('.op-matchup-team','#op-content-wrapper').each(function(){
@@ -32,17 +32,17 @@ function getOdds(sport) {
 						matchup = {};
 					}
 					else {
-						var tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
-						var temptime = $(this).parent().prev().text().split(':');
+						let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
+						let temptime = $(this).parent().prev().text().split(':');
 						matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
 						matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
 					}
 				});
 
 			// get odds for matchups
-			var gameIndex = 0;
+			let gameIndex = 0;
 			$('.op-item-row-wrapper','#op-results').each(function(){
-				var tmp = $('.op-westgate',$(this).find($('.op-item-wrapper')));
+				let tmp = $('.op-5dimes',$(this).find($('.op-item-wrapper')));
 				if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
 					games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 				}
@@ -62,7 +62,7 @@ function getOdds(sport) {
 				watches.forEach(function(watch){
 					// if home team was chosen, reverse things so they match current odds
 					if(watch.team1.slice(0,1)=='@') {
-						var tmp = watch.team1;
+						let tmp = watch.team1;
 						watch.team1 = watch.team2;
 						watch.team2 = tmp;
 						watch.odds = 0 - watch.odds;
@@ -104,14 +104,14 @@ function getOdds(sport) {
 					};
 				});
 
-				var now = new Date();
-				var sendData = {
+				let now = new Date();
+				let sendData = {
 					'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
 					'week':  Util.getWeek(now, sport),
 					'games': games};
 				if (games.length) { // only write if something was found
 					// console.log('writing to odds');
-					var success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
+					let success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
 				}
 			});
 		}
@@ -132,7 +132,7 @@ function checkHalftime() {
          let content = await page.content();
          await browser.close();
          // fs.writeFile('page.html', content, _ => console.log('HTML saved'));
-         var $ = cheerio.load(content);
+         let $ = cheerio.load(content);
          
          $('.matchup.live').each((idx, game) => {
             if ($(game).children('.status').text() == 'end - 2nd') {
@@ -142,7 +142,7 @@ function checkHalftime() {
                   team2: $(game).find('.text').eq(1).text(), 
                   score2: $(game).find('.total-score').eq(1).text()
                });
-               Scores.findOneAndUpdate({$and:[{season:2018},
+               Scores.findOneAndUpdate({$and:[{season:2019},
                   {sport:'nba'}, 
                   {$and:[{date:{$gte:new Date().setHours(0,0,0,0)}}, {date:{$lt:new Date().setHours(23,59)}},
                   {'1h1': 0}]}, 
@@ -174,7 +174,7 @@ function updateBet(id,object){
 }
 
 function updatePct (user, sport) {
-	Records.findOne({user: user, sport: sport, season: 2018}, function(err, record) {
+	Records.findOne({user: user, sport: sport, season: 2019}, function(err, record) {
 		Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
 			if (err)
 				console.log('pct error');
@@ -184,25 +184,43 @@ function updatePct (user, sport) {
 
 function updateRecord(user, category, sport, season) {
 	return new Promise(function(resolve, reject){
-		var temp = {};
-		temp[category] = 1;
-		Records.update({'user': user, 'sport': sport, 'season': season},{$inc: temp}, function(err){
+		let result = {};
+		result[category] = 1;
+		Records.update({'user': user, 'sport': sport, 'season': season},{$inc: result}, function(err, res){
 			if (err) {
 				logger.error(user+' had trouble updating wins - '+new Date());
 				reject();
 			} else {
+				if (!res.n){ // didn't actually update because no record, create one
+					let newrecord = new Records({
+						user: user,
+						season: season,
+						sport: sport,
+						win: 0,
+						loss: 0,
+						push: 0,
+						pct: 0
+					})
+					newrecord[category] = 1;
+					newrecord.save(function(err){
+						if(err) {
+							console.log('error');
+						}
+					});
+				}
 				logger.info(user+' had a '+category+' - '+new Date());
 				resolve();
 			}
 		});
+		console.log('update result = ', result);
 	});
 }
 
 function updateWinnerLoser(winner, loser, push, sport){
-	updateRecord(winner, (push)?'push':'win', sport, 2018).then(function(){
+	updateRecord(winner, (push)?'push':'win', sport, 2019).then(function(){
 		updatePct(winner, sport);
 	});
-	updateRecord(loser, (push)?'push':'loss', sport, 2018).then(function(){
+	updateRecord(loser, (push)?'push':'loss', sport, 2019).then(function(){
 		updatePct(loser, sport);
 	});
 	// update debt counters
@@ -219,10 +237,10 @@ function updateWinnerLoser(winner, loser, push, sport){
 }
 
 function addNflWeek (wk, yr, sprt) {
-	var url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
+	let url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode === 200) {
-			var $ = cheerio.load(body), pingpong = 0, team1;
+			let $ = cheerio.load(body), pingpong = 0, team1;
 			$('.team-name.desktop-name').each(function(){
 				if (pingpong++%2) {
 					new Scores({
@@ -250,19 +268,19 @@ function addNflWeek (wk, yr, sprt) {
 }
 
 function addNbaGame(date) {
-	var url = 'http://www.si.com/nba/scoreboard?date='+date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
+	let url = 'http://www.si.com/nba/scoreboard?date='+date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
 		 dateCopy = new Date(date);
-	console.log(url);
+	// console.log(url);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode === 200) {
-			var $ = cheerio.load(body);
+			let $ = cheerio.load(body);
 			$('.game').each(function(){
-				console.log(nbaTeams2[$(this).find('.team-name').first().text()]+' vs '+nbaTeams2[$(this).find('.team-name').last().text()]);
-				var tmp = new Scores({
+				// console.log(nbaTeams2[$(this).find('.team-name').first().text()]+' vs '+nbaTeams2[$(this).find('.team-name').last().text()]);
+				let tmp = new Scores({
 					score1: 0,
 					score2: 0,
 					winner: 0,
-					season: 2018,
+					season: 2019,
 					sport: 'nba',
 					date: dateCopy,
 					team1: nbaTeams2[$(this).find('.team-name').first().text()],
@@ -281,41 +299,33 @@ function addNbaGame(date) {
 
 module.exports = {
 	refreshOddsInfo: function() {
+		getOdds('nfl');
 		getOdds('nba');
 	},
 
 	checkScores: function(sport) {
-		var url, today = new Date();
+		let teams, url, wk, today = new Date();
 		// for late games, checking after midnight need to look at previous day
 		if (today.getHours() === 0)
 			today.setHours(today.getHours()-1);
 		if (sport=='nfl') {
 			wk = Util.getWeek(new Date(), sport);
-			url = 'http://www.oddsshark.com/stats/scoreboardbyweek/football/nfl/'+((wk>17)?((wk>18)?((wk>19)?'c':'d'):'w'):wk)+'/2018';
+         url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
+         teams = nflTeams2;
 		} else {
-			url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
+         url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
+         teams = nbaTeams2;
       }
 		// console.log('checking scores @ '+url);
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
-				var $ = cheerio.load(body);
-				var selector;
-				if (sport == 'nfl')
-					selector = '.date.last';
-				else
-					selector = '.final';
-				$(selector).each(function(){
+				let $ = cheerio.load(body);
+				$('.final').each(function(){
 					if ($(this).text().indexOf('Final') >= 0) {
-						if (sport == 'nfl') {
-							tm1 = $(this).parent().next().next().children().first().text();
-							sc1 = $(this).parent().next().next().children('.scores-data.last').text();
-							tm2 = $(this).parent().next().next().next().children().first().text();
-							sc2 = $(this).parent().next().next().next().children('.scores-data.last').text();
-						} else {
-							tm1 = nbaTeams2[$(this).find('.team-name').first().text()];
-							sc1 = $(this).find('.team-score').first().text().replace(/\s/g,'');
-							tm2 =nbaTeams2[$(this).find('.team-name').last().text()];
-							sc2 = $(this).find('.team-score').last().text().replace(/\s/g,'');
+                  tm1 = teams[$(this).find('.team-name').first().text()];
+                  sc1 = $(this).find('.team-score').first().text().replace(/\s/g,'');
+                  tm2 =teams[$(this).find('.team-name').last().text()];
+                  sc2 = $(this).find('.team-score').last().text().replace(/\s/g,'');
 						}
 						// console.log(tm1+':'+sc1+' '+tm2+':'+sc2);
 						Scores.update({$and:[{sport:sport},
@@ -327,10 +337,9 @@ module.exports = {
 								logger.error('checkScores error: '+err);
 							if (resp.n)
 								logger.info(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
-						});
-					}
-				});
-			}
+                  });
+            });
+         }
 		});
 	},
 
@@ -344,7 +353,7 @@ module.exports = {
 		let content = await page.content();
 		await browser.close();
 		// fs.writeFile('page.html', content, _ => console.log('HTML saved'));
-		var $ = cheerio.load(content);
+		let $ = cheerio.load(content);
 		
 		$('.matchup.live').each((idx, game) => {
 			if ($(game).children('.status').text() == 'end - 2nd') {
@@ -370,12 +379,12 @@ module.exports = {
 		let content = await page.content();
 		await browser.close();
 		// fs.writeFile('page.html', content, _ => console.log('HTML saved'));
-		var $ = cheerio.load(content);
+		let $ = cheerio.load(content);
 		$('.matchup.live').each((idx, game) => {
 			if ($(game).children('.status').text() == 'end - 2nd') {
 				console.log($(game).find('.text').eq(0).text(),$(game).find('.total-score').eq(0).text());
 				console.log($(game).find('.text').eq(1).text(), $(game).find('.total-score').eq(1).text());
-				Scores.findOneAndUpdate({$and:[{season:2018},
+				Scores.findOneAndUpdate({$and:[{season:2019},
 														{sport:'nba'}, 
                                           {$and:[{date:{$gte:today.setHours(0,0,0,0)}}, {date:{$lt:today.setHours(23,59)}},
                                           {'1h1': 0}]}, 
@@ -482,15 +491,16 @@ module.exports = {
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
-				// console.log('starting update '+sport);
+				console.log('starting update '+sport);
 				Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
-					var record = $('.base-table a:contains('+name+')').parent().next().text().split('-');
-					var newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
-					OUgame.findOne({sport: sport, season: 2018, team: name}, function(err, rec) {
+               let record = $('.table a:contains('+name+')').parent().next().text().split('-');
+               console.log(name,record);
+					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
+					OUgame.findOne({sport: sport, season: 2019, team: name}, function(err, rec) {
 						if (err)
 							logger.error('OUgame find team error: '+err);
 						else if(rec) {
-							OUgame.update({sport:sport, season: 2018, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
+							OUgame.update({sport:sport, season: 2019, team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
 								if (err)
 									logger.error('updateStandings error: '+err);
 							});
@@ -516,9 +526,9 @@ module.exports = {
 	},
 
 	initOUgame: function(season, sport) {
-		var i = 0;
-		for (var team in (sport == 'nfl')?nflTeams:nbaTeams) {
-			var tmp = new OUgame ({
+		let i = 0;
+		for (let team in (sport == 'nfl')?nflTeams:nbaTeams) {
+			let tmp = new OUgame ({
 				sport: sport,
 				season: season,
 				team: team,
@@ -582,7 +592,7 @@ module.exports = {
 							date: game.date,
 							sport: 'nfl',
 							week: week,
-							season: 2018,
+							season: 2019,
 							ats: 0,
 							index: index++
 						}).save(err2 => {
@@ -654,7 +664,7 @@ module.exports = {
 	}
 };
 
-var nflTeams = {
+let nflTeams = {
 		'Arizona': 'ARI', 'Atlanta': 'ATL', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Cincinnati': 'CIN', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Green Bay': 'GB', 'Houston': 'HOU', 'Indianapolis': 'IND', 'Jacksonville': 'JAC', 'Kansas City': 'KC', 'LA Chargers': 'LAC', 'LA Rams': 'LAR', 'Miami': 'MIA', 'Minnesota': 'MIN', 'NY Giants': 'NYG', 'NY Jets': 'NYJ', 'New England': 'NE', 'New Orleans': 'NO', 'Oakland': 'OAK', 'Philadelphia': 'PHI', 'Pittsburgh': 'PIT', 'San Francisco': 'SF', 'Seattle': 'SEA', 'Tampa Bay': 'TB', 'Tennessee': 'TEN', 'Washington': 'WAS'},
 	nflTeams2 = {
 		'Cardinals': 'ARI', 'Falcons': 'ATL', 'Ravens': 'BAL', 'Bills': 'BUF', 'Panthers': 'CAR', 'Bears': 'CHI', 'Bengals': 'CIN', 'Browns': 'CLE', 'Cowboys': 'DAL', 'Broncos': 'DEN', 'Lions': 'DET', 'Packers': 'GB', 'Texans': 'HOU', 'Colts': 'IND', 'Jaguars': 'JAC', 'Chiefs': 'KC', 'Chargers': 'LAC', 'Rams': 'LAR', 'Dolphins': 'MIA', 'Vikings': 'MIN', 'Giants': 'NYG', 'Jets': 'NYJ', 'Patriots': 'NE', 'Saints': 'NO', 'Raiders': 'OAK', 'Eagles': 'PHI', 'Steelers': 'PIT', '49ers': 'SF', 'Seahawks': 'SEA', 'Buccaneers': 'TB', 'Titans': 'TEN', 'Redskins': 'WAS'},

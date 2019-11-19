@@ -1,7 +1,7 @@
 function getAtsScoreboard() {
 
    postOptions.body = JSON.stringify({
-      'season': 2018
+      'season': 2019
    });
    fetch('/api/getatsscoreboard', postOptions)
    .then(res => res.json())
@@ -109,7 +109,7 @@ $('#atsSubmit').on('click', event => {
    });
    postOptions.body = JSON.stringify({
 		'picks': JSON.stringify(picks),
-		'season': 2018,
+		'season': 2019,
       'week': getWeek(new Date(), 'nfl')
    });
    fetch('/api/updateats', postOptions)
@@ -123,5 +123,5 @@ $('.atsInc').on('click', function(event){
    event.preventDefault();
    var tmp = $('#atsWeek').text().split(' ');
 	if ((Number(tmp[1]) > 9 && $(this).val()=='-1') || (Number(tmp[1]) < 17 && Number(tmp[1]) < getWeek(new Date(), 'nfl') && $(this).val()=='1'))
-		getAtsPicks(2018, Number(tmp[1])+$(this).val()*1);
+		getAtsPicks(2019, Number(tmp[1])+$(this).val()*1);
 });
