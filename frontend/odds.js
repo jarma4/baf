@@ -1,4 +1,12 @@
 function getOdds (){
+   // var sport = document.cookie.split('=')[1];
+   // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
+   //    sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
+   // toggleSport(sport);
+	// fetch('/api/'+sport+'odds', getOptions)
+
+
+
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
    //    var sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';

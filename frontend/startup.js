@@ -27,8 +27,8 @@ var username,
       // 0 out of season; 1 in season, -1 signup
       nfl: 1,
       nba: 1,
-      ncaa: 0,
-      soccer: 0
+      ncaaf: 1,
+      ncaab: 0
    },
    // for FETCH calls
    postOptions = {

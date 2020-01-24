@@ -39,6 +39,6 @@ $('.scoresInc').on('click', function(event){
       if ((Number(tmp[1]) > 1 && $(this).val()=='-1') || (Number(tmp[1]) < 24 && $(this).val()=='1'))
          showScores(Number(tmp[1])+$(this).val()*1);
    } else {
-      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2019'))+$(this).val()*(25*60*60*1000)));
+      showScores(new Date(Number(new Date($('#scoresPeriod').text()+' 2020'))+$(this).val()*(25*60*60*1000)));
    }
 });

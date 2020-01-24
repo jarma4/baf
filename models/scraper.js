@@ -33,7 +33,7 @@ function getOdds(sport) {
 					}
 					else {
 						let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
-						let temptime = $(this).parent().prev().text().split(':');
+                  let temptime = $(this).parent().prev().prev().text().split(':');
 						matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
 						matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
 					}
@@ -42,18 +42,20 @@ function getOdds(sport) {
 			// get odds for matchups
 			let gameIndex = 0;
 			$('.op-item-row-wrapper','#op-results').each(function(){
-				let tmp = $('.op-5dimes',$(this).find($('.op-item-wrapper')));
+            let tmp = $(this).find($('.op-5dimes'));
 				if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-					games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
+               games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 				}
 				else {
-					games[gameIndex].spread = 0;
+               games[gameIndex].spread = 0;
 				}
 				games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
 				games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
 				games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
 				games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-				games[gameIndex++].moneyline2 = Number(JSON.parse($(tmp).next().next().attr('data-op-moneyline')).fullgame);
+				games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
+            // console.log(gameIndex, games[gameIndex]);
+            gameIndex++;
 			});
 
 			// go through odds Watches and act if necessary
@@ -494,7 +496,7 @@ module.exports = {
 				console.log('starting update '+sport);
 				Object.keys((sport=='nfl')?nflTeams:nbaTeams).forEach(function(name){
                let record = $('.table a:contains('+name+')').parent().next().text().split('-');
-               console.log(name,record);
+               // console.log(name,record);
 					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
 					OUgame.findOne({sport: sport, season: 2019, team: name}, function(err, rec) {
 						if (err)
