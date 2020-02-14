@@ -52,14 +52,14 @@ https.createServer(options, app_https).listen(443, function () {
 const scraper = require('./models/scraper');
 
 // schedule worker jobs
-const oddsCron = crontab.scheduleJob("* 7-21 * * *", scraper.refreshOddsInfo);
+const oddsCron = crontab.scheduleJob("*/10 7-21 * * *", scraper.refreshOddsInfo);
 // const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets);
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
 
 // for NFL
-const checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0", scraper.checkScores,['nfl']);
-const tallyBetsNflCron = crontab.scheduleJob("*/10 8,15-23 * * 0", scraper.tallyBets,['nfl']);
+// const checkScoresNflCron = crontab.scheduleJob("*/6 0,15-23 * * 0", scraper.checkScores,['nfl']);
+// const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1", scraper.tallyBets,['nfl']);
 
 // for NBA
 // const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);

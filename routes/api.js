@@ -24,7 +24,7 @@ const express = require('express'),
 
 require('dotenv').config();
 
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true});
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
 router = express.Router();
 

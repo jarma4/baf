@@ -270,14 +270,14 @@ function addNflWeek (wk, yr, sprt) {
 }
 
 function addNbaGame(date) {
-	let url = 'http://www.si.com/nba/scoreboard?date='+date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
-		 dateCopy = new Date(date);
-	// console.log(url);
+   let url = 'https://www.cbssports.com/nba/scoreboard/'+date.getFullYear()+('0'+(date.getMonth()+1)).slice(-2)+('0'+date.getDate()).slice(-2),
+      dateCopy = new Date(date);
+	console.log(url);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode === 200) {
 			let $ = cheerio.load(body);
-			$('.game').each(function(){
-				// console.log(nbaTeams2[$(this).find('.team-name').first().text()]+' vs '+nbaTeams2[$(this).find('.team-name').last().text()]);
+			$('.single-score-card.nba').each(function(){
+				// console.log(nbaTeams2[$(this).find('a.team').first().text()]+' vs '+nbaTeams2[$(this).find('a.team').last().text()]);
 				let tmp = new Scores({
 					score1: 0,
 					score2: 0,
@@ -285,8 +285,8 @@ function addNbaGame(date) {
 					season: 2019,
 					sport: 'nba',
 					date: dateCopy,
-					team1: nbaTeams2[$(this).find('.team-name').first().text()],
-					team2: nbaTeams2[$(this).find('.team-name').last().text()]
+					team1: nbaTeams2[$(this).find('a.team').first().text()],
+					team2: nbaTeams2[$(this).find('a.team').last().text()]
 				}).save(function(err){
 					if(err) {
 						console.log('Trouble adding game');
@@ -301,7 +301,6 @@ function addNbaGame(date) {
 
 module.exports = {
 	refreshOddsInfo: function() {
-		getOdds('nfl');
 		getOdds('nba');
 	},
 
@@ -315,31 +314,29 @@ module.exports = {
          url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
          teams = nflTeams2;
 		} else {
-         url = 'http://www.si.com/nba/scoreboard?date='+today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
+         url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
          teams = nbaTeams2;
       }
 		// console.log('checking scores @ '+url);
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
 				let $ = cheerio.load(body);
-				$('.final').each(function(){
-					if ($(this).text().indexOf('Final') >= 0) {
-                  tm1 = teams[$(this).find('.team-name').first().text()];
-                  sc1 = $(this).find('.team-score').first().text().replace(/\s/g,'');
-                  tm2 =teams[$(this).find('.team-name').last().text()];
-                  sc2 = $(this).find('.team-score').last().text().replace(/\s/g,'');
-						}
-						// console.log(tm1+':'+sc1+' '+tm2+':'+sc2);
-						Scores.update({$and:[{sport:sport},
-													{team1:tm1},
-													{team2:tm2},
-													{winner:0},
-													((sport=='nfl')?{week:wk}:{$and:[{date:{$gte:today.setHours(0,0,0,0)}}, {date:{$lt:today.setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:(Number(sc1) > Number(sc2))?1:2},function(err, resp) {
-							if (err)
-								logger.error('checkScores error: '+err);
-							if (resp.n)
-								logger.info(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
-                  });
+				$('.single-score-card.postgame').each(function(){
+               tm1 = teams[$(this).find('a.team').first().text()];
+               sc1 = $(this).find('a.team').first().parent().next().next().next().next().next().text().replace(/\s/g,'');
+               tm2 =teams[$(this).find('a.team').last().text()];
+               sc2 = $(this).find('a.team').last().parent().next().next().next().next().next().text().replace(/\s/g,'');
+               // console.log(tm1+':'+sc1+' '+tm2+':'+sc2);
+               Scores.update({$and:[{sport:sport},
+                                    {team1:tm1},
+                                    {team2:tm2},
+                                    {winner:0},
+                                    ((sport=='nfl')?{week:wk}:{$and:[{date:{$gte:today.setHours(0,0,0,0)}}, {date:{$lt:today.setHours(23,59)}}]})]}, {score1: sc1, score2:sc2, winner:(Number(sc1) > Number(sc2))?1:2},function(err, resp) {
+                  if (err)
+                     logger.error('checkScores error: '+err);
+                  if (resp.n)
+                     logger.info(sport+': final score for '+tm1+'/'+tm2+' changed '+today);
+               });
             });
          }
 		});

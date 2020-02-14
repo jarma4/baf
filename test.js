@@ -16,4 +16,38 @@ const puppeteer = require('puppeteer');
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
-console.log(Scraper.addNbaGames(new Date(2019,9,25), new Date(2019,12,31)));
+function test(date) {
+   let url = 'https://www.cbssports.com/nba/scoreboard/'+date.getFullYear()+('0'+(date.getMonth()+1)).slice(-2)+('0'+date.getDate()).slice(-2),
+      dateCopy = new Date(date);
+	console.log(url);
+	request(url, function (err, response, body) {
+		if(!err && response.statusCode === 200) {
+			let $ = cheerio.load(body);
+			$('.single-score-card.postgame').each(function(){
+            // console.log($(this).find('a.team').first().text());
+				console.log(nbaTeams2[$(this).find('a.team').first().text()]+$(this).find('a.team').first().parent().next().next().next().next().next().text()+' vs '+nbaTeams2[$(this).find('a.team').last().text()]);
+				// let tmp = new Scores({
+				// 	score1: 0,
+				// 	score2: 0,
+				// 	winner: 0,
+				// 	season: 2019,
+				// 	sport: 'nba',
+				// 	date: dateCopy,
+				// 	team1: nbaTeams2[$(this).find('.team-name').first().text()],
+				// 	team2: nbaTeams2[$(this).find('.team-name').last().text()]
+				// }).save(function(err){
+				// 	if(err) {
+				// 		console.log('Trouble adding game');
+				// 	} else {
+				// 		console.log('game added');
+				// 	}
+				// });
+			});
+		}
+	});
+}
+
+console.log(test(new Date(2020,1,11), new Date(2020,3,15)));
+
+let 	nbaTeams2 = {
+   'Hawks': 'ATL', 'Bulls': 'CHI', 'Mavericks': 'DAL', 'Pistons': 'DET',  'Timberwolves': 'MIN', 'Pelicans': 'NOP', 'Knicks': 'NY', 'Nets': 'BKN', '76ers': 'PHI', 'Thunder': 'OKC', 'Clippers': 'LAC','Lakers': 'LAL', 'Wizards': 'WAS', 'Cavaliers': 'CLE', 'Nuggets': 'DEN', 'Rockets': 'HOU', 'Pacers': 'IND', 'Heat': 'MIA', 'Celtics': 'BOS', 'Warriors': 'GS', 'Golden State': 'GS', 'Spurs': 'SAN', 'Kings': 'SAC', 'Trail Blazers': 'POR', 'Magic': 'ORL', 'Hornets': 'CHR', 'Suns': 'PHO', 'Raptors': 'TOR', 'Bucks': 'MIL', 'Jazz': 'UTA', 'Grizzlies': 'MEM'};
