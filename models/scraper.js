@@ -42,7 +42,7 @@ function getOdds(sport) {
 			// get odds for matchups
 			let gameIndex = 0;
 			$('.op-item-row-wrapper','#op-results').each(function(){
-            let tmp = $(this).find($('.op-5dimes'));
+            let tmp = $(this).find($('.op-bovada\\.lv'));
 				if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
                games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 				}
@@ -299,9 +299,49 @@ function addNbaGame(date) {
 	});
 }
 
+function getScore(sport, team1, team2){
+	let teams, url, wk, today = new Date();
+	let sc1, sc2;
+	// for late games, checking after midnight need to look at previous day
+	if (today.getHours() === 0)
+		today.setHours(today.getHours()-1);
+	if (sport=='nfl') {
+		wk = Util.getWeek(new Date(), sport);
+		url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
+		teams = nflTeams2;
+	} else {
+		url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
+		teams = nbaTeams2;
+	}
+	// console.log('checking scores @ '+url);
+	request(url, function (err, response, body) {
+		if(!err && response.statusCode == 200) {
+			let $ = cheerio.load(body);
+			let tm1, tm2;
+			let results = $('.single-score-card.postgame')
+			for (let i = 0; i < results.length; i++){
+				tm1 = teams[$(results[i]).find('a.team').first().text()];
+				if (tm1 != team1 && tm1 != team2 ) {
+					continue; // not the game, look at next
+				}
+				tm2 =teams[$(results[i]).find('a.team').last().text()];
+				if (tm2 == team1 || tm2 == team2 ){ //found game
+					sc1 = $(results[i]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,'');
+					sc2 = $(results[i]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,'');
+					break;
+				}
+
+			};
+			let ret = [sc1,sc2]; 
+			console.log(sc1);
+			return (sc1);
+		}
+	});
+}
 module.exports = {
 	refreshOddsInfo: function() {
 		getOdds('nba');
+		getOdds('nfl');
 	},
 
 	checkScores: function(sport) {
@@ -323,10 +363,10 @@ module.exports = {
 				let $ = cheerio.load(body);
 				$('.single-score-card.postgame').each(function(){
                tm1 = teams[$(this).find('a.team').first().text()];
-               sc1 = $(this).find('a.team').first().parent().next().next().next().next().next().text().replace(/\s/g,'');
+					sc1 = $(this).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,'');
                tm2 =teams[$(this).find('a.team').last().text()];
-               sc2 = $(this).find('a.team').last().parent().next().next().next().next().next().text().replace(/\s/g,'');
-               // console.log(tm1+':'+sc1+' '+tm2+':'+sc2);
+               sc2 = $(this).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,'');
+               console.log(tm1+':'+sc1+' '+tm2+':'+sc2);
                Scores.update({$and:[{sport:sport},
                                     {team1:tm1},
                                     {team2:tm2},
@@ -448,23 +488,23 @@ module.exports = {
 														{date:{$lt: singleBet.gametime.setHours(23,59)}}]},
 												{week: singleBet.week}]},
 										{season: singleBet.season}]}, function(err, game){
-						if(err)
-								logger.error('tallyBets error: '+err);
-						else if (game) {
-								// console.log('found score');
-								if (singleBet.type == 'spread') {
-										if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
-												(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
-												updateBet(singleBet.id,{status:4});
-												updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-										} else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
-												(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
-												updateBet(singleBet.id,{status:5});
-												updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-										} else {
-												updateBet(singleBet.id,{status:6});
-												updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-										}
+					if(err)
+							logger.error('tallyBets error: '+err);
+					else if (game) {
+						// console.log('found score');
+						if (singleBet.type == 'spread') {
+								if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
+										(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
+										updateBet(singleBet.id,{status:4});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+								} else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
+										(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
+										updateBet(singleBet.id,{status:5});
+										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+								} else {
+										updateBet(singleBet.id,{status:6});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+								}
 						} else {
 							if ((singleBet.type == 'over' && game.score1+game.score2 > singleBet.odds) ||
 								(singleBet.type == 'under' && game.score1+game.score2 < singleBet.odds)) {
@@ -479,6 +519,74 @@ module.exports = {
 								updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
 							}
 						}
+					}
+				});
+			});
+		});
+	},
+	tallyBets2: function(sprt){
+		// console.log('tallying bets ...'+sprt);
+		Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
+			acceptedBets.forEach(function(singleBet){				//go through each bet
+				let teams, url, wk, today = new Date();
+				// for late games, checking after midnight need to look at previous day
+				if (today.getHours() === 0)
+					today.setHours(today.getHours()-1);
+				if (sprt=='nfl') {
+					wk = Util.getWeek(new Date(), sprt);
+					url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
+					teams = nflTeams2;
+				} else {
+					url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
+					teams = nbaTeams2;
+				}
+				console.log('checking scores @ '+url);
+				request(url, function (err, response, body) {
+					if(!err && response.statusCode == 200) {
+						let $ = cheerio.load(body);
+						let tm1, tm2,sc1, sc2;
+						let results = $('.single-score-card.postgame')
+						for (let i = 0; i < results.length; i++){
+							tm1 = teams[$(results[i]).find('a.team').first().text()];
+							if (tm1 != singleBet.team1.replace('@','') && tm1 != singleBet.team2.replace('@','') ) {
+								continue; // not the game, look at next
+							}
+							tm2 =teams[$(results[i]).find('a.team').last().text()];
+							if (tm2 == singleBet.team1.replace('@','') || tm2 == singleBet.team2.replace('@','') ){ //found game
+								sc1 = $(results[i]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,'');
+								sc2 = $(results[i]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,'');
+								console.log(sc1, sc2);
+								if (singleBet.type == 'spread') {
+									if ((tm1 == singleBet.team1.replace('@','') && sc1+singleBet.odds > sc2) ||
+									(tm2 == singleBet.team1.replace('@','') && sc2+singleBet.odds > sc1)) {
+										updateBet(singleBet.id,{status:4, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+									} else if ((tm1 == singleBet.team1.replace('@','') && sc1+singleBet.odds < sc2) ||
+									(tm2 == singleBet.team1.replace('@','') && sc2+singleBet.odds < sc1)) {
+										updateBet(singleBet.id,{status:5, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+									} else {
+										updateBet(singleBet.id,{status:6, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+									}
+								} else {
+									if ((singleBet.type == 'over' && sc1+sc2 > singleBet.odds) ||
+									(singleBet.type == 'under' && sc1+sc2 < singleBet.odds)) {
+										updateBet(singleBet.id,{status:4, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+									} else if ((singleBet.type == 'under' && sc1+sc2 > singleBet.odds) ||
+									(singleBet.type == 'over' && sc1+sc2 < singleBet.odds)) {
+										updateBet(singleBet.id,{status:5, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+									} else {
+										updateBet(singleBet.id,{status:6, score1: sc1, score2: sc2});
+										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+									}
+								}
+									
+							}
+			
+						};
 					}
 				});
 			});

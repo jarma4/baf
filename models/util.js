@@ -16,6 +16,7 @@ var textList = {};
 
 module.exports = {
    textUser: function (to, message, pref2){
+		// console.log(message);
       Users.findOne({_id: to}, function(err,user){
          if (err) {
             console.log(err);
@@ -35,7 +36,7 @@ module.exports = {
                      telnyx.messages.create({
                         'from': '+18705888055', // Your Telnyx number
                         'to': '+1'+user.sms,
-                        'text': message+' ( https://2dollarbets.com/bets )'
+                        'text': message + ' - 2DB'
                      }).then(function(response){
                         console.log('texted',message); // asynchronously handled
                      });
@@ -52,10 +53,10 @@ module.exports = {
       return Math.ceil((date - ((sport=='nba')?module.exports.seasonStart.nba:(sport=='nfl')?module.exports.seasonStart.nfl:module.exports.seasonStart.ncaa)) / dayTicks / 7);
    },
    seasonStart: {
-      nfl: new Date(2019,8,3),
+      nfl: new Date(2020,8,10),
       nba: new Date(2019,9,22),
-      ncaa: new Date(2019,2,16),
-      soccer: new Date(2019,5,14)
+      ncaa: new Date(2020,2,16),
+      soccer: new Date(2020,5,14)
    }
    // inSeason: {
    //    nfl: false,

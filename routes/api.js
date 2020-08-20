@@ -91,6 +91,8 @@ function saveBet (req){
 		sport: req.body.sport,
 		fta: req.body.serial,
 		paid: false,
+		score1: 0,
+		score2: 0,
 		status: (req.body.watch === true)?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
 		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:''
 	}).save(function(err){
@@ -755,7 +757,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 	} else {
 		findAndMark(req.session.user._id, req.body.name);
 		findAndMark(req.body.name, req.session.user._id);
-		Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' offsetting debts between you - no further action required');
+		Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' marked paid '+req.body.num+' pair offsetting bets between you - no further action required');
 	}
 	res.send({'type':'success', 'message':'Offset debts recorded'});
 });
