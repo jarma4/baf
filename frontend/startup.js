@@ -12,22 +12,22 @@ $(document).ready(function() {
 //global variables
 var username,
    // used for swiping between pages
-   urls = ['/', '/odds', '/bets', '/stats', '/scores', '/futures', '/overunder', '/atsgame', '/props', '/options'],
+   urls = ['/', '/odds', '/bets', '/stats', '/futures', '/overunder', '/props', '/options'],
    // declared global so that charts can be updated between functions
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
    seasonStart = {
-      nfl: new Date(2019,8,3),
+      nfl: new Date(2020,8,10),
       nba: new Date(2019,9,22),
       ncaa: new Date(2019,2,16)
    },
    inSeason = {
       // 0 out of season; 1 in season, -1 signup
-      nfl: 1,
+      nfl: -1,
       nba: 1,
-      ncaaf: 1,
+      ncaaf: 0,
       ncaab: 0
    },
    // for FETCH calls

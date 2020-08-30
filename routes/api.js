@@ -1,3 +1,5 @@
+const { seasonStart } = require('../models/util');
+
 const express = require('express'),
 		bodyParser = require('body-parser'),
 		fs = require('fs'),
@@ -77,8 +79,8 @@ let betStack = [];
 function saveBet (req){
 	let today = new Date();
 	new Bets({
-		week: Util.getWeek(today, req.body.sport),
-		season: 2019, //today.getFullYear(),
+		week: Util.getWeek(new Date(req.body.gametime), req.body.sport),
+		season: seasonStart[req.body.sport].getFullYear(),
 		gametime: req.body.gametime,
 		date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
 		user1: req.session.user._id,
@@ -280,7 +282,7 @@ router.post('/changebet', requireLogin, function(req,res){
 
 router.post('/weeklystats', requireLogin, function(req,res){
 	let sortedBets = [];
-	Bets.find({$and:[{season:2019}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
+	Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
 		if(err){
 			console.log(err);
 		} else {
