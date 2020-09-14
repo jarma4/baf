@@ -276,7 +276,7 @@ module.exports = {
 					today.setHours(today.getHours()-1);
 				if (sprt=='nfl') {
 					wk = Util.getWeek(new Date(), sprt);
-					url = 'https://www.si.com/nfl/scoreboard?week=1%2C'+wk;
+					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+today.getFullYear()+'/regular/'+wk;
 					teams = Util.nflTeams2;
 				} else {
 					url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
@@ -296,6 +296,7 @@ module.exports = {
 							if (tm2 == singleBet.team1.replace('@','') || tm2 == singleBet.team2.replace('@','') ){ //found game
 								sc1 = Number($(results[i]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
 								sc2 = Number($(results[i]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
+								// console.log(tm1, sc1, tm2, sc2);
 								if (singleBet.type == 'spread') {
 									if ((tm1 == singleBet.team1.replace('@','') && sc1+singleBet.odds > sc2) ||
 									(tm2 == singleBet.team1.replace('@','') && sc2+singleBet.odds > sc1)) {
@@ -323,9 +324,7 @@ module.exports = {
 										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
 									}
 								}
-									
 							}
-			
 						};
 					}
 				});

@@ -13,22 +13,20 @@ const Odds = require('./models/dbschema').Odds;
 const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
 
-let tm1 = "jarma4";
-console.log(`team 1 ${tm1}`);
-
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
-function test(date) {
-   let url = 'https://www.cbssports.com/nba/scoreboard/'+date.getFullYear()+('0'+(date.getMonth()+1)).slice(-2)+('0'+date.getDate()).slice(-2),
-      dateCopy = new Date(date);
+test(1);
+
+function test(wk) {
+   let url = 'https://www.cbssports.com/nfl/scoreboard/all/'+new Date().getFullYear()+'/regular/'+wk;
 	console.log(url);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode === 200) {
 			let $ = cheerio.load(body);
 			$('.single-score-card.postgame').each(function(){
             // console.log($(this).find('a.team').first().text());
-				console.log(nbaTeams2[$(this).find('a.team').first().text()]+$(this).find('a.team').first().parent().next().next().next().next().next().text()+' vs '+nbaTeams2[$(this).find('a.team').last().text()]);
+				console.log($(this).find('a.team').first().text()+$(this).find('a.team').first().parent().next().next().next().next().next().text()+' vs '+$(this).find('a.team').last().text());
 				// let tmp = new Scores({
 				// 	score1: 0,
 				// 	score2: 0,

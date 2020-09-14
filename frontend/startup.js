@@ -25,7 +25,7 @@ var username,
    },
    inSeason = {
       // 0 out of season; 1 in season, -1 signup
-      nfl: -1,
+      nfl: 1,
       nba: 1,
       ncaaf: 0,
       ncaab: 0
