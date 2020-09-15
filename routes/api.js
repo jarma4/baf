@@ -79,8 +79,8 @@ let betStack = [];
 function saveBet (req){
 	let today = new Date();
 	new Bets({
-		week: Util.getWeek(new Date(req.body.gametime), req.body.sport),
-		season: seasonStart[req.body.sport].getFullYear(),
+		week: (req.body.type != 'prop')?Util.getWeek(new Date(req.body.gametime), req.body.sport):0,
+		season: (req.body.type != 'prop')?seasonStart[req.body.sport].getFullYear(): today.getFullYear(),
 		gametime: req.body.gametime,
 		date: (req.body.timeout)?today.setDate(today.getDate()+Number(req.body.timeout)):today,
 		user1: req.session.user._id,
@@ -970,6 +970,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 		});
 	});
 	Promise.all([sportsPromise, betsPromise, futuresPromise, propsPromise]).then(function(values){
+		// console.log(answer);
 		res.send(answer);
 	});
 });
