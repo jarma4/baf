@@ -11,7 +11,7 @@ function jsTask(){
    return gulp.src('frontend/*.js')
       .pipe(plumber())
       .pipe(concat('bundle.js'))
-      .pipe(terser())
+		.pipe(terser())
       .pipe(gulp.dest('public/js'));
 }
 
@@ -35,7 +35,7 @@ function startTask() {
    return nodemon({
       script: 'app.js',
       ext: 'js',
-      ignore: ['frontend/*', 'public/*'],
+      ignore: ['frontend/*', 'public/*', 'json/*'],
       env: { 'NODE_ENV': 'development' }
    });
 }

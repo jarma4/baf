@@ -1,11 +1,3 @@
-function resetOddsWatch(){
-   $('#betUserlist').removeClass('nodisplay');
-   $('#userList').prop('disabled', false);
-   $('#oddsWatchArea').addClass('nodisplay');
-   $('#betSubmit').text('Send Bet');
-   $('#oddsWatch').prop('checked', false);
-}
-
 // change bet modal according to checkbox
 $('#oddsWatch').on('click', function(event) {
    $('#oddsWatchArea').toggleClass('nodisplay');

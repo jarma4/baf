@@ -11,7 +11,7 @@ require('dotenv').config()
 // http site
 const app_http = express();
 app_http.use(compression());
-//app_http.use('/', express.static(__dirname + '/public'));
+// app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
 	// res.sendfile('./public/react.html');
    res.redirect(301, 'https://2dollarbets.com');
@@ -52,7 +52,7 @@ https.createServer(options, app_https).listen(443, function () {
 const scraper = require('./models/scraper');
 
 // schedule worker jobs
-const oddsCron = crontab.scheduleJob("*/10 9-23 * * *", scraper.refreshOddsInfo);
+const oddsCron = crontab.scheduleJob("*/10 7-23 * * *", scraper.refreshOddsInfo);
 // const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUnactedBets);
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);

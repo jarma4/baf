@@ -52,12 +52,15 @@ $('.collapseIcon').on('click', function(event){
 
 //bet modal has +/- to increment/decrement values
 $('.btn-increment').on('click', function(event){
-   event.preventDefault();
-   if ($(this).val()=='1') {
-      $(this).prev().val(Number($(this).prev().val())+0.5);
+	event.preventDefault();
+	let increment = 0.5;
+	if ($(this).val() > 1)		// button val of 0,1 increment by .5. val of 2,3 by 1
+		increment = 1;
+   if ($(this).val() % 2) {	// odd button are +
+      $(this).prev().val(Number($(this).prev().val())+increment);
       $(this).prev().addClass('bg-danger');
-   } else {
-      $(this).next().val(Number($(this).next().val())-0.5);
+} else {								// odd button are -
+      $(this).next().val(Number($(this).next().val())-increment);
       $(this).next().addClass('bg-danger');
    }
 });

@@ -96,7 +96,8 @@ function saveBet (req){
 		score1: 0,
 		score2: 0,
 		status: (req.body.watch === true)?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
-		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:''
+		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:'',
+		limit: req.body.limit
 	}).save(function(err){
 	 if(err) {
 			logger.error('Trouble adding bet: '+err);
@@ -128,8 +129,8 @@ function makeBet (req) {
 	}, 10000);
 
 	// check if first to act bet, if not zero serial which gets copied to fta and used later
-	if (req.body.user2 !== 'EVERYONE2')
-		req.body.serial = 0;
+	// if (req.body.user2 !== 'EVERYONE2')
+	// 	req.body.serial = 0;
 	// if EVERYONE bet, need to go through user db and send to each
 	if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && req.body.watch == false) {
 		Users.find({$and: [
@@ -158,7 +159,8 @@ router.post('/getbets', requireLogin, function(req,res){
 		(Number(req.body.all))?{$and:[
 											{user1: {$ne: req.session.user._id}},
 											{user2: {$ne: req.session.user._id}}]}
-									 :(req.body.status=='0')?{user2: req.session.user._id}
+									:(req.body.status=='0')?{user2: req.session.user._id}
+									//  :(req.body.status=='0')?{$or:[{$and: [{user1: {$ne: req.session.user._id}}, {user2: 'EVERYONE'}]}, {user2: req.session.user._id}]}
 																	:(req.body.status=='1')?{user1: req.session.user._id}
 																								  :{$or:[
 																										{user1: req.session.user._id},
@@ -235,19 +237,22 @@ router.post('/changebet', requireLogin, function(req,res){
 					logger.info('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
 					changeUser(req.session.user._id, 'bets', -1);
 					Util.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
-					// if first to act bet, remove for other people
-					if (acceptedBet.fta) {
-						Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
-							otherBets.forEach(function(otherBet) {
-								changeUser (otherBet.user2, 'bets', -1);
-								logger.info('1st to bet acted by '+req.session.user._id+', bet '+otherBet._id+' changed for '+otherBet.user2);
-							});
-						}).then(function(){
-							Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+					if (acceptedBet.limit > 1) {	// number of bets to give is limited but this not the last; update others
+						Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, function(err) {
 								if (err)
 									console.log(err);
 							});
-						});
+						} else if (acceptedBet.limit == 1)	{ // number of bets limited and this is last; cancel others
+							Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
+								otherBets.forEach(otherBet => {
+									changeUser(otherBet.user2, 'bets', -1);
+								});
+							}).then(function(){
+								Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+									if (err)
+										console.log(err);
+								});
+							});
 					}
 					res.send({'type':'success', 'message':'Bet accepted'});
 				} else {
@@ -754,8 +759,8 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 		findAndMark(req.session.user._id, req.body.name.split('/')[0]);
 		findAndMark(req.body.name.split('/')[0], req.body.name.split('/')[1]);
 		findAndMark(req.body.name.split('/')[1], req.session.user._id);
-		Util.textUser(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting debts between you & '+req.body.name.split('/')[1]+' - no further action required');
-		Util.textUser(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting debts between you & '+req.body.name.split('/')[0]+' - no further action required');
+		Util.textUser(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[1]+' - no further action required');
+		Util.textUser(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[0]+' - no further action required');
 	} else {
 		findAndMark(req.session.user._id, req.body.name);
 		findAndMark(req.body.name, req.session.user._id);

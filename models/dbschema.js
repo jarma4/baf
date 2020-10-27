@@ -43,7 +43,8 @@ var betsSchema = new mongoose.Schema({
    comment: String,
 	paid: Boolean,
 	score1 : Number,
-   score2 : Number
+	score2 : Number,
+	limit: Number
 });
 
 var msgSchema = new mongoose.Schema({

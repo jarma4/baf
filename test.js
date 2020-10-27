@@ -4,21 +4,28 @@ const request = require('request');
 // const exec = require('child_process').exec;
 const cheerio = require('cheerio');
 const Util = require('./models/util');
-const Records = require('./models/dbschema').Records;
-const Scores = require('./models/dbschema').Scores;
-const OUgame = require('./models/dbschema').OUgame;
-const OUuser = require('./models/dbschema').OUuser;
-const Ats = require('./models/dbschema').Ats;
-const Odds = require('./models/dbschema').Odds;
+// const Records = require('./models/dbschema').Records;
+// const Scores = require('./models/dbschema').Scores;
+// const OUgame = require('./models/dbschema').OUgame;
+// const OUuser = require('./models/dbschema').OUuser;
+// const Ats = require('./models/dbschema').Ats;
+// const Odds = require('./models/dbschema').Odds;
 const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
+const { Bets, Users } = require('./models/dbschema');
 
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
-test(1);
+Bets.find({user1:'testuser'}, {user2: 1, _id: 0}, (err, records)=>{
+	if (!err) {
+		records.forEach(record => {
+			console.log(record.user2);
+		})
+	}
+});
 
-function test(wk) {
+function fn(wk) {
    let url = 'https://www.cbssports.com/nfl/scoreboard/all/'+new Date().getFullYear()+'/regular/'+wk;
 	console.log(url);
 	request(url, function (err, response, body) {

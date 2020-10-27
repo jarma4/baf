@@ -1,22 +1,15 @@
 const  Users = require('./dbschema').Users,
    // Nexmo = require('nexmo'),
-   sinchAuth = require('./sinch-auth'),
-   sinchSms = require('./sinch-messaging'),
    mongoose = require('mongoose');
 	
 require('dotenv').config();
 const telnyx = require('telnyx')(process.env.BAF_TELNYX);
-// auth = sinchAuth('61a9e95d-1134-414a-a883-f5d4111e6061', process.env.BAF_SINCH);
-   
-// const nexmo = new Nexmo({
-//    apiKey: process.env.BAF_NEXMOK,
-//    apiSecret: process.env.BAF_NEXMOS
-// });
+
 var textList = {};
 
 module.exports = {
    textUser: function (to, message, pref2){
-		// console.log(message);
+		// return;
       Users.findOne({_id: to}, function(err,user){
          if (err) {
             console.log(err);
@@ -29,7 +22,7 @@ module.exports = {
                } else {
                   textList[to] = 1;
                }
-               // only text user once every 2 minutes
+					// only text user once every 2 minutes
                setTimeout(function(){
                   if (textList[to]) {
                      // console.log('text sending to '+user.sms);
@@ -40,7 +33,6 @@ module.exports = {
                      }).then(function(response){
                         console.log('texted',message); // asynchronously handled
                      });
-                     // sinchSms.sendMessage('+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
                      textList[to] = 0;
                   }
                }, 90000);

@@ -89,7 +89,7 @@ function getOdds2 (){
 
       var outp = '<table class="table">';
       $.each(retData.games, function(i,rec){
-         let checkDisabled = '', checkDisabled2 = 'disabled ', btnColor1, btnColor2, date = new Date(rec.date);
+         var checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
          // gray out and disable if game already started
          if (date > new Date()) {
@@ -100,11 +100,6 @@ function getOdds2 (){
             btnColor1 = 'default';
             btnColor2 = 'default';
          }
-
-         if (rec.inhalftime) {
-				checkDisabled2 = '';
-				btnColor2 = 'primary';
-         }
          // non mobile will see multiple columns so start new if current full
          if (gameNum%listCount === 0 && gameNum/listCount > 0) {
             outp += '</table>';
@@ -114,15 +109,12 @@ function getOdds2 (){
          // draw date row if needed
          var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
          if (tmpDate > prevDate)
-				outp += '<tr class="modal-warning"><td colspan=5 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
-			// visitor spread
-         outp += '<tr><td class="td-odds"><button id=btn-override '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
-			//over under
-         outp += '<td class="td-odds td-middle"><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
-         // first/second half
-			outp += '<td class="td-odds td-middle"><button id=btn-override '+checkDisabled+'class="btn btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="firsthalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">1H '+rec.firsthalf+'</button><button id=btn-override '+checkDisabled2+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="secondhalf" data-sport="'+sport+'" data-gametime="'+rec.date+'">2H '+rec.secondhalf+'</button></td>';
-			// home spread
-         outp += '<td class="td-odds"><button id=btn-override '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
+            outp += '<tr class="modal-warning"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
+         outp += '<tr><td class=""><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm1_'+i+'" class="logo-sm" src="images/'+sport+'_logo_sprite_small.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
+         // +((date.getHours()>12)?(date.getHours()-12):date.getHours())+':'+('0'+date.getMinutes()).slice(-2)+((date.getHours()>11)?'pm':'am')
+         outp += '<td class="td-odds td-middle"><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="over" data-sport="'+sport+'" data-gametime="'+rec.date+'">O'+rec.over+'</button><button '+checkDisabled+'class="btn btn-'+btnColor2+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="under" data-sport="'+sport+'" data-gametime="'+rec.date+'">U'+rec.over+'</button></td>';
+
+         outp += '<td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="2" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm2_'+i+'" class="logo-sm" src="images/'+sport+'_logo_sprite_small.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></tr>';
          prevDate = tmpDate;
          gameNum++;
       });
@@ -130,8 +122,8 @@ function getOdds2 (){
       document.getElementById('col'+Math.ceil(gameNum/listCount)).innerHTML = outp;
       // set sprite position for each logo on buttons
       $.each(retData.games, function(i, rec){
-         $('#tm1_'+i).css('object-position', spritePosition(sport, rec.team1));
-         $('#tm2_'+i).css('object-position', spritePosition(sport, rec.team2.substr(1)));
+         $('#tm1_'+i).css('object-position', spritePosition2(sport, rec.team1));
+         $('#tm2_'+i).css('object-position', spritePosition2(sport, rec.team2.substr(1)));
       });
       $('#timestamp').text('updated:'+retData.time);
    })
@@ -183,10 +175,11 @@ $('#betModal').on('show.bs.modal', function (event) {
 		$('#betTitle').text('You want: ' + ((button.data('team') == 1)?'Over ':'Under ') + odds);
 	else
 		$('#betTitle').text('You want '+((button.data('type') == 'firsthalf')?'First Half':'Second Half')+': '+vs1+' '+odds+' vs '+vs2);
-   resetOddsWatch();
+   resetBetStuff();
 });
 
 $('#betSubmit').on('click', function(event) {
+	console.log($('betLimitNum').val())
    postApi('makebet', {
       'user2': $('#userList').val(),
       'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
@@ -197,13 +190,60 @@ $('#betSubmit').on('click', function(event) {
       'gametime': $('#betGametime').val(),
       'serial': Math.random(),
       'watch': $('#oddsWatch').is(":checked"),
-      'watchsend': $('#oddsWatchSend').is(":checked")
+		'watchsend': $('#oddsWatchSend').is(":checked"),
+		'limit': $('#betLimitCheckbox').is(":checked")?$('#betLimit').val():0
 	});
    getBets(($('#sportNfl').hasClass('selected'))?10:11,'watchBets','watch');
 });
 
+function resetBetStuff(){
+   // $('#betUserlist').removeClass('nodisplay');
+	// $('#userList').prop('disabled', false);
+	$('#userList option[value="EVERYONE"]').prop('selected', true)
+	$('#betSubmit').text('Send Bet');
+	$('#oddsWatch').prop('checked', false);
+   $('#oddsWatchArea').addClass('nodisplay');
+	$('#betLimitCheckbox').prop('checked', false);
+   $('#betLimitPicker').addClass('nodisplay');
+   $('#betLimit').val(0);
+}
+
+$('#betLimitCheckbox').on('click', function(event) {
+	$('#betLimitPicker').toggleClass('nodisplay');
+	if ($("#betLimitCheckbox").is(":checked")) {
+      $('#betLimit').val(1);
+   } else {
+      $('#betLimitCheckbox').val(0);
+   }
+});
+
+$('#userList').on('change', function(){
+	if ($('#userList').val() == 'EVERYONE'){
+		$('#betLimitArea').removeClass('nodisplay');
+		$('#betLimitCheckbox').prop('checked', false);
+		$('#betLimitPicker').addClass('nodisplay');
+		$('#betLimit').removeClass('bg-danger');
+		$('#betLimit').val(1);
+	} else {
+		$('#betLimitArea').addClass('nodisplay');
+	}
+});
+
 function spritePosition (sport, team) {
    var width = 56, height = 40, cols = 6, index,
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
+      nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
+   if (sport == 'nfl')
+      index = nfl_teams.indexOf(team);
+   else
+      index = nba_teams.indexOf(team);
+   if (index < 0)
+      index = 0;
+   return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
+}
+
+function spritePosition2 (sport, team) {
+   var width = 35, height = 25, cols = 6, index,
       nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
       nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
    if (sport == 'nfl')

@@ -139,9 +139,10 @@ function getUsers (){
          $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
          window.userList.push(user._id);
       });
-      $('#userList').append('<option value="EVERYONE">EVERYONE</option>');
-      $('#userList').append('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
-      $('#userList option[value="EVERYONE"]').attr("selected", "selected");
+      // $('#userList').prepend('<option value="EVERYONE2">EVERYONE - 1st to act</option>');
+      $('#userList').prepend('<option value="EVERYONE">EVERYONE</option>');
+		// $('#userList option[value="EVERYONE"]').attr("selected", "selected");
+		// $('#betLimit').toggleClass('nodisplay');
       // $('#propUser2').prepend('<option value="OPEN">OPEN</option>');
    })
 	.catch(retData => modalAlert(retData.type,retData.message));
