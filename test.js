@@ -4,7 +4,7 @@ const request = require('request');
 // const exec = require('child_process').exec;
 const cheerio = require('cheerio');
 const Util = require('./models/util');
-// const Records = require('./models/dbschema').Records;
+const Records = require('./models/dbschema').Records;
 // const Scores = require('./models/dbschema').Scores;
 // const OUgame = require('./models/dbschema').OUgame;
 // const OUuser = require('./models/dbschema').OUuser;
@@ -17,11 +17,10 @@ const { Bets, Users } = require('./models/dbschema');
 require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
-Bets.find({user1:'testuser'}, {user2: 1, _id: 0}, (err, records)=>{
+
+Bets.find({season:2020,sport:'nfl', status: {$in: [4,5,6]}}, (err, results)=>{
 	if (!err) {
-		records.forEach(record => {
-			console.log(record.user2);
-		})
+		console.log('Number of bets is ', results.length);
 	}
 });
 

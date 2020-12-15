@@ -1,3 +1,7 @@
+const P = require('pino');
+const { Sports } = require('./dbschema');
+const { getWeek } = require('./util');
+
 const request = require('request'),
 	fs = require('fs'),
 	cheerio = require('cheerio'),
@@ -140,7 +144,7 @@ function updateRecord(user, category, sport, season) {
 						loss: 0,
 						push: 0,
 						pct: 0
-					})
+					});
 					newrecord[category] = 1;
 					newrecord.save(function(err){
 						if(err) {
@@ -178,8 +182,14 @@ function updateWinnerLoser(winner, loser, push, sport){
 
 module.exports = {
 	refreshOddsInfo: function() {
-		getOdds('nba');
-		getOdds('nfl');
+		Sports.find({inseason: true}, (err, sports) => {
+			if (!err){
+				sports.forEach(sport => {
+					console.log(`getting odds for ${sport.sport}`);
+					getOdds(sport.sport);
+				});
+			}
+		});
 	},
 	clearUnactedBets: function(){
 		// below searches for unacted bets and marks refused after game starts; '-' are saved
@@ -211,6 +221,29 @@ module.exports = {
 				logger.error(err);
 			else
 				logger.info('Refused bets cleared - '+new Date());
+		});
+		// find bettors who haven't bet in a month and remove PCT so not to display in stats
+		Records.find({season:2020,sport:'nfl'}, (err, players)=>{
+			if (!err) {
+				Bets.find({season:2020,sport:'nfl', status: {$in: [4,5,6]}}, (err, bets)=>{
+					if (!err) {
+						const avgBets = bets.length - players.length;
+						players.forEach(player => {
+							Bets.findOne({season:2020, sport:'nfl', $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
+								if(!err){
+									if (lastBet.week <= Util.getWeek(new Date(), 'nfl')-4) {
+										Records.update({season:2020,sport:'nfl',user: player.user}, {$unset:{pct:1}}, (err, result)=>{
+											if (!err) {
+												console.log(`No bets for ${player.user} in month, clearing PCT`);
+											}
+										});
+									}
+								}
+							}).sort({date:-1});
+						});
+					}
+				});
+			}
 		});
 	},
 

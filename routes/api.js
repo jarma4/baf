@@ -410,7 +410,7 @@ router.post('/userstats', requireLogin, function(req,res){
 					// flip things
 					target = bet.user1;
 					if (bet.status == 5) {
-						status = 4
+						status = 4;
 					} else if (bet.status == 4) {
 						status = 5;
 					}
@@ -813,7 +813,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
 				if (debtList1.owes[debtor]) {
 					results.push({name: debtor, num: Math.min(debtList1.owes[debtor], debtList1.isowed[debtor])});
 				} else { //check for isowed 3way
-					promises.push(new Promise(function(resolve, reject){
+					promises.push(new Promise((resolve, reject)=>{
 						getDebtList(debtor)
 						.then(function(debtList2){
 							for (let debtor2 in debtList2.isowed) {
@@ -933,18 +933,18 @@ router.get('/doorbell', requireLogin, function(req,res){
 	//    answer.ncaa = true;
 	// if (fs.existsSync('json/soccer_odds.json'))
 	//    answer.soccer = true;
-	let sportsPromise = new Promise(function (resolve, reject) {
-		Sports.find({inseason: true}, function(err, sports){
+	let sportsPromise = new Promise((resolve, reject)=>{
+		Sports.find({inseason: true}, {sport:1, start: 1}, (err, sports)=>{
 			if (err)
 				reject(err);
-			sports.forEach(function(sport){
-				answer.sports.push(sport.sport);
+			sports.forEach(sport => {
+				answer.sports.push(sport);
 			});
 			resolve();
 		});
 	});
-	let betsPromise = new Promise(function (resolve, reject) {
-		Users.findOne({_id: req.session.user}, function(err,user){
+	let betsPromise = new Promise((resolve, reject)=>{
+		Users.findOne({_id: req.session.user}, (err,user)=>{
 			if (err)
 				reject(err);
 			if (user){
@@ -954,7 +954,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 			resolve();
 		});
 	});
-	let futuresPromise = new Promise(function (resolve, reject) {
+	let futuresPromise = new Promise((resolve, reject)=>{
 		Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {
 			if (err)
 				reject(err);
@@ -964,7 +964,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 			resolve();
 		});
 	});
-	let propsPromise = new Promise(function (resolve, reject) {
+	let propsPromise = new Promise((resolve, reject)=>{
 		Bets.findOne({$and:[{type: 'prop'}, {user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
 			if (err)
 				reject(err);
@@ -974,7 +974,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 			resolve();
 		});
 	});
-	Promise.all([sportsPromise, betsPromise, futuresPromise, propsPromise]).then(function(values){
+	Promise.all([sportsPromise, betsPromise, futuresPromise, propsPromise]).then(values=>{
 		// console.log(answer);
 		res.send(answer);
 	});

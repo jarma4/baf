@@ -18,9 +18,10 @@ var username,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
-   seasonStart = {
+	// seasonStart = [];
+	seasonStart = {
       nfl: new Date(2020,8,10),
-      nba: new Date(2019,9,22),
+      nba: new Date(2020,11,22),
       ncaa: new Date(2019,2,16)
    },
    inSeason = {
@@ -93,8 +94,9 @@ function doorBell(){
          if (retData.props) {
             $('#notify4').removeClass('hidden');
          }
-         retData.sports.forEach((sport, i) => {
-            $('.sportPick.'+sport).removeClass('hidden');
+         retData.sports.forEach(sport=>{
+				$('.sportPick.'+sport.sport).removeClass('hidden');
+				// seasonStart[sport.sport] = new Date(sport.start);
          });
       }
    })
