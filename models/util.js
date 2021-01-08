@@ -46,7 +46,7 @@ module.exports = {
    },
    seasonStart: {
       nfl: new Date(2020,8,10),
-      nba: new Date(2019,9,22),
+      nba: new Date(2020,11,22),
       ncaa: new Date(2020,2,16),
       soccer: new Date(2020,5,14)
 	},

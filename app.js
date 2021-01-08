@@ -58,15 +58,15 @@ const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUn
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
 
 // for NFL
-const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,1,4", scraper.tallyBets2,['nfl']);
+const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0,6", scraper.tallyBets2,['nfl']);
 
 // for NBA
 // const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 const tallyBetsNbaCron = crontab.scheduleJob("*/10 0,14-23 * * *", scraper.tallyBets2,['nba']);
 
 // for the Over Under game
-const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
-// const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+// const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
+const updateStandingsCron2 = crontab.scheduleJob("20 18 * * *", scraper.updateStandings,['nba']);
 
 // for the ATS game
 // const publishAtsCron = crontab.scheduleJob("0 19 * * 5", scraper.publishAtsOdds);

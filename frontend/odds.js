@@ -1,16 +1,11 @@
 function getOdds (){
-   // var sport = document.cookie.split('=')[1];
-   // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
-   //    sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'ncaa';
-   // toggleSport(sport);
-	// fetch('/api/'+sport+'odds', getOptions)
-
-
-
-   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
-   // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
-   //    var sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';
-   // toggleSport(sport);
+   var sport = document.cookie.split('=')[1];
+   if (!sport) {
+		sport = $('.sportPick.selected').text().toLowerCase();
+		document.cookie = 'sport='+sport+';max-age=43200';
+	} else {
+		toggleSport(sport);
+	}
    postOptions.body = JSON.stringify({
       "sport": sport
    });

@@ -21,7 +21,7 @@ var username,
 	// seasonStart = [];
 	seasonStart = {
       nfl: new Date(2020,8,10),
-      nba: new Date(2020,11,22),
+      nba: new Date(2020,11,22,18),
       ncaa: new Date(2019,2,16)
    },
    inSeason = {

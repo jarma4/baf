@@ -221,7 +221,7 @@ tr .heading {
    font-weight: bold;
 }
 .watchseen {
-   text-decoration: line-through;
+   text-decoration: underline overline;
 }
 // below defines modal color classes
 @each $color in (

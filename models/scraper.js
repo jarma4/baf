@@ -1,6 +1,6 @@
 const P = require('pino');
 const { Sports } = require('./dbschema');
-const { getWeek } = require('./util');
+const { getWeek, seasonStart } = require('./util');
 
 const request = require('request'),
 	fs = require('fs'),
@@ -185,7 +185,6 @@ module.exports = {
 		Sports.find({inseason: true}, (err, sports) => {
 			if (!err){
 				sports.forEach(sport => {
-					console.log(`getting odds for ${sport.sport}`);
 					getOdds(sport.sport);
 				});
 			}
@@ -309,12 +308,13 @@ module.exports = {
 					today.setHours(today.getHours()-1);
 				if (sprt=='nfl') {
 					wk = Util.getWeek(new Date(), sprt);
-					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+today.getFullYear()+'/regular/'+wk;
+					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+'/regular/'+wk;
 					teams = Util.nflTeams2;
 				} else {
 					url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
 					teams = Util.nbaTeams2;
 				}
+				// console.log(url);
 				request(url, function (err, response, body) {
 					if(!err && response.statusCode == 200) {
 						let $ = cheerio.load(body);
@@ -370,16 +370,16 @@ module.exports = {
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
-				console.log('starting update '+sport);
+				// console.log('starting update '+sport);
 				Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
                let record = $('.table a:contains('+name+')').parent().next().text().split('-');
                // console.log(name,record);
-					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:82);
+					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:72);
 					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
 						if (err)
 							logger.error('OUgame find team error: '+err);
 						else if(rec) {
-							OUgame.update({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (newproj > rec.line)?'Over':(newproj < rec.line)?'Under':'Push'}, function(err, resp){
+							OUgame.update({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
 								if (err)
 									logger.error('updateStandings error: '+err);
 							});

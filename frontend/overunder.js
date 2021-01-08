@@ -2,11 +2,11 @@
 function getOverunder() {
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
 
-   if (inSeason[sport]< 0){
+   if (inSeason[sport] && new Date() < new Date(seasonStart[sport])){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
-   } else if (inSeason[sport] == 1){
+   } else if (inSeason[sport]){
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
       postOptions.body = JSON.stringify({
@@ -28,9 +28,9 @@ function getOverunder() {
          // go through teams and populate tables
          $.each(retData.standings, function(i, rec){
             var gamesDiff = rec.line-rec.win;
-            var gamesLeft = ($('.sportPick.nfl').hasClass('selected'))?16-rec.win-rec.loss:82-rec.win-rec.loss;
+            var gamesLeft = ($('.sportPick.nfl').hasClass('selected'))?16-rec.win-rec.loss:72-rec.win-rec.loss;
             // populate standings area
-            outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.abs(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':(rec.status == 'Under')?'U':'P')+'</td><td>'+((gamesDiff<0)?'met':((gamesDiff+0.5)>gamesLeft)?'not O':Math.ceil(gamesDiff+0.5)+'/'+gamesLeft)+'</td></tr>';
+            outp += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.projection.toPrecision(3)+'</td><td>'+rec.line+'</td>'+((Math.floor(rec.line-rec.projection)<3)?'<td class="heading-danger">':'<td>')+((rec.status == 'Over')?'O':(rec.status == 'Under')?'U':'P')+'</td><td>'+((gamesDiff<0)?'met':((gamesDiff+0.5)>gamesLeft)?'not O':Math.floor(gamesDiff+0.5)+'/'+gamesLeft)+'</td></tr>';
             // populate picks area
             outp2 += '<tr><td>'+rec.team.replace(' ','').slice(0,5)+'</td>';
             for (var j = 0; j < retData.users.length; j++) {
