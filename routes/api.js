@@ -128,11 +128,8 @@ function makeBet (req) {
 		betStack.splice(betStack.indexOf(req.body.serial),1);
 	}, 10000);
 
-	// check if first to act bet, if not zero serial which gets copied to fta and used later
-	// if (req.body.user2 !== 'EVERYONE2')
-	// 	req.body.serial = 0;
 	// if EVERYONE bet, need to go through user db and send to each
-	if ((req.body.user2 == 'EVERYONE' || req.body.user2 == 'EVERYONE2') && req.body.watch == false) {
+	if ((req.body.user2 == 'EVERYONE') && req.body.watch == false) {
 		Users.find({$and: [
 							{_id: {$nin:[req.session.user._id,'testuser']}},
 							(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
@@ -242,17 +239,17 @@ router.post('/changebet', requireLogin, function(req,res){
 								if (err)
 									console.log(err);
 							});
-						} else if (acceptedBet.limit == 1)	{ // number of bets limited and this is last; cancel others
-							Bets.find({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
-								otherBets.forEach(otherBet => {
-									changeUser(otherBet.user2, 'bets', -1);
-								});
-							}).then(function(){
-								Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
-									if (err)
-										console.log(err);
-								});
+					} else if (acceptedBet.limit == 1)	{ // number of bets limited and this is last; cancel others
+						Bets.find({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
+							otherBets.forEach(otherBet => {
+								changeUser(otherBet.user2, 'bets', -1);
 							});
+						}).then(function(){
+							Bets.update({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+								if (err)
+									console.log(err);
+							});
+						});
 					}
 					res.send({'type':'success', 'message':'Bet accepted'});
 				} else {

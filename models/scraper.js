@@ -66,6 +66,7 @@ function getOdds(sport) {
 			// console.log('checking watches');
 			Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]}, function(err, watches){
 				watches.forEach(function(watch){
+					// console.log(watch);
 					// if home team was chosen, reverse things so they match current odds
 					if(watch.team1.slice(0,1)=='@') {
 						let tmp = watch.team1;
@@ -78,8 +79,13 @@ function getOdds(sport) {
 						if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
 							// check if supposed to send bet to recipient after watch hits
 							if (watch.watch == 11) {
-								watch.serial = Math.random();
-								Api.makeBet(watch);
+								console.log('sending watch');
+								delete watch.watch;
+								delete watch.watchSend;
+								watch.status = 0;
+								let req = {};
+								req.body = watch;
+								// Api.makeBet(req);
 							}
 							// save watch as seen
 							Bets.update({_id: watch._id}, {watch: 2}, function(err){
@@ -250,65 +256,13 @@ module.exports = {
 		// console.log('tallying bets ...'+sprt);
 		Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
 			acceptedBets.forEach(function(singleBet){				//go through each bet
-				// console.log('found bet, looking for '+singleBet.team1+ ' '+singleBet.team2+ ' '+singleBet.season);
-				// console.log(singleBet);
-				Scores.findOne({$and:[{sport: singleBet.sport}, //look for game bet is for
-										{winner:{$ne: 0}},
-										{$or:[{$and:[{team1: singleBet.team1.replace('@','')},
-														{team2: singleBet.team2.replace('@','')}]},
-												{$and:[{team1: singleBet.team2.replace('@','')},
-														{team2: singleBet.team1.replace('@','')}]}]},
-										{$or:[{$and:[{date:{$gte: singleBet.gametime.setHours(0,0,0,0)}},
-														{date:{$lt: singleBet.gametime.setHours(23,59)}}]},
-												{week: singleBet.week}]},
-										{season: singleBet.season}]}, function(err, game){
-					if(err)
-							logger.error('tallyBets error: '+err);
-					else if (game) {
-						// console.log('found score');
-						if (singleBet.type == 'spread') {
-								if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds > game.score2) ||
-										(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds > game.score1)) {
-										updateBet(singleBet.id,{status:4});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-								} else if ((game.team1 == singleBet.team1.replace('@','') && game.score1+singleBet.odds < game.score2) ||
-										(game.team2 == singleBet.team1.replace('@','') && game.score2+singleBet.odds < game.score1)) {
-										updateBet(singleBet.id,{status:5});
-										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-								} else {
-										updateBet(singleBet.id,{status:6});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-								}
-						} else {
-							if ((singleBet.type == 'over' && game.score1+game.score2 > singleBet.odds) ||
-								(singleBet.type == 'under' && game.score1+game.score2 < singleBet.odds)) {
-								updateBet(singleBet.id,{status:4});
-								updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-							} else if ((singleBet.type == 'under' && game.score1+game.score2 > singleBet.odds) ||
-								(singleBet.type == 'over' && game.score1+game.score2 < singleBet.odds)) {
-								updateBet(singleBet.id,{status:5});
-								updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-							} else {
-								updateBet(singleBet.id,{status:6});
-								updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-							}
-						}
-					}
-				});
-			});
-		});
-	},
-	tallyBets2: function(sprt){
-		// console.log('tallying bets ...'+sprt);
-		Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
-			acceptedBets.forEach(function(singleBet){				//go through each bet
 				let teams, url, wk, today = new Date();
 				// for late games, checking after midnight need to look at previous day
 				if (today.getHours() === 0)
 					today.setHours(today.getHours()-1);
 				if (sprt=='nfl') {
 					wk = Util.getWeek(new Date(), sprt);
-					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+'/regular/'+wk;
+					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+((wk>17)?'/postseason/':'/regular/')+wk;
 					teams = Util.nflTeams2;
 				} else {
 					url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);

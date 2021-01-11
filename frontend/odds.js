@@ -174,7 +174,6 @@ $('#betModal').on('show.bs.modal', function (event) {
 });
 
 $('#betSubmit').on('click', function(event) {
-	console.log($('betLimitNum').val())
    postApi('makebet', {
       'user2': $('#userList').val(),
       'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
