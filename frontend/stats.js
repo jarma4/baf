@@ -87,7 +87,8 @@ function weeklyStats(date) {
 }
 
 $('#statsYear').on('change', function(){
-   overallStats();
+	overallStats();
+	$('#weeklyStats').empty();
    drawChart(0);
 });
 

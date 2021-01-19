@@ -18,10 +18,14 @@ require('dotenv').config();
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
 
-Bets.find({season:2020,sport:'nfl', status: {$in: [4,5,6]}}, (err, results)=>{
-	if (!err) {
-		console.log('Number of bets is ', results.length);
-	}
+Users.find({}, (err, users)=>{
+	users.forEach(user => {
+		Records.find({user: user, sport:'nba'}, (err, records)=>{
+			records.forEach(record=>{
+				console.log(record.season, record.win, record.loss);
+			})
+		});
+	});
 });
 
 function fn(wk) {

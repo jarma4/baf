@@ -315,12 +315,21 @@ router.post('/weeklystats', requireLogin, function(req,res){
 
 router.post('/overallstats', requireLogin, function(req,res){
 	let stats = [];
-	Records.find({user:{$ne: 'testuser'}, pct: {$exists: true}, sport: req.body.sport, season: req.body.season}, function(err,records){
-		if (err)
-			console.log(err);
-		else
-			res.json(records);
-	}).sort({pct:-1});
+	if (req.body.season != 'All') {
+		Records.find({user:{$ne: 'testuser'}, pct: {$exists: true}, sport: req.body.sport, season: req.body.season}, function(err,records){
+			if (err)
+				console.log(err);
+			else
+				res.json(records);
+		}).sort({pct:-1});
+	} else {
+		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport}, function(err,records){
+			if (err)
+				console.log(err);
+			else
+				res.json(records);
+		}).sort({pct:-1});
+	}
 });
 
 router.post('/graphstats', requireLogin, function(req,res){

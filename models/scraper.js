@@ -19,8 +19,8 @@ const request = require('request'),
 	// mongoose = require('mongoose');
 
 function getOdds(sport) {
-	// console.log('checking odds');
 	let url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
 			let $ = cheerio.load(body);
@@ -29,7 +29,7 @@ function getOdds(sport) {
 			let pingpong = 0,
 			games = [],
 			matchup = new Object({});
-			$('.op-matchup-team','#op-content-wrapper').each(function(){
+			$('.op-matchup-team','#op-content-wrapper').not('.no-odds-wrapper').each(function(){
 					if (pingpong++ % 2){
 						matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
 						games.push(matchup);
@@ -45,21 +45,23 @@ function getOdds(sport) {
 
 			// get odds for matchups
 			let gameIndex = 0;
-			$('.op-item-row-wrapper','#op-results').each(function(){
-            let tmp = $(this).find($('.op-bovada\\.lv'));
-				if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-               games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
-				}
-				else {
-               games[gameIndex].spread = 0;
-				}
-				games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
-				games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
-				games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
-				games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-				games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
-            // console.log(gameIndex, games[gameIndex]);
-            gameIndex++;
+			$('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').each(function(){
+				let tmp = $(this).find($('.op-bovada\\.lv'));
+				// if (!tmp) {  // sometimes games are listed but with no odds, move on
+					if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
+						games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
+					}
+					else {
+						games[gameIndex].spread = 0;
+					}
+					games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
+					games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
+					games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
+					games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
+					games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
+					// console.log(gameIndex, games[gameIndex]);
+					gameIndex++;
+				// }
 			});
 
 			// go through odds Watches and act if necessary
