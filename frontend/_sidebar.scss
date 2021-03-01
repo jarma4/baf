@@ -1,4 +1,4 @@
-$sidebar-width: 145px;
+$sidebar-width: 150px;
 $sidebar-background: #3a3f44;
 
 @mixin transition {
@@ -76,7 +76,7 @@ $sidebar-background: #3a3f44;
 
 .subsection {
 	background-color: rgba(0,0,0, .25);
-	// opacity: 1%;
+	opacity: 1;
 }
 .on_bottom {
 	position: absolute;

@@ -37,10 +37,6 @@ block content
 							option(value='2016') 2016
 							option(value='2015') 2015
 							option(value='All') All
-
-							//- option 2015
-							//- option 2016
-						//- button#statsSport.btn.btn-sm.btn-warning.btn-scootlft.right NFL
 					#overallStats.panel-collapse.collapse.in
 				//- #statCarousel.carousel.slide(data-ride='carousel', data-interval='0')
 				//-    .carousel-inner(role='listbox')
@@ -69,6 +65,12 @@ block content
 				//-       span.sr-only Next
 			//-    button#graphDays.btn.btn-sm.btn-primary.left 30days
 			.col-md-4
+				.panel.panel-default
+					.panel-heading
+						a(data-toggle='collapse', href='#graphStats')#overallStatsTitle #[span.collapseIcon.open.glyphicon.glyphicon-chevron-down.hidden]
+						select#graphPeriod.btn-default.right
+							option(value='season') Season
+							option(value='latest') Latest
 				canvas#winGraph(width='320', height='320')
 
 block modals

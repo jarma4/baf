@@ -20,7 +20,7 @@ var username,
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
 	// seasonStart = [];
 	seasonStart = {
-      nfl: new Date(2020,8,10),
+      nfl: new Date(2021,8,10),
       nba: new Date(2020,11,22,18),
       ncaa: new Date(2019,2,16)
    },

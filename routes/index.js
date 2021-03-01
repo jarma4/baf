@@ -91,3 +91,7 @@ router.get('/log', function(req, res) {
 router.get('/atsgame', function(req, res) {
    res.render('atsgame', {pagename:'atgame'});
 });
+
+router.get('/btagame', function(req, res) {
+   res.render('btagame', {pagename:'btaame'});
+});

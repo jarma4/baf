@@ -9,51 +9,48 @@ const Records = require('./models/dbschema').Records;
 // const OUgame = require('./models/dbschema').OUgame;
 // const OUuser = require('./models/dbschema').OUuser;
 // const Ats = require('./models/dbschema').Ats;
-// const Odds = require('./models/dbschema').Odds;
+const Odds = require('./models/dbschema').Odds;
 const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
 const { Bets, Users } = require('./models/dbschema');
+const PhoneNumberRegulatoryRequirements = require('telnyx/lib/resources/PhoneNumberRegulatoryRequirements');
 
 require('dotenv').config();
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', { useNewUrlParser: true });
 
+mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
-Users.find({}, (err, users)=>{
-	users.forEach(user => {
-		Records.find({user: user, sport:'nba'}, (err, records)=>{
-			records.forEach(record=>{
-				console.log(record.season, record.win, record.loss);
-			})
-		});
-	});
-});
-
-function fn(wk) {
-   let url = 'https://www.cbssports.com/nfl/scoreboard/all/'+new Date().getFullYear()+'/regular/'+wk;
-	console.log(url);
-	request(url, function (err, response, body) {
-		if(!err && response.statusCode === 200) {
-			let $ = cheerio.load(body);
-			$('.single-score-card.postgame').each(function(){
-            // console.log($(this).find('a.team').first().text());
-				console.log($(this).find('a.team').first().text()+$(this).find('a.team').first().parent().next().next().next().next().next().text()+' vs '+$(this).find('a.team').last().text());
-				// let tmp = new Scores({
-				// 	score1: 0,
-				// 	score2: 0,
-				// 	winner: 0,
-				// 	season: 2019,
-				// 	sport: 'nba',
-				// 	date: dateCopy,
-				// 	team1: nbaTeams2[$(this).find('.team-name').first().text()],
-				// 	team2: nbaTeams2[$(this).find('.team-name').last().text()]
-				// }).save(function(err){
-				// 	if(err) {
-				// 		console.log('Trouble adding game');
-				// 	} else {
-				// 		console.log('game added');
-				// 	}
-				// });
+function publishOdds(sport) {
+	let index = 0;
+	let current = JSON.parse(fs.readFileSync('json/'+sport+'_odds.json'));
+	let today = new Date();
+	current.games.forEach(game => {
+		if (new Date(game.date).getDate() == today.getDate() && new Date(game.date).getMonth() == today.getMonth()) {  //only look at today, may include future odds
+			Odds.updateOne({team1: game.team1, team2: game.team2, season: 2020, sport: sport, date: today.setHours(0,0,0,0)}, {spread: game.spread}, (err, result) => {
+				if(result.nModified) {
+					console.log('Odds modified');
+				} else if (!result.n) {
+					new Odds({
+						team1: game.team1,
+						team2: game.team2,
+						spread: game.spread,
+						date: game.date,
+						sport: sport,
+						week: Util.getWeek(today, sport),
+						date: today.setHours(0,0,0,0),
+						season: 2020,
+						ats: 0,
+						index: index++
+					}).save(err2 => {
+						if(err2)
+							console.log('Error saving new odds: '+err);
+						else
+							console.log('New odds saved');
+					});
+				}
 			});
 		}
 	});
+	console.log('Copied odds to db');
 }
+
+publishOdds('nba');

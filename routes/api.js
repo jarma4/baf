@@ -1,3 +1,4 @@
+const P = require('pino');
 const { seasonStart } = require('../models/util');
 
 const express = require('express'),
@@ -109,7 +110,7 @@ function saveBet (req){
 	});
 	if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
 		changeUser (req.body.user2, 'bets', 1);
-		Util.textUser(req.body.user2, ((req.body.sport=='nba')?'NBA':'NFL')+' bet: you='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
+		Util.textUser(req.body.user2, ((req.body.sport=='nba')?'NBA':'NFL')+' bet: '+req.body.user2+'='+req.body.team2+', '+req.session.user._id+'='+req.body.team1);
 	}
 }
 
@@ -134,7 +135,7 @@ function makeBet (req) {
 							{_id: {$nin:[req.session.user._id,'testuser']}},
 							(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
 			users.forEach(function(single) {
-				req.body.user2 = single;
+				req.body.user2 = single._id;
 				saveBet(req);
 			});
 		});
@@ -340,6 +341,7 @@ router.post('/graphstats', requireLogin, function(req,res){
 	// 	currentWeek = Util.getWeek(new Date(), 'nfl') / 2;
 	// 	console.log(currentWeek);
 	// }
+	// console.log(req.body.period);
 	// find all valid bets during period, keep numBets and process
 	Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
 																		{user2: req.body.user}]},
@@ -443,34 +445,6 @@ router.post('/userstats', requireLogin, function(req,res){
 	}).sort({date:-1});
 });
 
-router.post('/getscores', requireLogin, function(req,res){
-	Scores.find({$and: [{sport: req.body.sport}, {season: Number(req.body.season)}, (req.body.sport == 'nfl')?{week: req.body.period}:{$and:[{date:{$gte:new Date(req.body.period).setHours(0,0,0,0)}}, {date:{$lt:new Date(req.body.period).setHours(23,59)}}]}]}, function(err,scores){
-		if(err){
-			console.log(err);
-		} else {
-			res.json(scores);
-		}
-	});
-});
-
-// router.post('/postprop', requireLogin, function(req,res){
-//    new Props({
-//       date: new Date(),
-//       user1: req.session.user._id,
-//       user2: req.body.user2,
-//       amount: req.body.amount,
-//       prop: req.body.prop
-//    }).save(function(err){
-//       if(err) {
-//          console.log('Trouble adding prop');
-//          res.send({'type':'danger', 'message':'Trouble adding bet'});
-//       } else {
-//          logger.info('Prop added');
-//          res.send({'type':'success', 'message':'Prop Added'});
-//       }
-//    });
-// });
-
 router.get('/getprops', requireLogin, function(req,res){
 	Bets.find({type: 'prop'}, function(err, props){
 		res.json(props);
@@ -535,11 +509,6 @@ router.post('/getousignup', requireLogin, function(req,res){
 });
 
 router.post('/setouchoices', requireLogin, function(req,res){
-	// let tmp = {};
-	// let tmp2 = JSON.parse(req.body.choices2);
-	// for (let i=0; i < tmp2.length; i++) {
-	//    tmp[i] = tmp2[i];
-	// }
 	OUuser.update({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), function(err){
 		if (err)
 			console.log("OU choice change error: "+err);
@@ -580,7 +549,7 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/getatsscoreboard', requireLogin, (req,res) => {
-	Records.find({season: Number(req.body.season), sport: 'ats'}).sort({user:1})
+	Records.find({season: Number(req.body.season), sport: req.body.type}).sort({user:1})
 	.then(totals => {
 		Odds.count({season: Number(req.body.season)})
 		.then (count => {
@@ -590,79 +559,93 @@ router.post('/getatsscoreboard', requireLogin, (req,res) => {
 });
 
 router.post('/getatspicks', requireLogin, function(req,res){
-   let promises = [];
-   let day = new Date().getDay();
-	let hour = new Date().getHours();
-   let minutes = new Date().getMinutes();
-   
-	let userQuery; 
-   if (day == 6 || (day == 0 && hour < 12)) {
-		userQuery = req.session.user._id;
-	} else {
-		userQuery = {$exists: true};
-	}
-   //first get picks for user(s); add promise
-   promises.push(new Promise((resolve, reject) => {
-      Ats.find({user: userQuery, week: Number(req.body.week), season: Number(req.body.season), sport: 'nfl'}, (err, picks) =>{
-         if (err) {
-            console.log(err);
-         } else if (!picks.length) {
-            console.log('new ats player');
-            let newrecord = new Ats({
-               'user' : req.session.user._id,
-               'season' : Number(req.body.season),
-               'sport' : 'nfl',
-               'week' : Util.getWeek(new Date(), 'nfl'),
-               '0': 1,
-               '1': 1,
-               '2': 1,
-               '3': 1,
-               '4': 1,
-               '5': 1,
-               '6': 1,
-               '7': 1,
-               '8': 1,
-               '9': 1,
-               '10': 1,
-               '11': 1,
-               '12': 1,
-               '13': 1,
-               '14': 1,
-               '15': 1,
-            });
-            newrecord.save(err=>{
-               if (err)
-                  console.log('Error: '+err);
-            });
-            resolve([newrecord]);
-         } else {
-            resolve(picks);
-         }
-      }).sort({user:1});
-   }));
+	let picks = {}, players = [], today = new Date();
+	Odds.find({season: Number(req.body.season), date: req.body.date, sport: req.body.sport}, (err, odds) =>{
+		if (err) {
+			console.log('Error getting weeks ATS odds: '+err);
+		} else if (odds.length) {
+			Ats.find({date: req.body.date, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
+				if (err) {
+					console.log(err);
+				} else {
+					if (today.getHours() < 18 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
+						allPicks.forEach(pick => {
+							if (pick.user == req.session.user._id) {
+								picks = [pick];
+							}
+							players.push(pick.user);
+						});
+					} else {
+						picks = allPicks;
+					}
+					res.send({'odds': odds, 'picks': picks, 'players': players});
+				}
+			}).sort({user:1});
+		} else {
+			res.send({'odds': [], 'picks': [], 'players': players});
+		}
+   }).sort({index:1});
+});
 
-   // next get odds to send later; add promise
-   promises.push(Odds.find({season: Number(req.body.season), week: Number(req.body.week), sport: 'nfl'}, (err, ats) =>{
-      if (err)
-         console.log('Error getting weeks ATS odds: '+err);
-   }).sort((Number(req.body.week)>13)?{index:1}:{}));  // odds sent unsorted prior to week 13 BUT picks were being saved in index order, so make sure to always send odds in original order from those weeks so picks make sense; going forward should be in index order
-   
-   Promise.all(promises).then((result) => {
-      res.send({'picks': result[0], 'ats': result[1]}); // not deterministic?
-   });
+router.post('/getbtaodds', requireLogin, function(req,res){
+	
+	if (new Date().getHours() > 16) {
+		res.send({'type':'danger', 'message':'4pm deadline, try tomorrow'});
+	} else {
+		Odds.find({season: Number(req.body.season), date: req.body.date, sport: req.body.sport}, (err, odds) =>{
+			if (err) {
+				console.log('Error getting weeks ATS odds: '+err);
+			} else if (!odds.length) {
+				let today = new Date();
+				let index = 0;
+				let current = JSON.parse(fs.readFileSync('json/'+req.body.sport+'_odds.json'));
+				current.games.forEach(game => {
+					if (new Date(game.date).getDate() == today.getDate() && new Date(game.date).getMonth() == today.getMonth()) {  //only look at today, may include future odds
+						Odds.updateOne({team1: game.team1, team2: game.team2, season: 2020, sport: req.body.sport, date: today.setHours(0,0,0,0)}, {spread: game.spread}, (err, result) => {
+							if(result.nModified) {
+								console.log('Odds modified');
+							} else if (!result.n) {
+								new Odds({
+									team1: game.team1,
+									team2: game.team2,
+									spread: game.spread,
+									date: game.date,
+									sport: req.body.sport,
+									week: Util.getWeek(today, req.body.sport),
+									date: today.setHours(0,0,0,0),
+									season: 2020,
+									ats: 0,
+									index: index++
+								}).save(err2 => {
+									if(err2)
+										console.log('Error saving new odds: '+err);
+								});
+							}
+						});
+					}
+				});
+				console.log('Challenge started, copied odds to db',new Date());
+				res.send({'type':'success', 'message':'Odds published for today'});
+				// send out texts?
+			} else {
+				console.log('Odds for today already exist');
+				res.send({'type':'danger', 'message':'Odds for today already exist'});
+			}
+		});
+	}
 });
 
 router.post('/updateats', requireLogin, (req,res) => {
-	let day = new Date().getDay();
-	let hour = new Date().getHours();
+	let today = new Date();
 
-	if((day == 0 && hour >= 12) || day == 1) {
+	if((today.getHours >= 18)) {
 		res.send({'type':'danger', 'message':'Games started, no changes'});
 	} else {
-		Ats.update({user: req.session.user._id, season: Number(req.body.season), sport: 'nfl', week: req.body.week}, JSON.parse(req.body.picks), function(err){
+		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
 			if (err)
 				console.log("ATS change error: "+err);
 			else {
+				console.log(`sjh ${docs}`);
 				res.send({'type':'success', 'message':'Picks updated'});
 			}
 		});
@@ -765,11 +748,13 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 		findAndMark(req.session.user._id, req.body.name.split('/')[0]);
 		findAndMark(req.body.name.split('/')[0], req.body.name.split('/')[1]);
 		findAndMark(req.body.name.split('/')[1], req.session.user._id);
+		logger.info(`${req.session.user._id} auto resolved 3-way offsetting bet between ${req.body.name.split('/')[0]} and ${req.body.name.split('/')[1]}`);
 		Util.textUser(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[1]+' - no further action required');
 		Util.textUser(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[0]+' - no further action required');
 	} else {
 		findAndMark(req.session.user._id, req.body.name);
 		findAndMark(req.body.name, req.session.user._id);
+		logger.info(`${req.session.user._id} auto resolved bet with ${req.body.name}`);
 		Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' marked paid '+req.body.num+' pair offsetting bets between you - no further action required');
 	}
 	res.send({'type':'success', 'message':'Offset debts recorded'});
@@ -834,18 +819,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
 			}
 			resolve();  //done with isowed 2way check
 		}));
-		//next go through original owes and look for 3way
-		// promises.push(new Promise(function(resolve, reject){
-		//    for (let ower in debtList1.owes) {
-		//       getDebtList(ower)
-		//       .then(function(debtList3){
-		//          if (debtList3.owes[ower]) {
-		//             results.push({name: debtor+'/'+debtor2, num: Math.min(debtList1.owes[debtor2], debtList2.isowed[debtor2])});
-		//          }
-		//       });
-		//    }
-		//    resolve();
-		// }));
+
 		Promise.all(promises).then(function(){
 			res.send(results);   
 		});
@@ -931,15 +905,8 @@ router.get('/doorbell', requireLogin, function(req,res){
 			sports: []
 			// username: req.session.user._id
 		};
-	// if (fs.existsSync('json/nfl_odds.json'))
-	//    answer.nfl = true;
-	// if (fs.existsSync('json/nba_odds.json'))
-	//    answer.nba = true;
-	// if (fs.existsSync('json/ncaa_odds.json'))
-	//    answer.ncaa = true;
-	// if (fs.existsSync('json/soccer_odds.json'))
-	//    answer.soccer = true;
-	let sportsPromise = new Promise((resolve, reject)=>{
+
+		let sportsPromise = new Promise((resolve, reject)=>{
 		Sports.find({inseason: true}, {sport:1, start: 1}, (err, sports)=>{
 			if (err)
 				reject(err);

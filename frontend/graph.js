@@ -1,5 +1,5 @@
 // below uses ChartJS library
-function drawChart(days) {
+function drawChart() {
    var colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "lightgreen", "teal", "pink", "lightblue", "gray"],
       chartData = {
          labels: [],
@@ -25,7 +25,7 @@ function drawChart(days) {
 
    postOptions.body = JSON.stringify({
       user: 'ALL',
-      days: days,
+      period: $('#graphPeriod').val(),
       sport: $('.sportPick.selected').attr('class').split(/\s+/)[1],
       season: $('#statsYear').val()
    });

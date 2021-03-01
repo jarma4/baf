@@ -167,7 +167,8 @@ var atsSchema = new mongoose.Schema({
    12: Number,
    13: Number,
    14: Number,
-   15: Number
+	15: Number,
+	date: Date
 });
 var oddsSchema = new mongoose.Schema({
    sport: String,

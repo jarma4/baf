@@ -9,6 +9,7 @@ var textList = {};
 
 module.exports = {
    textUser: function (to, message, pref2){
+		// console.log(`in text ${message}`);
 		// return;
       Users.findOne({_id: to}, function(err,user){
          if (err) {

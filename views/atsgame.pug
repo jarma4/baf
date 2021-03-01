@@ -1,7 +1,7 @@
 extends base
 
 block content
-	span.title ATS Game
+	span.title Against The Spread
 	.container-fluid
 		.row
 			.col-md-4
@@ -12,7 +12,7 @@ block content
 			.col-md-4
 				.panel.panel-primary
 					.panel-heading
-						span#atsWeek
+						span#atsDate
 						button.atsInc.btn.btn-default.right.pushUp.hidden(value=1)
 							span.glyphicon.glyphicon-chevron-right
 						button.atsInc.btn.btn-default.right.pushUp.hidden(value=-1)
@@ -23,5 +23,5 @@ block content
 block scripts
 	script(type='text/javascript').
 		let wk = getWeek(new Date(), 'nfl')
-		getAtsPicks(2018, (wk < 17)?wkl:17)
-		getAtsScoreboard()
+		getAtsPicks('nfl', 2018, (wk < 17)?wk:17)
+		getAtsScoreboard(2018, 'ats')

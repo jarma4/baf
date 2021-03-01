@@ -24,7 +24,7 @@ $('.sportPick').on('click', function(){
          case '/':
          case '/odds':
             getOdds();
-            getBets(($('#sportNfl').hasClass('selected'))?10:($('#sportNba').hasClass('selected'))?11:12,'watchBets', 'watch');
+            getBets([10,11],'watchBets', 'watch');
             break;
          case '/stats':
             getStats();

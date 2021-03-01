@@ -1,5 +1,6 @@
+const { resolve } = require('path');
 const P = require('pino');
-const { Sports } = require('./dbschema');
+const { Sports, Odds } = require('./dbschema');
 const { getWeek, seasonStart } = require('./util');
 
 const request = require('request'),
@@ -12,7 +13,7 @@ const request = require('request'),
 	Records = require('./dbschema').Records,
 	// Scores = require('./dbschema').Scores,
 	OUgame = require('./dbschema').OUgame,
-	// Ats = require('./dbschema').Ats,
+	Ats = require('./dbschema').Ats,
 	// Odds = require('./dbschema').Odds,
 	Api = require('../routes/api'),
 	puppeteer = require('puppeteer');
@@ -46,8 +47,10 @@ function getOdds(sport) {
 			// get odds for matchups
 			let gameIndex = 0;
 			$('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').each(function(){
-				let tmp = $(this).find($('.op-bovada\\.lv'));
-				// if (!tmp) {  // sometimes games are listed but with no odds, move on
+				// fix: games found above may not have odds (.no-odds-wrapper) but be followed by ones that do so the gameIndex will be wrong and odds will be put on wrong game
+				// if ($(this).not('.no-odds')) {  
+					let tmp = $(this).find($('.op-bovada\\.lv'));
+					// console.log(tmp);
 					if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
 						games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 					}
@@ -59,9 +62,8 @@ function getOdds(sport) {
 					games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
 					games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
 					games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
-					// console.log(gameIndex, games[gameIndex]);
-					gameIndex++;
 				// }
+				gameIndex++;
 			});
 
 			// go through odds Watches and act if necessary
@@ -282,6 +284,10 @@ module.exports = {
 								continue; // not the game, look at next
 							}
 							tm2 =teams[$(results[i]).find('a.team').last().text()];
+
+							// Odds.findOneAndUpdate({team1: tm1, team2: tm2}, ()?{ats:1}:{ats:2}, (err) => {
+
+							// });
 							if (tm2 == singleBet.team1.replace('@','') || tm2 == singleBet.team2.replace('@','') ){ //found game
 								sc1 = Number($(results[i]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
 								sc2 = Number($(results[i]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
@@ -319,6 +325,129 @@ module.exports = {
 				});
 			});
 		});
+	},
+
+	tallyBets2: function(sprt){
+		// console.log('tallying bets ...'+sprt);
+		let teams, url, wk, today = new Date();
+		// let tm1=[], tm2=[],sc1=[], sc2=[];
+		let scores = {};
+		
+		if (today.getHours() === 0) {// for late games, checking after midnight need to look at previous day
+			today.setHours(today.getHours()-1);
+		}
+		if (sprt=='nfl') {
+			wk = Util.getWeek(new Date(), sprt);
+			url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+((wk>17)?'/postseason/':'/regular/')+wk;
+			teams = Util.nflTeams2;
+		} else {
+			url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
+			teams = Util.nbaTeams2;
+		}
+		// console.log(url);
+		// first get scores for games today
+		new Promise((resolve, reject) => {
+			request(url, function (err, response, body) {
+				if(!err && response.statusCode == 200) {
+					let $ = cheerio.load(body);
+					let scoresClass = $('.single-score-card.postgame');
+					for (let idx = 0; idx < scoresClass.length; idx++){
+						scores[teams[$(scoresClass[idx]).find('a.team').first().text()]] = Number($(scoresClass[idx]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
+						scores['@'+teams[$(scoresClass[idx]).find('a.team').last().text()]] = Number($(scoresClass[idx]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
+						// console.log(tm1[idx], sc1[idx], tm2[idx], sc2[idx]);
+					}
+					resolve();
+				}
+			});
+		})
+		.then(()=>{
+			// console.log(scores);
+			// next go through accepted bets for the day
+			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, (err, acceptedBets) => { //get all accepted bets
+				acceptedBets.forEach(singleBet => {
+					if (singleBet.type == 'spread') {
+						if (scores[singleBet.team1]+singleBet.odds > scores[singleBet.team2]) {
+							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+						} else if (scores[singleBet.team1]+singleBet.odds < scores[singleBet.team2]) {
+							updateBet(singleBet.id,{status:5, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+						} else {
+							updateBet(singleBet.id,{status:6, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+						}
+					} else {
+						console.log(singleBet.type, singleBet.odds, scores[singleBet.team1]+scores[singleBet.team2])
+						if (singleBet.type == 'over' && scores[singleBet.team1]+scores[singleBet.team2] > singleBet.odds || singleBet.type == 'under' && scores[singleBet.team1]+scores[singleBet.team2] < singleBet.odds) {
+							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
+						} else if (singleBet.type == 'over' && scores[singleBet.team1]+scores[singleBet.team2] < singleBet.odds || singleBet.type == 'under' && scores[singleBet.team1]+scores[singleBet.team2] > singleBet.odds) {
+							updateBet(singleBet.id,{status:5, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
+						} else {
+							updateBet(singleBet.id,{status:6, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
+							updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
+						}
+					}
+				});
+			});
+			// // // finally go through ATS odds and mark
+			Odds.find({season:2020, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+				// console.log('Updating Odds');
+				if (err) {
+					console.log('Error getting Odds when tallying ATS');
+				} else {
+					odds.forEach((game, idx) => {
+						// console.log(scores[game.team1],Number(game.spread),scores[game.team2.replace('@','')])
+						let winner = 0;
+						if (scores[game.team1] + game.spread > scores[game.team2]) {
+							winner = 1;
+						} else if (scores[game.team1] + game.spread < scores[game.team2]) {
+							winner = 2;
+						} else if (scores[game.team1] + game.spread == scores[game.team2]){
+							winner = 3;
+						}
+						Odds.updateOne({_id: game._id}, {ats: winner}, err => {
+							if (err) {
+								console.log('Error updating Odds winner when tallying ATS');
+							} else {
+								// console.log(game._id, winner);
+							}
+						});
+					});
+				}
+			}).sort({index:1});
+		});
+	},
+
+	atsTotals:  sport => {
+		let today = new Date(2021,1,5);
+		let u = [];
+		let promises = [];
+		let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
+
+		Odds.find({season:2020, sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+			if (err) {
+				console.log('Error getting odds when doing ATS totals');
+			} else if (odds.length) {
+				Ats.find({season:2020, sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
+					if (err2) {
+						console.log('Error finding ATS users when doing ATS totals');
+					} else if (users.length){
+						odds.forEach((rec, oddsIndex) => {
+							users.forEach((user, userIndex) => {  // show each user's pick
+								if (Number(user[oddsIndex])==rec.ats) {
+									totals[userIndex] += 1;
+								}
+							});
+						});
+						console.log(totals);
+						console.log(Math.max(...totals));
+					}
+				}).sort({user:1});
+			}
+		}).sort({index:1});
+
 	},
 
 	updateStandings: function(sport){

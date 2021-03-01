@@ -6,6 +6,8 @@ const https = require('https'),
 		compression = require('compression'),
 		Util = require('./models/util');
 
+// process.traceDeprecation = true;
+
 require('dotenv').config()
 
 // http site
@@ -58,11 +60,11 @@ const clearUnactedCron = crontab.scheduleJob("*/10 12-22 * * *", scraper.clearUn
 const dailyCleaningCron = crontab.scheduleJob("0 23 * * *", scraper.dailyCleaning);
 
 // for NFL
-const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0", scraper.tallyBets,['nfl']);
+// const tallyBetsNflCron = crontab.scheduleJob("*/10 15-23 * * 0", scraper.tallyBets2,['nfl']);
 
 // for NBA
 // const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
-const tallyBetsNbaCron = crontab.scheduleJob("* 0,14-23 * * *", scraper.tallyBets,['nba']);
+const tallyBetsNbaCron = crontab.scheduleJob("*/10 0,21-23 * * *", scraper.tallyBets2,['nba']);
 
 // for the Over Under game
 // const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);

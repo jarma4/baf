@@ -20,7 +20,7 @@ function getStats() {
 	}
    weeklyStats(getWeek(new Date(), sport));
    overallStats();
-   drawChart(0);
+   drawChart(5);
 }
 // Stats stuff
 function weeklyStats(date) {
