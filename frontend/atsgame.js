@@ -10,7 +10,7 @@ function getAtsScoreboard(season, type) {
       // create columns for each user
       $.each(retData.totals, function(i, rec){
 			outp += '<th>'+bafusers[rec.user]+'</th>';
-         outp2 += '<td>'+retData.totals[i].win+'</td>';
+         outp2 += '<td>'+retData.totals[i].win.toFixed(1)+'</td>';
          // outp3 += '<td>'+retData.totals[i].pct+'</td>';
       });
       // outp += '</tr><tr><td>Season</td>'+outp2+'</tr><tr><td>$5 Bonus</td>'+outp3+'</tr></table>';
@@ -194,6 +194,7 @@ function resetBta() {
 	$('#btaBtn').addClass('hidden');
 	$('#btaChallenge').addClass('hidden');
 	$('#btaInfo').text('');
+	$('#btaList').text('');
 };
 
 // back/forward button to get different scores

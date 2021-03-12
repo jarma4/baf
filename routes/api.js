@@ -317,18 +317,20 @@ router.post('/weeklystats', requireLogin, function(req,res){
 router.post('/overallstats', requireLogin, function(req,res){
 	let stats = [];
 	if (req.body.season != 'All') {
-		Records.find({user:{$ne: 'testuser'}, pct: {$exists: true}, sport: req.body.sport, season: req.body.season}, function(err,records){
-			if (err)
+		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season}, function(err,records){
+			if (err) {
 				console.log(err);
-			else
+			} else {
 				res.json(records);
+			}
 		}).sort({pct:-1});
 	} else {
 		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport}, function(err,records){
-			if (err)
+			if (err) {
 				console.log(err);
-			else
+			} else {
 				res.json(records);
+			}
 		}).sort({pct:-1});
 	}
 });
@@ -564,6 +566,8 @@ router.post('/getatspicks', requireLogin, function(req,res){
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
 		} else if (odds.length) {
+			// get everyones picks even if before 6 so can send list of players; before 6 only single person
+			// picks sent, otherwise all are sent
 			Ats.find({date: req.body.date, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
 				if (err) {
 					console.log(err);
@@ -626,7 +630,12 @@ router.post('/getbtaodds', requireLogin, function(req,res){
 				});
 				console.log('Challenge started, copied odds to db',new Date());
 				res.send({'type':'success', 'message':'Odds published for today'});
-				// send out texts?
+				// send out texts
+				Users.find({_id: {$nin:[req.session.user._id,'testuser']},pref_nba_everyone: true}, {_id: 1}, function(err, users){
+					users.forEach(user => {
+						Util.textUser(user._id, 'Someone has started a Bet Them All challenge, join if you want');
+					});
+				});
 			} else {
 				console.log('Odds for today already exist');
 				res.send({'type':'danger', 'message':'Odds for today already exist'});
@@ -645,7 +654,6 @@ router.post('/updateats', requireLogin, (req,res) => {
 			if (err)
 				console.log("ATS change error: "+err);
 			else {
-				console.log(`sjh ${docs}`);
 				res.send({'type':'success', 'message':'Picks updated'});
 			}
 		});

@@ -12,7 +12,7 @@ $('.statsInc').on('click', function(event){
 
 function getStats() {
    var sport = document.cookie.split('=')[1];
-   if (!sport) {
+   if (!sport || (sport != 'nba' && sport != 'nfl')) {
 		sport = $('.sportPick.selected').text().toLowerCase();
 		document.cookie = 'sport='+sport+';max-age=43200';
 	} else {
@@ -27,7 +27,7 @@ function weeklyStats(date) {
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    $('#weeklyStats').empty();
    $('#statsPeriod').text('Week '+ date);
-   if (inSeason[sport] == 1) {
+   if (inSeason[sport]) {
       postOptions.body = JSON.stringify({
          'date': date,
          'sport': sport

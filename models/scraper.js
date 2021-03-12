@@ -44,25 +44,25 @@ function getOdds(sport) {
 					}
 				});
 
-			// get odds for matchups
+			// get odds for matchups 
 			let gameIndex = 0;
 			$('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').each(function(){
 				// fix: games found above may not have odds (.no-odds-wrapper) but be followed by ones that do so the gameIndex will be wrong and odds will be put on wrong game
 				// if ($(this).not('.no-odds')) {  
 					let tmp = $(this).find($('.op-bovada\\.lv'));
-					// console.log(tmp);
-					if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-						games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
+					if ($(tmp).attr('data-op-info') != undefined) {
+						if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
+							games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
+						}
+						else {
+							games[gameIndex].spread = 0;
+						}
+						games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
+						games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
+						games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
+						games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
+						games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
 					}
-					else {
-						games[gameIndex].spread = 0;
-					}
-					games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
-					games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
-					games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
-					games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-					games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
-				// }
 				gameIndex++;
 			});
 
@@ -232,98 +232,35 @@ module.exports = {
 				logger.info('Refused bets cleared - '+new Date());
 		});
 		// find bettors who haven't bet in a month and remove PCT so not to display in stats
-		Records.find({season:2020,sport:'nfl'}, (err, players)=>{
-			if (!err) {
-				Bets.find({season:2020,sport:'nfl', status: {$in: [4,5,6]}}, (err, bets)=>{
-					if (!err) {
-						const avgBets = bets.length - players.length;
-						players.forEach(player => {
-							Bets.findOne({season:2020, sport:'nfl', $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
-								if(!err){
-									if (lastBet.week <= Util.getWeek(new Date(), 'nfl')-4) {
-										Records.update({season:2020,sport:'nfl',user: player.user}, {$unset:{pct:1}}, (err, result)=>{
-											if (!err) {
-												console.log(`No bets for ${player.user} in month, clearing PCT`);
+		Sports.find({inseason: true}, (err, sports) => {
+			if (!err){
+				let year; 
+				sports.forEach(sprt => {
+					year = sprt.start.getFullYear();
+					Records.find({season:year,sport:sprt.sport}, (err, players)=>{
+						if (!err) {
+							Bets.find({season:year,sport:sprt.sport, status: {$in: [4,5,6]}}, (err, bets)=>{
+								if (!err) {
+									const avgBets = bets.length - players.length;
+									players.forEach(player => {
+										Bets.findOne({season:year, sport:sprt.sport, $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
+											if(!err){
+												if (lastBet.week <= Util.getWeek(new Date(), sprt.sport)-4) {
+													Records.update({season:year,sport:sprt.sport,user: player.user}, {$unset:{pct:1}}, (err, result)=>{
+														if (!err) {
+															console.log(`No bets for ${player.user} in month, clearing PCT`);
+														}
+													});
+												}
 											}
-										});
-									}
+										}).sort({date:-1});
+									});
 								}
-							}).sort({date:-1});
-						});
-					}
+							});
+						}
+					});
 				});
 			}
-		});
-	},
-
-	tallyBets: function(sprt){
-		// console.log('tallying bets ...'+sprt);
-		Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, function(err, acceptedBets){  //find accepted bets
-			acceptedBets.forEach(function(singleBet){				//go through each bet
-				let teams, url, wk, today = new Date();
-				// for late games, checking after midnight need to look at previous day
-				if (today.getHours() === 0)
-					today.setHours(today.getHours()-1);
-				if (sprt=='nfl') {
-					wk = Util.getWeek(new Date(), sprt);
-					url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+((wk>17)?'/postseason/':'/regular/')+wk;
-					teams = Util.nflTeams2;
-				} else {
-					url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
-					teams = Util.nbaTeams2;
-				}
-				// console.log(url);
-				request(url, function (err, response, body) {
-					if(!err && response.statusCode == 200) {
-						let $ = cheerio.load(body);
-						let tm1, tm2,sc1, sc2;
-						let results = $('.single-score-card.postgame')
-						for (let i = 0; i < results.length; i++){
-							tm1 = teams[$(results[i]).find('a.team').first().text()];
-							if (tm1 != singleBet.team1.replace('@','') && tm1 != singleBet.team2.replace('@','') ) {
-								continue; // not the game, look at next
-							}
-							tm2 =teams[$(results[i]).find('a.team').last().text()];
-
-							// Odds.findOneAndUpdate({team1: tm1, team2: tm2}, ()?{ats:1}:{ats:2}, (err) => {
-
-							// });
-							if (tm2 == singleBet.team1.replace('@','') || tm2 == singleBet.team2.replace('@','') ){ //found game
-								sc1 = Number($(results[i]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
-								sc2 = Number($(results[i]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
-								// console.log(tm1, sc1, tm2, sc2);
-								if (singleBet.type == 'spread') {
-									if ((tm1 == singleBet.team1.replace('@','') && sc1+singleBet.odds > sc2) ||
-									(tm2 == singleBet.team1.replace('@','') && sc2+singleBet.odds > sc1)) {
-										updateBet(singleBet.id,{status:4, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-									} else if ((tm1 == singleBet.team1.replace('@','') && sc1+singleBet.odds < sc2) ||
-									(tm2 == singleBet.team1.replace('@','') && sc2+singleBet.odds < sc1)) {
-										updateBet(singleBet.id,{status:5, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-									} else {
-										updateBet(singleBet.id,{status:6, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-									}
-								} else {
-									if ((singleBet.type == 'over' && sc1+sc2 > singleBet.odds) ||
-									(singleBet.type == 'under' && sc1+sc2 < singleBet.odds)) {
-										updateBet(singleBet.id,{status:4, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
-									} else if ((singleBet.type == 'under' && sc1+sc2 > singleBet.odds) ||
-									(singleBet.type == 'over' && sc1+sc2 < singleBet.odds)) {
-										updateBet(singleBet.id,{status:5, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user2, singleBet.user1, 0, singleBet.sport);
-									} else {
-										updateBet(singleBet.id,{status:6, score1: sc1, score2: sc2});
-										updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
-									}
-								}
-							}
-						};
-					}
-				});
-			});
 		});
 	},
 
@@ -391,7 +328,7 @@ module.exports = {
 					}
 				});
 			});
-			// // // finally go through ATS odds and mark
+			// finally go through ATS odds and mark
 			Odds.find({season:2020, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 				// console.log('Updating Odds');
 				if (err) {
@@ -414,6 +351,64 @@ module.exports = {
 								// console.log(game._id, winner);
 							}
 						});
+					});
+					// see if end of day and do tally
+					let promises = [];
+					console.log('start');
+					promises.push(new Promise((resolve, reject)=>{ // find number of games for today
+						Odds.find({date: new Date().setHours(0,0,0,0)}, (err, odds) => {
+							if(err) {
+								reject();
+							} else {
+								resolve(odds);
+							}
+						}).sort({index:1});
+					}));
+					promises.push(new Promise((resolve, reject)=>{ // find number of games done today
+						Odds.find({date: new Date().setHours(0,0,0,0), ats: {$in:[1,2,3]}}, (err, done) => {
+							if(err) {
+								reject();
+							} else {
+								resolve(done.length);
+							}
+						}).sort({index:1});
+					}));
+					promises.push(new Promise((resolve, reject)=>{ // find players for today
+						Ats.find({date: new Date().setHours(0,0,0,0)}, (err, picks) => {
+							if(err) {
+								reject();
+							} else {
+								resolve(picks);
+							}
+						}).sort({user:1});
+					}));
+					Promise.all(promises).then(retData =>{
+						console.log('got data',retData[0].length, retData[1]);
+						if (retData[0].length == retData[1]) { // if all games today are done
+							console.log('end of day');
+							let totals = new Array(retData[2].length).fill(0);
+							retData[0].forEach((rec, i) => {  // go through odds for all games
+								retData[2].forEach((user, j) => {  // check vs each person
+									if (Number(user[i])==rec.ats) {
+										totals[j] += 1;
+									}
+								});
+							});
+							console.log(totals);
+							let max = Math.max(...totals);
+							let winners = [];
+							totals.filter((el, idx) => el == max ? winners.push(idx):'');
+							winners.forEach(idx => {
+								Records.updateOne({season:2020, sport:'bta', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
+									if (err) {
+										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
+									} else {
+										console.log(`Updated BTA win for ${retData[2][idx].user}`);
+									}
+								});
+							});
+						}
+
 					});
 				}
 			}).sort({index:1});

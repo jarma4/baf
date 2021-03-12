@@ -1,11 +1,6 @@
 // "use strict";
 
 $(document).ready(function() {
-   // if(window.location.search.substring == 2) {
-   //    $("#wrapper").css('margin-left', '-360px');
-   // }
-   // $("#wrapper").css('margin-left', '0px');
-   // initServiceWorker();
    doorBell();
 });
 
@@ -18,19 +13,20 @@ var username,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
-	// seasonStart = [];
-	seasonStart = {
-      nfl: new Date(2021,8,10),
-      nba: new Date(2020,11,22,18),
-      ncaa: new Date(2019,2,16)
-   },
-   inSeason = {
-      // 0 out of season; 1 in season, -1 signup
-      nfl: 1,
-      nba: 1,
-      ncaaf: 0,
-      ncaab: 0
-   },
+	seasonStart = {},  // will get this date with sports in season
+	// seasonStart = {
+   //    nfl: new Date(2021,8,10),
+   //    nba: new Date(2020,11,22,18),
+   //    ncaa: new Date(2019,2,16)
+   // },
+	inSeason = {},  // will get this date with sports in season
+   // inSeason = {
+   //    // 0 out of season; 1 in season, -1 signup
+   //    nfl: 1,
+   //    nba: 1,
+   //    ncaaf: 0,
+   //    ncaab: 0
+   // },
    // for FETCH calls
    postOptions = {
       credentials: 'same-origin',
@@ -96,7 +92,8 @@ function doorBell(){
          }
          retData.sports.forEach(sport=>{
 				$('.sportPick.'+sport.sport).removeClass('hidden');
-				// seasonStart[sport.sport] = new Date(sport.start);
+				seasonStart[sport.sport] = new Date(sport.start);
+				inSeason[sport.sport] = true;
          });
       }
    })
