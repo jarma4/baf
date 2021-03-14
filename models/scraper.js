@@ -232,36 +232,36 @@ module.exports = {
 				logger.info('Refused bets cleared - '+new Date());
 		});
 		// find bettors who haven't bet in a month and remove PCT so not to display in stats
-		Sports.find({inseason: true}, (err, sports) => {
-			if (!err){
-				let year; 
-				sports.forEach(sprt => {
-					year = sprt.start.getFullYear();
-					Records.find({season:year,sport:sprt.sport}, (err, players)=>{
-						if (!err) {
-							Bets.find({season:year,sport:sprt.sport, status: {$in: [4,5,6]}}, (err, bets)=>{
-								if (!err) {
-									const avgBets = bets.length - players.length;
-									players.forEach(player => {
-										Bets.findOne({season:year, sport:sprt.sport, $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
-											if(!err){
-												if (lastBet.week <= Util.getWeek(new Date(), sprt.sport)-4) {
-													Records.update({season:year,sport:sprt.sport,user: player.user}, {$unset:{pct:1}}, (err, result)=>{
-														if (!err) {
-															console.log(`No bets for ${player.user} in month, clearing PCT`);
-														}
-													});
-												}
-											}
-										}).sort({date:-1});
-									});
-								}
-							});
-						}
-					});
-				});
-			}
-		});
+		// Sports.find({inseason: true, sport: {$in: ['nfl', 'nba']}}, (err, sports) => {
+		// 	if (!err){
+		// 		let year; 
+		// 		sports.forEach(sprt => {
+		// 			year = sprt.start.getFullYear();
+		// 			Records.find({season:year,sport:sprt.sport}, (err, players)=>{
+		// 				if (!err) {
+		// 					Bets.find({season:year,sport:sprt.sport, status: {$in: [4,5,6]}}, (err, bets)=>{
+		// 						if (!err) {
+		// 							const avgBets = bets.length - players.length;
+		// 							players.forEach(player => {
+		// 								Bets.findOne({season:year, sport:sprt.sport, $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
+		// 									if(!err){
+		// 										if (lastBet.week <= Util.getWeek(new Date(), sprt.sport)-4) {
+		// 											Records.update({season:year,sport:sprt.sport,user: player.user}, {$unset:{pct:1}}, (err, result)=>{
+		// 												if (!err) {
+		// 													console.log(`No bets for ${player.user} in month, clearing PCT`);
+		// 												}
+		// 											});
+		// 										}
+		// 									}
+		// 								}).sort({date:-1});
+		// 							});
+		// 						}
+		// 					});
+		// 				}
+		// 			});
+		// 		});
+		// 	}
+		// });
 	},
 
 	tallyBets2: function(sprt){
@@ -354,7 +354,6 @@ module.exports = {
 					});
 					// see if end of day and do tally
 					let promises = [];
-					console.log('start');
 					promises.push(new Promise((resolve, reject)=>{ // find number of games for today
 						Odds.find({date: new Date().setHours(0,0,0,0)}, (err, odds) => {
 							if(err) {
@@ -383,9 +382,7 @@ module.exports = {
 						}).sort({user:1});
 					}));
 					Promise.all(promises).then(retData =>{
-						console.log('got data',retData[0].length, retData[1]);
 						if (retData[0].length == retData[1]) { // if all games today are done
-							console.log('end of day');
 							let totals = new Array(retData[2].length).fill(0);
 							retData[0].forEach((rec, i) => {  // go through odds for all games
 								retData[2].forEach((user, j) => {  // check vs each person
@@ -394,7 +391,6 @@ module.exports = {
 									}
 								});
 							});
-							console.log(totals);
 							let max = Math.max(...totals);
 							let winners = [];
 							totals.filter((el, idx) => el == max ? winners.push(idx):'');

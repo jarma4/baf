@@ -20,7 +20,7 @@ require('dotenv').config();
 
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
-Records.find({season:2020,sport:'nfl'}, function(err, retData){
+Records.find({season:2020,sport:'nba'}, function(err, retData){
 	console.log(retData);
 	if (err){
 		console.log(err)

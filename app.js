@@ -57,7 +57,7 @@ const scraper = require('./models/scraper');
 const oddsCron = crontab.scheduleJob("*/5 7-23 * * *", scraper.refreshOddsInfo);
 // const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/5 12-22 * * *", scraper.clearUnactedBets);
-const dailyCleaningCron = crontab.scheduleJob("42 20 * * *", scraper.dailyCleaning);
+const dailyCleaningCron = crontab.scheduleJob("29 17 * * *", scraper.dailyCleaning);
 
 // for NFL
 // const tallyBetsNflCron = crontab.scheduleJob("*/5 15-23 * * 0", scraper.tallyBets2,['nfl']);

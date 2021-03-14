@@ -14,19 +14,7 @@ var username,
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
    bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
 	seasonStart = {},  // will get this date with sports in season
-	// seasonStart = {
-   //    nfl: new Date(2021,8,10),
-   //    nba: new Date(2020,11,22,18),
-   //    ncaa: new Date(2019,2,16)
-   // },
 	inSeason = {},  // will get this date with sports in season
-   // inSeason = {
-   //    // 0 out of season; 1 in season, -1 signup
-   //    nfl: 1,
-   //    nba: 1,
-   //    ncaaf: 0,
-   //    ncaab: 0
-   // },
    // for FETCH calls
    postOptions = {
       credentials: 'same-origin',
@@ -41,64 +29,69 @@ var username,
    };
 
    
-async function initServiceWorker(){
-   function urlBase64ToUint8Array(base64String) {
-      const padding = "=".repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding)
-         .replace(/\-/g, "+")
-         .replace(/_/g, "/");
-
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-   }
-   if ("serviceWorker" in navigator) {
-      const register = await navigator.serviceWorker.register("/js/worker.js");
-      const subscription = await register.pushManager.subscribe({
-         userVisibleOnly: true,
-         applicationServerKey: urlBase64ToUint8Array('BCStsAHlI_a_jYeD3x8km8xkiTnIv-2iR0oigfMZLZpT2WgUi9lv-8kA7WcdQwenhdMb9uqsrMLlp0ArtTjns5o')
-      });
-      postOptions.body = JSON.stringify(subscription);
-      fetch('/api/pushsubscribe', postOptions);
-      // .catch(retData => modalAlert(retData.type,retData.message));
-   }
-}
-   
 // called when new page loaded
 function doorBell(){
 	fetch('/api/doorbell', getOptions)
-   .then(res =>res.json())
-   .then(retData => {
-      if(retData.type == 'command'){
-         eval(retData.message);
-      } else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
-         // username = retData.username; // keep around for things
-         if (retData.bets) {
-            $('#notify1').removeClass('hidden');
-            addAnimation('bounce', 15000, 'notify1');
-         }
-         if (retData.debts) {
-            $('#notify2').removeClass('hidden');
-         }
-         if (retData.futures) {
-            $('#notify3').removeClass('hidden');
-         }
-         if (retData.props) {
-            $('#notify4').removeClass('hidden');
-         }
-         retData.sports.forEach(sport=>{
+	.then(res =>res.json())
+	.then(retData => {
+		if(retData.type == 'command'){
+			eval(retData.message);
+		} else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
+			// username = retData.username; // keep around for things
+			if (retData.bets) {
+				$('#notify1').removeClass('hidden');
+				addAnimation('bounce', 15000, 'notify1');
+			}
+			if (retData.debts) {
+				$('#notify2').removeClass('hidden');
+			}
+			if (retData.futures) {
+				$('#notify3').removeClass('hidden');
+			}
+			if (retData.props) {
+				$('#notify4').removeClass('hidden');
+			}
+			retData.sports.forEach(sport=>{
 				$('.sportPick.'+sport.sport).removeClass('hidden');
 				seasonStart[sport.sport] = new Date(sport.start);
 				inSeason[sport.sport] = true;
-         });
-      }
-   })
+			});
+			initPage();
+		}
+	})
 	.catch(retData => modalAlert(retData.type,retData.message));
-};
+}
+
+function initPage(){
+	switch (window.location.pathname) {
+		case '/':
+		case '/odds':
+			getOdds();
+			getUsers();
+			getBets([10,11],'watchBets', 'watch');
+			break;
+		case '/bets':
+			showBets();
+			break;
+		case '/stats':
+			getStats();
+			break;
+		case '/futures':
+			getFutures();
+			break;
+		case '/props':
+			getUsers();
+			showProps();
+			break;
+		case '/overunder':
+			getOverunder();
+			break;
+		case '/btagame':
+			getAtsPicks('nba', 2020, new Date())
+			getAtsScoreboard(2020, 'bta')
+			break;
+	}
+}
 
 // common function called everywhere
 function postApi(page, obj) {
@@ -174,13 +167,13 @@ function addAnimation(name, duration, target) {
 }
 
 function getWeek(date, sport){
-   var dayTicks = 24 * 60 * 60 * 1000,
-      week = Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
-   if (week < 0) {
-      return 1;
-   } else {
-      return week;
-   }
+	var dayTicks = 24 * 60 * 60 * 1000,
+		week = Math.ceil((date - ((sport=='nba')?seasonStart.nba:(sport=='nfl')?seasonStart.nfl:seasonStart.ncaa)) / dayTicks / 7);
+	if (week < 0) {
+		return 1;
+	} else {
+		return week;
+	}
 }
 
 // Global stuff
@@ -225,3 +218,31 @@ $('#registerSubmit').on('click', function(){
       modalAlert('danger', "Passwords don't match, please try again");
    }
 });
+
+async function initServiceWorker(){
+   function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+         .replace(/\-/g, "+")
+         .replace(/_/g, "/");
+
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+   }
+   if ("serviceWorker" in navigator) {
+      const register = await navigator.serviceWorker.register("/js/worker.js");
+      const subscription = await register.pushManager.subscribe({
+         userVisibleOnly: true,
+         applicationServerKey: urlBase64ToUint8Array('BCStsAHlI_a_jYeD3x8km8xkiTnIv-2iR0oigfMZLZpT2WgUi9lv-8kA7WcdQwenhdMb9uqsrMLlp0ArtTjns5o')
+      });
+      postOptions.body = JSON.stringify(subscription);
+      fetch('/api/pushsubscribe', postOptions);
+      // .catch(retData => modalAlert(retData.type,retData.message));
+   }
+}
+   

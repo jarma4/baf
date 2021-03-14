@@ -20,22 +20,23 @@ $('.sportPick').on('click', function(){
       // else
       toggleSport(sport);
       // according to what page you're on, refresh data
-      switch (window.location.pathname) {
-         case '/':
-         case '/odds':
-            getOdds();
-            getBets([10,11],'watchBets', 'watch');
-            break;
-         case '/stats':
-            getStats();
-            break;
-         case '/scores':
-            showScores(($('.sportPick.selected').attr('class').split(/\s+/)[1] == 'nfl')?getWeek(new Date(), 'nfl'):new Date());
-            break;
-         case '/overunder':
-            getOverunder();
-            break;
-      }
+		initPage();
+      // switch (window.location.pathname) {
+      //    case '/':
+      //    case '/odds':
+      //       getOdds();
+      //       getBets([10,11],'watchBets', 'watch');
+      //       break;
+      //    case '/stats':
+      //       getStats();
+      //       break;
+      //    case '/scores':
+      //       showScores(($('.sportPick.selected').attr('class').split(/\s+/)[1] == 'nfl')?getWeek(new Date(), 'nfl'):new Date());
+      //       break;
+      //    case '/overunder':
+      //       getOverunder();
+      //       break;
+      // }
    }
 });
 

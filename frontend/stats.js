@@ -27,63 +27,63 @@ function weeklyStats(date) {
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    $('#weeklyStats').empty();
    $('#statsPeriod').text('Week '+ date);
-   if (inSeason[sport]) {
-      postOptions.body = JSON.stringify({
-         'date': date,
-         'sport': sport
-      });
-      fetch('/api/weeklystats', postOptions)
-      .then(res => res.json())
-      .then(retData => {
-         if(retData.length){
-            var weeklyRecords = {},
-               outp = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
-            $.each(retData, function(i,rec){
-               // for Summary table; create structure if first time user seen
-               if (!weeklyRecords[rec.user1])
-                  weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
-               if (!weeklyRecords[rec.user2])
-                  weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0, tbd: 0};
-               // increment proper counter
-               switch  (rec.status) {
-                  case 2:
-                     weeklyRecords[rec.user1].tbd += 1;
-                     weeklyRecords[rec.user2].tbd += 1;
-                     break;
-                  case 4:
-                     weeklyRecords[rec.user1].wins += 1;
-                     weeklyRecords[rec.user2].losses += 1;
-                     break;
-                  case 5:
-                     weeklyRecords[rec.user2].wins += 1;
-                     weeklyRecords[rec.user1].losses += 1;
-                     break;
-                  case 6:
-                     weeklyRecords[rec.user1].push += 1;
-                     weeklyRecords[rec.user2].push += 1;
-                     break;
-               }
-            });
-            // outp += '</table>';
-            // build Summary table
-            for (var player in weeklyRecords) {
-               outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-week="'+$('#statsPeriod').text().split(' ')[1]+'" data-user="'+player+'">'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td><td>'+weeklyRecords[player].tbd+'</td></tr>';
-            }
-            outp += '</table>';
-            // check whether Detail or Summary screen
-            // if ($('#statsType').text() == 'Detail')
-            //    document.getElementById('weeklyStats').innerHTML = outp;
-            // else
-            document.getElementById('weeklyStats').innerHTML = outp;
+	if (inSeason[sport]) {
+		postOptions.body = JSON.stringify({
+			'date': date,
+			'sport': sport
+		});
+		fetch('/api/weeklystats', postOptions)
+		.then(res => res.json())
+		.then(retData => {
+			if(retData.length){
+				var weeklyRecords = {},
+					outp = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
+				$.each(retData, function(i,rec){
+					// for Summary table; create structure if first time user seen
+					if (!weeklyRecords[rec.user1])
+						weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
+					if (!weeklyRecords[rec.user2])
+						weeklyRecords[rec.user2] = {wins:0, losses:0, push: 0, tbd: 0};
+					// increment proper counter
+					switch  (rec.status) {
+						case 2:
+							weeklyRecords[rec.user1].tbd += 1;
+							weeklyRecords[rec.user2].tbd += 1;
+							break;
+						case 4:
+							weeklyRecords[rec.user1].wins += 1;
+							weeklyRecords[rec.user2].losses += 1;
+							break;
+						case 5:
+							weeklyRecords[rec.user2].wins += 1;
+							weeklyRecords[rec.user1].losses += 1;
+							break;
+						case 6:
+							weeklyRecords[rec.user1].push += 1;
+							weeklyRecords[rec.user2].push += 1;
+							break;
+					}
+				});
+				// outp += '</table>';
+				// build Summary table
+				for (var player in weeklyRecords) {
+					outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-week="'+$('#statsPeriod').text().split(' ')[1]+'" data-user="'+player+'">'+player.slice(0,6)+'</td><td>'+weeklyRecords[player].wins+'</td><td>'+weeklyRecords[player].losses+'</td><td>'+weeklyRecords[player].push+'</td><td>'+weeklyRecords[player].tbd+'</td></tr>';
+				}
+				outp += '</table>';
+				// check whether Detail or Summary screen
+				// if ($('#statsType').text() == 'Detail')
+				//    document.getElementById('weeklyStats').innerHTML = outp;
+				// else
+				document.getElementById('weeklyStats').innerHTML = outp;
 
-            // open collapsed panel if not already open
-            collapseIconAction('weeklyStats');
-         }
-      })
-      .catch(retData => modalAlert(retData.type, retData.message));
-   } else {
-      $('#statsPeriod').text('Season over, no weekly');
-   }
+				// open collapsed panel if not already open
+				collapseIconAction('weeklyStats');
+			}
+		})
+		.catch(retData => modalAlert(retData.type, retData.message));
+	} else {
+		$('#statsPeriod').text('Season over, no weekly');
+	}
 }
 
 $('#statsYear').on('change', function(){
