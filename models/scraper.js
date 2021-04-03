@@ -382,7 +382,7 @@ module.exports = {
 						}).sort({user:1});
 					}));
 					Promise.all(promises).then(retData =>{
-						if (retData[0].length == retData[1]) { // if all games today are done
+						if (retData[0].length && (retData[0].length == retData[1])) { // if there were games today and all done
 							let totals = new Array(retData[2].length).fill(0);
 							retData[0].forEach((rec, i) => {  // go through odds for all games
 								retData[2].forEach((user, j) => {  // check vs each person
@@ -394,7 +394,7 @@ module.exports = {
 							let max = Math.max(...totals);
 							let winners = [];
 							totals.filter((el, idx) => el == max ? winners.push(idx):'');
-							winners.forEach(idx => {
+							winners.forEach(idx => { // credit winner(s)
 								Records.updateOne({season:2020, sport:'bta', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
@@ -403,6 +403,13 @@ module.exports = {
 									}
 								});
 							});
+							Odds.updateMany({date: new Date().setHours(0,0,0,0), ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
+								if(err) {
+									console.log('Error marking done games', err);
+								} else {
+									console.log('Updated BTA odds to finished');
+								}
+							}).sort({index:1});
 						}
 
 					});

@@ -6,8 +6,7 @@ var express = require('express'),
    session = require('client-sessions'),
    bcrypt = require('bcryptjs'),
    Records = require('../models/dbschema').Records,
-   Users = require('../models/dbschema').Users,
-   Mailer = require('nodemailer');
+   Users = require('../models/dbschema').Users;
 
 require('dotenv').config()
 

@@ -8,7 +8,6 @@ const express = require('express'),
 		logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
 		session = require('client-sessions'),
 		bcrypt = require('bcryptjs'),
-		// session = require('express-session'),
 		Util = require('../models/util'),
 		Scraper = require('../models/scraper'),
 		Users = require('../models/dbschema').Users,
@@ -78,6 +77,7 @@ let betStack = [];
 
 // pulled out so EVERYONE bets can call multiple times along with single bets
 function saveBet (req){
+	// console.log(req.body);
 	let today = new Date();
 	new Bets({
 		week: (req.body.type != 'prop')?Util.getWeek(new Date(req.body.gametime), req.body.sport):0,
@@ -317,7 +317,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
 router.post('/overallstats', requireLogin, function(req,res){
 	let stats = [];
 	if (req.body.season != 'All') {
-		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season}, function(err,records){
+		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season, pct: {$exists: true}}, function(err,records){
 			if (err) {
 				console.log(err);
 			} else {
@@ -325,7 +325,7 @@ router.post('/overallstats', requireLogin, function(req,res){
 			}
 		}).sort({pct:-1});
 	} else {
-		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport}, function(err,records){
+		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, pct: {$exist: true}}, function(err,records){
 			if (err) {
 				console.log(err);
 			} else {

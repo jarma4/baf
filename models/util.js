@@ -43,12 +43,12 @@ module.exports = {
    },
    getWeek: function(date, sport){
       var dayTicks = 24 * 60 * 60 * 1000;
-      return Math.ceil((date - ((sport=='nba')?module.exports.seasonStart.nba:(sport=='nfl')?module.exports.seasonStart.nfl:module.exports.seasonStart.ncaa)) / dayTicks / 7);
+      return Math.ceil((date - (module.exports.seasonStart[sport])) / dayTicks / 7);
    },
    seasonStart: {
       nfl: new Date(2020,8,10),
       nba: new Date(2020,11,22),
-      ncaa: new Date(2020,2,16),
+      ncaab: new Date(2021,2,16),
       soccer: new Date(2020,5,14)
 	},
 	nflTeams: {

@@ -71,7 +71,7 @@ function getAtsPicks(sport, season, period) {
 				retData.odds.forEach((rec, i) => {
 					outp += '<tr><td>'+rec.team1.slice(0,3)+((Number(rec.spread)>=0)?'+':'')+rec.spread+'</td>';
 					retData.picks.forEach((user, j) => {  // show each user's pick
-						if (Number(user[i])==rec.ats) {
+						if (Number(user[i])==rec.ats || Number(user[i])==(rec.ats-10)) {
 							totals[j] += 1;
 							classAdd = ' class="text-success"';
 						} else {
