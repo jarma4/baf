@@ -29,7 +29,7 @@ function getOdds(sport) {
 			// get matchup w/ team names & date
 			let pingpong = 0,
 			games = [],
-			matchup = new Object({});
+			matchup = {};
 			$('.op-matchup-team','#op-content-wrapper').not('.no-odds-wrapper').each(function(){
 					if (pingpong++ % 2){
 						matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
@@ -37,10 +37,11 @@ function getOdds(sport) {
 						matchup = {};
 					}
 					else {
-						let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date;
+						let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
                   let temptime = $(this).parent().prev().prev().text().split(':');
 						matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
 						matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
+						tempdate='';
 					}
 				});
 
@@ -265,9 +266,7 @@ module.exports = {
 	},
 
 	tallyBets2: function(sprt){
-		// console.log('tallying bets ...'+sprt);
 		let teams, url, wk, today = new Date();
-		// let tm1=[], tm2=[],sc1=[], sc2=[];
 		let scores = {};
 		
 		if (today.getHours() === 0) {// for late games, checking after midnight need to look at previous day
@@ -291,7 +290,6 @@ module.exports = {
 					for (let idx = 0; idx < scoresClass.length; idx++){
 						scores[teams[$(scoresClass[idx]).find('a.team').first().text()]] = Number($(scoresClass[idx]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
 						scores['@'+teams[$(scoresClass[idx]).find('a.team').last().text()]] = Number($(scoresClass[idx]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
-						// console.log(tm1[idx], sc1[idx], tm2[idx], sc2[idx]);
 					}
 					resolve();
 				}
