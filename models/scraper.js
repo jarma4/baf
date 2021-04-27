@@ -30,39 +30,40 @@ function getOdds(sport) {
 			let pingpong = 0,
 			games = [],
 			matchup = {};
-			$('.op-matchup-team','#op-content-wrapper').not('.no-odds-wrapper').each(function(){
-					if (pingpong++ % 2){
-						matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
-						games.push(matchup);
-						matchup = {};
-					}
-					else {
-						let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
-                  let temptime = $(this).parent().prev().prev().text().split(':');
-						matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
-						matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
-						tempdate='';
-					}
-				});
+			$('.op-matchup-team','#op-content-wrapper').each(function() {
+				if (pingpong++ % 2){
+					matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
+					games.push(matchup);
+					matchup = {};
+				}
+				else {
+					let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
+					let temptime = $(this).parent().prev().prev().text().split(':');
+					matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
+					matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
+					tempdate='';
+				}
+			});
 
 			// get odds for matchups 
 			let gameIndex = 0;
-			$('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').each(function(){
+			$('.op-item-row-wrapper','#op-results').each(function(iter){
 				// fix: games found above may not have odds (.no-odds-wrapper) but be followed by ones that do so the gameIndex will be wrong and odds will be put on wrong game
 				// if ($(this).not('.no-odds')) {  
+					// console.log(iter);
 					let tmp = $(this).find($('.op-bovada\\.lv'));
 					if ($(tmp).attr('data-op-info') != undefined) {
 						if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-							games[gameIndex].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
+							games[iter].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 						}
 						else {
-							games[gameIndex].spread = 0;
+							games[iter].spread = 0;
 						}
-						games[gameIndex].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
-						games[gameIndex].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
-						games[gameIndex].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
-						games[gameIndex].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-						games[gameIndex].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
+						games[iter].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
+						games[iter].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
+						games[iter].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
+						games[iter].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
+						games[iter].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
 					}
 				gameIndex++;
 			});

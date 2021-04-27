@@ -27,11 +27,8 @@ console.log(`checking odds ${sport} @ ${url}`);
 request(url, function (err, response, body) {
 	if(!err && response.statusCode == 200) {
 		let $ = cheerio.load(body);
-		$('.op-matchup-team','#op-content-wrapper').not('.no-odds-wrapper').each((iter) => {
-			console.log('loop', iter);
-			console.log($(this).closest('.no-group-name').attr('data-op-date'));
-			// console.log(tempdate);
-		});
+		console.log($('.op-item-row-wrapper','#op-results').length);
+		console.log($('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').length);
 	}
 });
 
