@@ -155,6 +155,15 @@ function getUrlPos(url){
    return position;
 }
 
+function getCookie(key){
+	const list=document.cookie.split(';');
+	for (let i=0; i<list.length; i++) {
+		const pair=list[i].trim().split('=');
+		if (pair[0] == key)
+			return pair[1];
+	}
+}
+
 function addAnimation(name, duration, target) {
    // $('#'+target).addClass(name);
    setInterval(function(){

@@ -22,16 +22,13 @@ mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNe
 
 let sport = 'nba';
 
-let url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
-console.log(`checking odds ${sport} @ ${url}`);
-request(url, function (err, response, body) {
-	if(!err && response.statusCode == 200) {
-		let $ = cheerio.load(body);
-		console.log($('.op-item-row-wrapper','#op-results').length);
-		console.log($('.op-item-row-wrapper','#op-results').not('.no-odds-wrapper').length);
-	}
-});
+let scores = {SAN:96,'@MEM':100,GS:100,'@LAL':103};
 
+if (scores['SAdN']) {
+	console.log(`found it ${scores['SAN']}`)
+} else {
+	console.log('couldnt find');
+}
 
 // Records.find({season:2020,sport:'nba'}, function(err, retData){
 // 	console.log(retData);

@@ -46,7 +46,7 @@ module.exports = {
       return Math.ceil((date - (module.exports.seasonStart[sport])) / dayTicks / 7);
    },
    seasonStart: {
-      nfl: new Date(2020,8,10),
+      nfl: new Date(2021,8,9),
       nba: new Date(2020,11,22),
       ncaab: new Date(2021,2,16),
       soccer: new Date(2020,5,14)

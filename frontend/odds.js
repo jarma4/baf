@@ -1,6 +1,6 @@
 function getOdds (){
-   var sport = document.cookie.split('=')[1];
-   if (!sport) {
+   let sport = getCookie('sport');
+   if (!sport || $('.sportPick.'+sport).hasClass('hidden')) {
 		sport = $('.sportPick.selected').text().toLowerCase();
 		document.cookie = 'sport='+sport+';max-age=43200';
 	} else {

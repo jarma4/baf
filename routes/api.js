@@ -572,7 +572,7 @@ router.post('/getatspicks', requireLogin, function(req,res){
 				if (err) {
 					console.log(err);
 				} else {
-					if (today.getHours() < 18 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
+					if (today.getHours() < 12 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
 						allPicks.forEach(pick => {
 							if (pick.user == req.session.user._id) {
 								picks = [pick];

@@ -11,7 +11,7 @@ $('.statsInc').on('click', function(event){
 });
 
 function getStats() {
-   var sport = document.cookie.split('=')[1];
+   let sport = getCookie('sport');
    if (!sport || (sport != 'nba' && sport != 'nfl')) {
 		sport = $('.sportPick.selected').text().toLowerCase();
 		document.cookie = 'sport='+sport+';max-age=43200';

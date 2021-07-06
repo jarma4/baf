@@ -51,7 +51,7 @@ function getOdds(sport) {
 				// fix: games found above may not have odds (.no-odds-wrapper) but be followed by ones that do so the gameIndex will be wrong and odds will be put on wrong game
 				// if ($(this).not('.no-odds')) {  
 					// console.log(iter);
-					let tmp = $(this).find($('.op-bovada\\.lv'));
+					let tmp = $(this).find($('.op-bovada'));
 					if ($(tmp).attr('data-op-info') != undefined) {
 						if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
 							games[iter].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
@@ -299,9 +299,11 @@ module.exports = {
 		.then(()=>{
 			// console.log(scores);
 			// next go through accepted bets for the day
-			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}]}, (err, acceptedBets) => { //get all accepted bets
+			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}, {score1: 0}, {score2: 0}]}, (err, acceptedBets) => { //get all accepted bets
 				acceptedBets.forEach(singleBet => {
-					if (singleBet.type == 'spread') {
+					// console.log(`looking for ${singleBet}`);
+					if (singleBet.type == 'spread' && scores[singleBet.team1]) {
+						console.log('found score for bet');
 						if (scores[singleBet.team1]+singleBet.odds > scores[singleBet.team2]) {
 							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
 							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
@@ -312,7 +314,7 @@ module.exports = {
 							updateBet(singleBet.id,{status:6, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
 							updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
 						}
-					} else {
+					} else if (scores[singleBet.team1]) {
 						console.log(singleBet.type, singleBet.odds, scores[singleBet.team1]+scores[singleBet.team2])
 						if (singleBet.type == 'over' && scores[singleBet.team1]+scores[singleBet.team2] > singleBet.odds || singleBet.type == 'under' && scores[singleBet.team1]+scores[singleBet.team2] < singleBet.odds) {
 							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
