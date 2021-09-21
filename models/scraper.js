@@ -94,7 +94,7 @@ function getOdds(sport) {
 								// Api.makeBet(req);
 							}
 							// save watch as seen
-							Bets.update({_id: watch._id}, {watch: 2}, function(err){
+							Bets.updateOne({_id: watch._id}, {watch: 2}, function(err){
 								if(err)
 									logger.error('trouble updating watch');
 							});
@@ -121,7 +121,7 @@ function getOdds(sport) {
 function updateBet(id,object){
 	if (object.status == 6)  // special case for marking tie game
 		object = {status:6, paid:true};
-	Bets.update({_id:id},{$set:object},function(err){
+	Bets.updateOne({_id:id},{$set:object},function(err){
 		if (err)
 			logger.error(id+' had trouble updating - ');
 		else
@@ -131,7 +131,7 @@ function updateBet(id,object){
 
 function updatePct (user, sport) {
 	Records.findOne({user: user, sport: sport, season: Util.seasonStart[sport].getFullYear()}, function(err, record) {
-		Records.update({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
+		Records.updateOne({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
 			if (err)
 				console.log('pct error');
 		});
@@ -142,12 +142,13 @@ function updateRecord(user, category, sport, season) {
 	return new Promise(function(resolve, reject){
 		let result = {};
 		result[category] = 1;
-		Records.update({'user': user, 'sport': sport, 'season': season},{$inc: result}, function(err, res){
+		Records.updateOne({'user': user, 'sport': sport, 'season': season},{$inc: result}, function(err, res){
 			if (err) {
 				logger.error(user+' had trouble updating wins - '+new Date());
 				reject();
 			} else {
-				if (!res.n){ // didn't actually update because no record, create one
+				if (!res.n){ // didn't actually update because no record, create one;
+					// maybe error here, multiple new users created first time if multiple bets
 					let newrecord = new Records({
 						user: user,
 						season: season,
@@ -181,11 +182,11 @@ function updateWinnerLoser(winner, loser, push, sport){
 	});
 	// update debt counters
 	if (!push) {
-		Users.update({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
+		Users.updateOne({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
 			if (err)
 			logger.error(user+' had trouble updating winner debts - '+new Date());
 		});
-		Users.update({_id: loser}, {$inc: {debts:1}}, function(err){
+		Users.updateOne({_id: loser}, {$inc: {debts:1}}, function(err){
 			if (err)
 				logger.error(user+' had trouble updating loser debts - '+new Date());
 		});
@@ -207,13 +208,13 @@ module.exports = {
 		Bets.find({status:{$in:[0,10,11,12]}}, function(err, bets){
 			bets.forEach(function(single){
 				if (single.gametime < new Date()) {
-					Bets.update({_id:single._id},{status:3}, function(err){
+					Bets.updateOne({_id:single._id},{status:3}, function(err){
 						if(err)
 							logger.error(err);
 						else
 							logger.info(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
 					});
-					Users.update({_id:single.user2},{$inc: {bets: -1}}, function(err){
+					Users.updateOne({_id:single.user2},{$inc: {bets: -1}}, function(err){
 						if(err)
 							logger.error(err);
 					});
@@ -330,7 +331,7 @@ module.exports = {
 				});
 			});
 			// finally go through ATS odds and mark
-			Odds.find({season:2020, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+			Odds.find({season:2021, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 				// console.log('Updating Odds');
 				if (err) {
 					console.log('Error getting Odds when tallying ATS');
@@ -396,7 +397,7 @@ module.exports = {
 							let winners = [];
 							totals.filter((el, idx) => el == max ? winners.push(idx):'');
 							winners.forEach(idx => { // credit winner(s)
-								Records.updateOne({season:2020, sport:'bta', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
+								Records.updateOne({season:2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
 									} else {
@@ -425,11 +426,11 @@ module.exports = {
 		let promises = [];
 		let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
 
-		Odds.find({season:2020, sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+		Odds.find({season:2021, sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 			if (err) {
 				console.log('Error getting odds when doing ATS totals');
 			} else if (odds.length) {
-				Ats.find({season:2020, sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
+				Ats.find({season:2021, sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
 					if (err2) {
 						console.log('Error finding ATS users when doing ATS totals');
 					} else if (users.length){
@@ -463,7 +464,7 @@ module.exports = {
 						if (err)
 							logger.error('OUgame find team error: '+err);
 						else if(rec) {
-							OUgame.update({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
+							OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
 								if (err)
 									logger.error('updateStandings error: '+err);
 							});

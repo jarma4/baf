@@ -3,6 +3,17 @@ extends base
 block content
 	span.title Bet Them All
 	.container-fluid
+		.row.no-gutters
+			.col-md-12
+				#sportMenu
+					ul
+						li.sportPick.nfl.selected
+							a NFL
+						li.sportPick.nba
+							a NBA   
+				select#btaYear.btn-default.right
+							option(value='2021') 2021
+							option(value='2020') 2020
 		.row
 			.col-md-4
 				.panel.panel-success
@@ -12,23 +23,13 @@ block content
 			.col-md-4
 				.panel.panel-warning
 					.panel-heading
-						span#atsDate
-						button.atsInc.btn.btn-default.right.pushUp(value=1)
+						span#btaDate
+						button.btaInc.btn.btn-default.right.pushUp(value=1)
 							span.glyphicon.glyphicon-chevron-right
-						button.atsInc.btn.btn-default.right.pushUp(value=-1)
+						button.btaInc.btn.btn-default.right.pushUp(value=-1)
 							span.glyphicon.glyphicon-chevron-left
-						//- button#atsSubmit.btn.btn-warning.right.pushUp.hidden Save
 					.panel-collapse#btaSignup.pad15
-						button#btaChallenge.btn.btn-lg.btn-block.btn-primary.hidden Start a Challenge
-						#btaInfo
-						p.help-heading Who's In:
-							#btaList
-						p.help-heading.pushDown Your Choices(in green):
-						#atsPicks.hidden
-						button#btaBtn.btn.btn-lg.btn-block.btn-primary.hidden Join
-
-block scripts
-	script(type='text/javascript').
-		//- let wk = getWeek(new Date(), 'nba')
-		//- getAtsPicks('nba', 2020, new Date())
-		//- getAtsScoreboard(2020, 'bta')
+						button#btaChallengeBtn.btn.btn-lg.btn-block.btn-primary.hidden Start a Challenge
+						#btaInfoArea.hidden
+						#btaPicksArea.hidden
+						button#btaChoiceBtn.btn.btn-lg.btn-block.btn-primary.pushDown.hidden Join

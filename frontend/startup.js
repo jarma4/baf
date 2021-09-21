@@ -12,7 +12,7 @@ var username,
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP'},
+   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP', 'ryan': 'RK'},
 	seasonStart = {},  // will get this date with sports in season
 	inSeason = {},  // will get this date with sports in season
    // for FETCH calls
@@ -87,8 +87,8 @@ function initPage(){
 			getOverunder();
 			break;
 		case '/btagame':
-			getAtsPicks('nba', 2020, new Date())
-			getAtsScoreboard(2020, 'bta')
+			getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date());
+			getBtaScoreboard($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), 'bta');
 			break;
 	}
 }

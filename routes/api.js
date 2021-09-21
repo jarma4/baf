@@ -550,8 +550,8 @@ router.post('/ousignup', requireLogin, function(req,res){
 	});
 });
 
-router.post('/getatsscoreboard', requireLogin, (req,res) => {
-	Records.find({season: Number(req.body.season), sport: req.body.type}).sort({user:1})
+router.post('/getbtascoreboard', requireLogin, (req,res) => {
+	Records.find({season: Number(req.body.season), sport: 'bta'+req.body.sport}).sort({user:1})
 	.then(totals => {
 		Odds.count({season: Number(req.body.season)})
 		.then (count => {
@@ -560,19 +560,19 @@ router.post('/getatsscoreboard', requireLogin, (req,res) => {
 	});
 });
 
-router.post('/getatspicks', requireLogin, function(req,res){
-	let picks = {}, players = [], today = new Date();
+router.post('/getbtapicks', requireLogin, function(req,res){
+	let picks = [], players = [], today = new Date();
 	Odds.find({season: Number(req.body.season), date: req.body.date, sport: req.body.sport}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
 		} else if (odds.length) {
-			// get everyones picks even if before 6 so can send list of players; before 6 only single person
-			// picks sent, otherwise all are sent
+			// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
 			Ats.find({date: req.body.date, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
 				if (err) {
 					console.log(err);
 				} else {
-					if (today.getHours() < 12 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
+					// if (today.getHours() < 12 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
+					if (today.getHours() < 12) { // before end of picking period, only send 1 person
 						allPicks.forEach(pick => {
 							if (pick.user == req.session.user._id) {
 								picks = [pick];
@@ -591,21 +591,23 @@ router.post('/getatspicks', requireLogin, function(req,res){
    }).sort({index:1});
 });
 
-router.post('/getbtaodds', requireLogin, function(req,res){
-	
-	if (new Date().getHours() > 16) {
-		res.send({'type':'danger', 'message':'4pm deadline, try tomorrow'});
+router.post('/createbtaodds', requireLogin, function(req,res){
+	let today = new Date();
+	console.log(req.body);
+	const targetDate = new Date(req.body.date);
+	console.log(targetDate);
+	if ((req.body.sport == 'nfl' && today.getHours() > 21) || (req.body.sport == 'nba' && today.getHours() > 16)) {
+		res.send({'type':'danger', 'message':'too late, try tomorrow'});
 	} else {
-		Odds.find({season: Number(req.body.season), date: req.body.date, sport: req.body.sport}, (err, odds) =>{
+		Odds.find({sport: req.body.sport, season: Number(req.body.season), date: req.body.date}, (err, odds) =>{
 			if (err) {
 				console.log('Error getting weeks ATS odds: '+err);
 			} else if (!odds.length) {
-				let today = new Date();
 				let index = 0;
 				let current = JSON.parse(fs.readFileSync('json/'+req.body.sport+'_odds.json'));
 				current.games.forEach(game => {
-					if (new Date(game.date).getDate() == today.getDate() && new Date(game.date).getMonth() == today.getMonth()) {  //only look at today, may include future odds
-						Odds.updateOne({team1: game.team1, team2: game.team2, season: 2020, sport: req.body.sport, date: today.setHours(0,0,0,0)}, {spread: game.spread}, (err, result) => {
+					if (new Date(game.date).getDate() == targetDate.getDate() && new Date(game.date).getMonth() == targetDate.getMonth()) {  //only look at today, may include future odds
+						Odds.updateOne({team1: game.team1, team2: game.team2, season: req.body.season, sport: req.body.sport, date: today.setHours(0,0,0,0)}, {spread: game.spread}, (err, result) => {
 							if(result.nModified) {
 								console.log('Odds modified');
 							} else if (!result.n) {
@@ -615,9 +617,9 @@ router.post('/getbtaodds', requireLogin, function(req,res){
 									spread: game.spread,
 									date: game.date,
 									sport: req.body.sport,
-									week: Util.getWeek(today, req.body.sport),
-									date: today.setHours(0,0,0,0),
-									season: 2020,
+									week: Util.getWeek(targetDate, req.body.sport),
+									date: targetDate.setHours(0,0,0,0),
+									season: req.body.season,
 									ats: 0,
 									index: index++
 								}).save(err2 => {
@@ -644,7 +646,7 @@ router.post('/getbtaodds', requireLogin, function(req,res){
 	}
 });
 
-router.post('/updateats', requireLogin, (req,res) => {
+router.post('/updatebta', requireLogin, (req,res) => {
 	let today = new Date();
 
 	if((today.getHours >= 18)) {
@@ -882,21 +884,21 @@ router.post('/getodds', function (req, res) {
 	res.sendFile('./json/'+req.body.sport+'_odds.json', {'root':__dirname+'/..'});
 }); 
 
-router.get('/nflodds', function (req, res) {
-	res.sendFile('./json/nfl_odds.json', {'root':__dirname+'/..'});
-});   
+// router.get('/nflodds', function (req, res) {
+// 	res.sendFile('./json/nfl_odds.json', {'root':__dirname+'/..'});
+// });   
 
-router.get('/nbaodds', function (req, res) {
-	res.sendFile('./json/nba_odds.json', {'root':__dirname+'/..'});
-});   
+// router.get('/nbaodds', function (req, res) {
+// 	res.sendFile('./json/nba_odds.json', {'root':__dirname+'/..'});
+// });   
 
-router.get('/ncaaodds', function (req, res) {
-	res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
-});   
+// router.get('/ncaaodds', function (req, res) {
+// 	res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
+// });   
 
-router.get('/soccerodds', function (req, res) {
-	res.sendFile('./json/soccer_odds.json', {'root':__dirname+'/..'});
-});   
+// router.get('/soccerodds', function (req, res) {
+// 	res.sendFile('./json/soccer_odds.json', {'root':__dirname+'/..'});
+// });   
 
 // gets userlist for bet select list
 router.get('/users', requireLogin, function(req,res){

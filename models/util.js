@@ -1,5 +1,4 @@
 const  Users = require('./dbschema').Users,
-   // Nexmo = require('nexmo'),
    mongoose = require('mongoose');
 	
 require('dotenv').config();
@@ -16,19 +15,18 @@ module.exports = {
             console.log(err);
          } else if (user){
             if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-               // nexmo.message.sendSms('15129997944', '+1'+user.sms, message + ' ( https://2dollarbets.com/bets )');
                // increment list for user to be checked later
                if (textList[to]) {
                   textList[to]++;
                } else {
                   textList[to] = 1;
                }
-					// only text user once every 2 minutes
+					// only text user once every 90 seconds
                setTimeout(function(){
                   if (textList[to]) {
                      // console.log('text sending to '+user.sms);
                      telnyx.messages.create({
-                        'from': '+18705888055', // Your Telnyx number
+                        'from': process.env.TEXTFROM,
                         'to': '+1'+user.sms,
                         'text': message + ' - 2DB'
                      }).then(function(response){
@@ -47,9 +45,8 @@ module.exports = {
    },
    seasonStart: {
       nfl: new Date(2021,8,9),
-      nba: new Date(2020,11,22),
-      ncaab: new Date(2021,2,16),
-      soccer: new Date(2020,5,14)
+      nba: new Date(2021,9,19),
+      ncaab: new Date(2022,2,16)
 	},
 	nflTeams: {
 		'Arizona': 'ARI', 'Atlanta': 'ATL', 'Baltimore': 'BAL', 'Buffalo': 'BUF', 'Carolina': 'CAR', 'Chicago': 'CHI', 'Cincinnati': 'CIN', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Green Bay': 'GB', 'Houston': 'HOU', 'Indianapolis': 'IND', 'Jacksonville': 'JAC', 'Kansas City': 'KC', 'LA Chargers': 'LAC', 'LA Rams': 'LAR', 'Miami': 'MIA', 'Minnesota': 'MIN', 'NY Giants': 'NYG', 'NY Jets': 'NYJ', 'New England': 'NE', 'New Orleans': 'NO', 'Las Vegas': 'LV', 'Philadelphia': 'PHI', 'Pittsburgh': 'PIT', 'San Francisco': 'SF', 'Seattle': 'SEA', 'Tampa Bay': 'TB', 'Tennessee': 'TEN', 'Washington': 'WAS'},
