@@ -87,8 +87,16 @@ function initPage(){
 			getOverunder();
 			break;
 		case '/btagame':
-			getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date());
-			getBtaScoreboard($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), 'bta');
+			let sport = getCookie('sport');
+			if (!sport || $('.sportPick.'+sport).hasClass('hidden')) {
+				sport = $('.sportPick.selected').text().toLowerCase();
+				document.cookie = 'sport='+sport+';max-age=43200';
+			} else {
+				toggleSport(sport);
+			}
+			resetBta();
+			getBtaPicks(sport, $('#btaYear').val(), new Date());
+			getBtaScoreboard(sport, $('#btaYear').val(), 'bta');
 			break;
 	}
 }

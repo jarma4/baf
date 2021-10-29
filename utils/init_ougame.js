@@ -25,7 +25,7 @@ for (let team in (args[0] == 'nfl')?Util.nflTeams:Util.nbaTeams) {
 		status: 'U'
 	}).save(err => {
 		if(err) {
-			console.log('Trouble adding OUgame team');
+			console.log('Trouble adding OUgame team', err);
 		} else {
 			console.log('OUgame added '+team);
 		}

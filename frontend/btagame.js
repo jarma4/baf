@@ -20,28 +20,22 @@ function getBtaScoreboard(sport, season, type) {
 }
 
 function getBtaPicks(sport, season, period) {
-	let today = new Date();
-
-	today.setHours(0,0,0,0);
-	// if (sport == 'nba') {
-		$('#btaDate').text(`${dayName[period.getDay()]} ${monthName[period.getMonth()]} ${period.getDate()}`);
-		$('#btaDate').data('date',period);
-	// } else {
-	// 	$('#btaDate').text('Week ' + period + ' Picks');
-	// }
+	$('#btaDate').text(`${dayName[period.getDay()]} ${monthName[period.getMonth()]} ${period.getDate()}`);
+	$('#btaDate').data('date',period);
 
 	postOptions.body = JSON.stringify({
 		'sport': sport,
 		'season': season,
-		'date': period.setHours(0,0,0,0)
+		'date': period
 	});
 	fetch('/api/getbtapicks', postOptions)
 	.then(res => res.json())
 	.then(retData => {
-		let outp;
-		const dayOf= (sport == 'nfl')?(period.getDay()==0):(period.getTime() === today.getTime());
-		if (!retData.odds.length && dayOf) { // no odds or challenge
+		let outp, today = new Date();
+		const dayOf = (today.getDate() == period.getDate()) && ((sport == 'nfl')?(period.getDay()==0):true);
+		if (!retData.odds.length && dayOf) { // no challenge yet but is day to challenge
 			$('#btaChallengeBtn').removeClass('hidden');
+			document.getElementById("btaInfoArea").innerHTML = '';
 		} else {
 			if (dayOf) {  // odds availalable, list players in
 				if(retData.picks.length < 2) {
@@ -154,6 +148,7 @@ $('#btaChallengeBtn').on('click', event => {
    .then(retData => {
 		modalAlert(retData.type,retData.message);
 		$('#btaChallengeBtn').addClass('hidden');
+		resetBta();
 		getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date($('#btaDate').data('date')));
 
 	})
@@ -161,6 +156,7 @@ $('#btaChallengeBtn').on('click', event => {
 });
 
 $('#btaYear').on('change', function(){
+	resetBta();
 	getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date())
 	$('#btaScoreboard').empty();
 	getBtaScoreboard($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val())
@@ -203,10 +199,12 @@ $('#btaSubmit').on('click', event => {
 });
 
 function resetBta() {
-	$('#btaInfoArea').addClass('hidden');
+	// $('#btaInfoArea').addClass('hidden');
+	document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Try Another Time</p>';
 	$('#btaPicksArea').addClass('hidden');
 	$('#btaChoiceBtn').addClass('hidden');
 	$('#btaChallengeBtn').addClass('hidden');
+	$('#btaChoiceBtn').text('Join');
 };
 
 // back/forward button to get different scores

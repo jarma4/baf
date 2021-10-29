@@ -1,6 +1,5 @@
-const P = require('pino');
 const { seasonStart } = require('../models/util');
-
+const { Users, Records, Bets, Sports, OUgame, OUuser, Ats, Odds} = require('../models/dbschema');
 const express = require('express'),
 		bodyParser = require('body-parser'),
 		fs = require('fs'),
@@ -9,18 +8,18 @@ const express = require('express'),
 		session = require('client-sessions'),
 		bcrypt = require('bcryptjs'),
 		Util = require('../models/util'),
-		Scraper = require('../models/scraper'),
-		Users = require('../models/dbschema').Users,
-		Records = require('../models/dbschema').Records,
-		Bets = require('../models/dbschema').Bets,
-		Sports = require('../models/dbschema').Sports,
-		Scores = require('../models/dbschema').Scores,
-		Messages = require('../models/dbschema').Messages,
+		// Scraper = require('../models/scraper'),
+		// Users = require('../models/dbschema').Users,
+		// Records = require('../models/dbschema').Records,
+		// Bets = require('../models/dbschema').Bets,
+		// Sports = require('../models/dbschema').Sports,
+		// OUgame = require('../models/dbschema').OUgame,
+		// OUuser = require('../models/dbschema').OUuser,
+		// Ats = require('../models/dbschema').Ats,
+		// Odds = require('../models/dbschema').Odds,
+		// Scores = require('../models/dbschema').Scores,
+		// Messages = require('../models/dbschema').Messages,
 		// Props = require('../models/dbschema').Props,
-		OUgame = require('../models/dbschema').OUgame,
-		OUuser = require('../models/dbschema').OUuser,
-		Ats = require('../models/dbschema').Ats,
-		Odds = require('../models/dbschema').Odds,
 		mongoose = require('mongoose'),
 		webpush = require('web-push');
 
@@ -561,18 +560,17 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 });
 
 router.post('/getbtapicks', requireLogin, function(req,res){
-	let picks = [], players = [], today = new Date();
-	Odds.find({season: Number(req.body.season), date: req.body.date, sport: req.body.sport}, (err, odds) =>{
+	let picks = [], players = [], today = new Date(), targetDate = new Date(req.body.date);
+	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
 		} else if (odds.length) {
 			// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
-			Ats.find({date: req.body.date, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
+			Ats.find({date: targetDate, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
 				if (err) {
 					console.log(err);
 				} else {
-					// if (today.getHours() < 12 && (new Date(req.body.date).setHours(0,0,0,0) == today.setHours(0,0,0,0))) { // before end of picking period, only send 1 person
-					if (today.getHours() < 12) { // before end of picking period, only send 1 person
+					if (targetDate.getDate() == today.getDate() && ((req.body.sport == 'nfl' && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))){ // before end of picking period, only send 1 person
 						allPicks.forEach(pick => {
 							if (pick.user == req.session.user._id) {
 								picks = [pick];
@@ -593,10 +591,9 @@ router.post('/getbtapicks', requireLogin, function(req,res){
 
 router.post('/createbtaodds', requireLogin, function(req,res){
 	let today = new Date();
-	console.log(req.body);
+	// console.log(req.body);
 	const targetDate = new Date(req.body.date);
-	console.log(targetDate);
-	if ((req.body.sport == 'nfl' && today.getHours() > 21) || (req.body.sport == 'nba' && today.getHours() > 16)) {
+	if ((req.body.sport == 'nfl' && today.getHours() > 11) || (req.body.sport == 'nba' && today.getHours() > 17)) {
 		res.send({'type':'danger', 'message':'too late, try tomorrow'});
 	} else {
 		Odds.find({sport: req.body.sport, season: Number(req.body.season), date: req.body.date}, (err, odds) =>{
@@ -607,33 +604,29 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 				let current = JSON.parse(fs.readFileSync('json/'+req.body.sport+'_odds.json'));
 				current.games.forEach(game => {
 					if (new Date(game.date).getDate() == targetDate.getDate() && new Date(game.date).getMonth() == targetDate.getMonth()) {  //only look at today, may include future odds
-						Odds.updateOne({team1: game.team1, team2: game.team2, season: req.body.season, sport: req.body.sport, date: today.setHours(0,0,0,0)}, {spread: game.spread}, (err, result) => {
-							if(result.nModified) {
-								console.log('Odds modified');
-							} else if (!result.n) {
-								new Odds({
-									team1: game.team1,
-									team2: game.team2,
-									spread: game.spread,
-									date: game.date,
-									sport: req.body.sport,
-									week: Util.getWeek(targetDate, req.body.sport),
-									date: targetDate.setHours(0,0,0,0),
-									season: req.body.season,
-									ats: 0,
-									index: index++
-								}).save(err2 => {
-									if(err2)
-										console.log('Error saving new odds: '+err);
-								});
-							}
+						new Odds({
+							team1: game.team1,
+							team2: game.team2,
+							spread: game.spread,
+							date: game.date,
+							sport: req.body.sport,
+							week: Util.getWeek(targetDate, req.body.sport),
+							date: targetDate.setHours(0,0,0,0),
+							season: req.body.season,
+							ats: 0,
+							index: index++
+						}).save(err2 => {
+							if(err2)
+								console.log('Error saving new odds: '+err);
 						});
 					}
 				});
 				console.log('Challenge started, copied odds to db',new Date());
 				res.send({'type':'success', 'message':'Odds published for today'});
 				// send out texts
-				Users.find({_id: {$nin:[req.session.user._id,'testuser']},pref_nba_everyone: true}, {_id: 1}, function(err, users){
+				let pref_sport = {};
+				pref_sport['pref_'+req.body.sport+'_everyone'] = true;
+				Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, pref_sport]}, {_id: 1}, function(err, users){
 					users.forEach(user => {
 						Util.textUser(user._id, 'Someone has started a Bet Them All challenge, join if you want');
 					});
@@ -652,7 +645,7 @@ router.post('/updatebta', requireLogin, (req,res) => {
 	if((today.getHours >= 18)) {
 		res.send({'type':'danger', 'message':'Games started, no changes'});
 	} else {
-		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
+		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
 			if (err)
 				console.log("ATS change error: "+err);
 			else {

@@ -1,5 +1,4 @@
-const { resolve } = require('path');
-const P = require('pino');
+// const { resolve } = require('path');
 const { Sports, Odds } = require('./dbschema');
 const { getWeek, seasonStart } = require('./util');
 
@@ -303,7 +302,7 @@ module.exports = {
 			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}, {score1: 0}, {score2: 0}]}, (err, acceptedBets) => { //get all accepted bets
 				acceptedBets.forEach(singleBet => {
 					// console.log(`looking for ${singleBet}`);
-					if (singleBet.type == 'spread' && scores[singleBet.team1]) {
+					if (singleBet.type == 'spread' && scores[singleBet.team1] != undefined) {
 						console.log('found score for bet');
 						if (scores[singleBet.team1]+singleBet.odds > scores[singleBet.team2]) {
 							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
@@ -330,6 +329,7 @@ module.exports = {
 					}
 				});
 			});
+
 			// finally go through ATS odds and mark
 			Odds.find({season:2021, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 				// console.log('Updating Odds');
