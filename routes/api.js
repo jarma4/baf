@@ -560,31 +560,31 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 });
 
 router.post('/getbtapicks', requireLogin, function(req,res){
-	let picks = [], players = [], today = new Date(), targetDate = new Date(req.body.date);
+	let today = new Date(), targetDate = new Date(req.body.date);
+	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))};
 	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
-		} else if (odds.length) {
+		} else {
+			results.odds = odds;
 			// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
 			Ats.find({date: targetDate, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
 				if (err) {
 					console.log(err);
 				} else {
-					if (targetDate.getDate() == today.getDate() && ((req.body.sport == 'nfl' && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))){ // before end of picking period, only send 1 person
+					if (results.timeToPick){ // before end of picking period, only send 1 person
 						allPicks.forEach(pick => {
 							if (pick.user == req.session.user._id) {
-								picks = [pick];
+								results.picks = [pick];
 							}
-							players.push(pick.user);
+							results.players.push(pick.user);
 						});
 					} else {
-						picks = allPicks;
+						results.picks = allPicks;
 					}
-					res.send({'odds': odds, 'picks': picks, 'players': players});
+					res.send(results);
 				}
 			}).sort({user:1});
-		} else {
-			res.send({'odds': [], 'picks': [], 'players': players});
 		}
    }).sort({index:1});
 });

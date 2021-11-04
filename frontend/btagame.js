@@ -32,35 +32,9 @@ function getBtaPicks(sport, season, period) {
 	.then(res => res.json())
 	.then(retData => {
 		let outp, today = new Date();
-		const dayOf = (today.getDate() == period.getDate()) && ((sport == 'nfl')?(period.getDay()==0):true);
-		if (!retData.odds.length && dayOf) { // no challenge yet but is day to challenge
-			$('#btaChallengeBtn').removeClass('hidden');
-			document.getElementById("btaInfoArea").innerHTML = '';
-		} else {
-			if (dayOf) {  // odds availalable, list players in
-				if(retData.picks.length < 2) {
-					outp = '<p class="center title">It\'s on, '+retData.odds.length+' games today!</p>';
-					outp += '<p class="help-heading"> Who\'s In:';
-					outp += '<table><tr>';
-					if (retData.players.length) {
-						retData.players.forEach((player, i)=>{
-							if (i%3 === 0)
-								outp += '</tr><tr>';
-							outp += '<td class="cellgutter">'+player+'</td>';
-						});
-					} else {
-						outp += '<td class="cellgutter"> nobody </td>';
-					}
-					outp += '</tr></table>';
-					$('#btaChoiceBtn').removeClass('hidden');
-				} else {
-					outp = '<p class="center title">Games started, results:</p>';
-				}
-				document.getElementById("btaInfoArea").innerHTML = outp;
-				$('#btaInfoArea').removeClass('hidden');
-			}
-			if (retData.picks.length > 1)  { // time to pick over, showing everyone's picks
-				$('#btaPicksArea').removeClass('hidden');
+		// const dayOf = checkSameDate(today, period) && ((sport == 'nfl')?(period.getDay()==0 && today.getHours() < 12): today.getHours() < 18);
+		if (!retData.timeToPick) { // in past or time to pick over, showing everyone's picks
+			if (retData.picks.length > 1)  {
 				let classAdd, totals = [];
 				outp = '<table class="table table-condensed"><tr><th></th>';  // add row with users names and future totals
 				retData.picks.forEach((user, i) => {
@@ -87,9 +61,34 @@ function getBtaPicks(sport, season, period) {
 				totals.forEach((val, i) => {
 					$('#total'+i).text(val);
 				});		
-				// $('#atsSubmit').addClass('hidden');	// show save button
-			
+				$('#btaPicksArea').removeClass('hidden');
+			}
+		} else { // day of
+			if (!retData.odds.length && ((sport == 'nfl')?(period.getDay()==0 && today.getHours() < 11): today.getHours() < 17)) { // no challenge yet but is day to challenge
+				$('#btaChallengeBtn').removeClass('hidden');
+				document.getElementById("btaInfoArea").innerHTML = '';
 			} else {
+				if(retData.picks.length < 2) {
+					outp = '<p class="center title">It\'s on, '+retData.odds.length+' games today!</p>';
+					outp += '<p class="help-heading"> Who\'s In:';
+					outp += '<table><tr>';
+					if (retData.players.length) {
+						retData.players.forEach((player, i)=>{
+							if (i%3 === 0)
+								outp += '</tr><tr>';
+							outp += '<td class="cellgutter">'+player+'</td>';
+						});
+					} else {
+						outp += '<td class="cellgutter"> nobody </td>';
+					}
+					outp += '</tr></table>';
+					$('#btaChoiceBtn').removeClass('hidden');
+				} else {
+					outp = '<p class="center title">Games started, results:</p>';
+				}
+				document.getElementById("btaInfoArea").innerHTML = outp;
+				$('#btaInfoArea').removeClass('hidden');
+
 				outp = '<p class="help-heading pushDown"> Your Choices(in green):';
 				outp += '<table class="table table-condensed">';
 				retData.odds.forEach((rec, i) => {
@@ -106,9 +105,6 @@ function getBtaPicks(sport, season, period) {
 					$('#tm1_'+i).css('object-position', spritePosition(sport, rec.team1));
 					$('#tm2_'+i).css('object-position', spritePosition(sport, rec.team2.substr(1)));
 				});
-				if(retData.picks.length) {
-					$('#btaPicksArea').removeClass('hidden');
-				}
 			}
 		}
 	})
@@ -200,7 +196,7 @@ $('#btaSubmit').on('click', event => {
 
 function resetBta() {
 	// $('#btaInfoArea').addClass('hidden');
-	document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Try Another Time</p>';
+	document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Results</p>';
 	$('#btaPicksArea').addClass('hidden');
 	$('#btaChoiceBtn').addClass('hidden');
 	$('#btaChallengeBtn').addClass('hidden');

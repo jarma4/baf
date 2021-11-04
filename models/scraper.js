@@ -459,7 +459,7 @@ module.exports = {
 				Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
                let record = $('.table a:contains('+name+')').parent().next().text().split('-');
                // console.log(name,record);
-					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?16:72);
+					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
 					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
 						if (err)
 							logger.error('OUgame find team error: '+err);

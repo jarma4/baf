@@ -7,7 +7,7 @@ const telnyx = require('telnyx')(process.env.BAF_TELNYX);
 var textList = {};
 
 module.exports = {
-   textUser: function (to, message, pref2){
+   textUser: (to, message, pref2) => {
 		// console.log(`in text ${message}`);
 		// return;
       Users.findOne({_id: to}, function(err,user){
@@ -39,11 +39,14 @@ module.exports = {
          }
       });
    },
-   getWeek: function(date, sport){
+   getWeek: (date, sport) => {
       var dayTicks = 24 * 60 * 60 * 1000;
       return Math.ceil((date - (module.exports.seasonStart[sport])) / dayTicks / 7);
    },
-   seasonStart: {
+	checkSameDate: (date1, date2) =>{
+		return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
+	},
+	seasonStart: {
       nfl: new Date(2021,8,9),
       nba: new Date(2021,9,19),
       ncaab: new Date(2022,2,16)
@@ -57,10 +60,4 @@ module.exports = {
 	nbaTeams2: {
 		'Hawks': 'ATL', 'Bulls': 'CHI', 'Mavericks': 'DAL', 'Pistons': 'DET',  'Timberwolves': 'MIN', 'Pelicans': 'NOP', 'Knicks': 'NY', 'Nets': 'BKN', '76ers': 'PHI', 'Thunder': 'OKC', 'Clippers': 'LAC','Lakers': 'LAL', 'Wizards': 'WAS', 'Cavaliers': 'CLE', 'Nuggets': 'DEN', 'Rockets': 'HOU', 'Pacers': 'IND', 'Heat': 'MIA', 'Celtics': 'BOS', 'Warriors': 'GS', 'Golden State': 'GS', 'Spurs': 'SAN', 'Kings': 'SAC', 'Trail Blazers': 'POR', 'Magic': 'ORL', 'Hornets': 'CHR', 'Suns': 'PHO', 'Raptors': 'TOR', 'Bucks': 'MIL', 'Jazz': 'UTA', 'Grizzlies': 'MEM'
 	}
-   // inSeason: {
-   //    nfl: false,
-   //    nba: false,
-   //    ncaa: false,
-   //    soccer: true
-   // }
 };

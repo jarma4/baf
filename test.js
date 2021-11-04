@@ -20,15 +20,16 @@ require('dotenv').config();
 
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
-let sport = 'nba';
-
-let scores = {SAN:96,'@MEM':100,GS:100,'@LAL':103};
-
-if (scores['SAdN']) {
-	console.log(`found it ${scores['SAN']}`)
-} else {
-	console.log('couldnt find');
+function checkSameDate(date1, date2){
+	return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 }
+
+const now = new Date(2021,10,1);
+const midnight = new Date()
+midnight.setHours(0,0,0,0);
+
+console.log(checkSameDate(now, midnight));
+
 
 // Records.find({season:2020,sport:'nba'}, function(err, retData){
 // 	console.log(retData);
