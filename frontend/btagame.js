@@ -36,6 +36,7 @@ function getBtaPicks(sport, season, period) {
 		if (!retData.timeToPick) { // in past or time to pick over, showing everyone's picks
 			if (retData.picks.length > 1)  {
 				let classAdd, totals = [];
+				document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Results:</p>';
 				outp = '<table class="table table-condensed"><tr><th></th>';  // add row with users names and future totals
 				retData.picks.forEach((user, i) => {
 					outp += '<th>'+bafusers[user.user]+'<br>(<span id="total'+i+'"></span>)</th>';
@@ -64,7 +65,7 @@ function getBtaPicks(sport, season, period) {
 				$('#btaPicksArea').removeClass('hidden');
 			}
 		} else { // day of
-			if (!retData.odds.length && ((sport == 'nfl')?(period.getDay()==0 && today.getHours() < 11): today.getHours() < 17)) { // no challenge yet but is day to challenge
+			if (!retData.odds.length) { // no challenge yet but is day to challenge
 				$('#btaChallengeBtn').removeClass('hidden');
 				document.getElementById("btaInfoArea").innerHTML = '';
 			} else {
@@ -196,7 +197,7 @@ $('#btaSubmit').on('click', event => {
 
 function resetBta() {
 	// $('#btaInfoArea').addClass('hidden');
-	document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Results</p>';
+	document.getElementById("btaInfoArea").innerHTML = '<p class="title center">Another Time</p>';
 	$('#btaPicksArea').addClass('hidden');
 	$('#btaChoiceBtn').addClass('hidden');
 	$('#btaChallengeBtn').addClass('hidden');

@@ -561,7 +561,7 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 
 router.post('/getbtapicks', requireLogin, function(req,res){
 	let today = new Date(), targetDate = new Date(req.body.date);
-	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))};
+	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))};
 	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
@@ -628,7 +628,7 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 				pref_sport['pref_'+req.body.sport+'_everyone'] = true;
 				Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, pref_sport]}, {_id: 1}, function(err, users){
 					users.forEach(user => {
-						Util.textUser(user._id, 'Someone has started a Bet Them All challenge, join if you want');
+						Util.textUser(user._id, 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
 					});
 				});
 			} else {
