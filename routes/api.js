@@ -552,7 +552,7 @@ router.post('/ousignup', requireLogin, function(req,res){
 router.post('/getbtascoreboard', requireLogin, (req,res) => {
 	Records.find({season: Number(req.body.season), sport: 'bta'+req.body.sport}).sort({user:1})
 	.then(totals => {
-		Odds.count({season: Number(req.body.season)})
+		Odds.count({sport:req.body.sport, season: Number(req.body.season)})
 		.then (count => {
 			res.send({totals, count});
 		});

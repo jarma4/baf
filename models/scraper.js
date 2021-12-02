@@ -303,7 +303,7 @@ module.exports = {
 				acceptedBets.forEach(singleBet => {
 					// console.log(`looking for ${singleBet}`);
 					if (singleBet.type == 'spread' && scores[singleBet.team1] != undefined) {
-						console.log('found score for bet');
+						// console.log('found score for bet');
 						if (scores[singleBet.team1]+singleBet.odds > scores[singleBet.team2]) {
 							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
 							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
@@ -315,7 +315,7 @@ module.exports = {
 							updateWinnerLoser(singleBet.user1, singleBet.user2, 1, singleBet.sport);
 						}
 					} else if (scores[singleBet.team1]) {
-						console.log(singleBet.type, singleBet.odds, scores[singleBet.team1]+scores[singleBet.team2])
+						// console.log(singleBet.type, singleBet.odds, scores[singleBet.team1]+scores[singleBet.team2])
 						if (singleBet.type == 'over' && scores[singleBet.team1]+scores[singleBet.team2] > singleBet.odds || singleBet.type == 'under' && scores[singleBet.team1]+scores[singleBet.team2] < singleBet.odds) {
 							updateBet(singleBet.id,{status:4, score1: scores[singleBet.team1], score2: scores[singleBet.team2]});
 							updateWinnerLoser(singleBet.user1, singleBet.user2, 0, singleBet.sport);
@@ -384,19 +384,31 @@ module.exports = {
 						}).sort({user:1});
 					}));
 					Promise.all(promises).then(retData =>{
-						if (retData[0].length && (retData[0].length == retData[1])) { // if there were games today and all done
+						// checki if any BTA today and if all done
+						if (retData[0].length && (retData[0].length == retData[1])) { 
 							let totals = new Array(retData[2].length).fill(0);
-							retData[0].forEach((rec, i) => {  // go through odds for all games
-								retData[2].forEach((user, j) => {  // check vs each person
-									if (Number(user[i])==rec.ats) {
-										totals[j] += 1;
+							retData[0].forEach((game, gameIndex) => {  // go through odds for all games
+								retData[2].forEach((user, userIndex) => {  // get correct for each person
+									if (Number(user[gameIndex])==game.ats) {
+										totals[userIndex] += 1;
 									}
 								});
 							});
+							// increment record for each user with # of picks correct and # games
+							retData[2].forEach((user, userIndex) => {
+								Records.updateOne({season: 2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
+									if(err) {
+										console.log('Error updating Record for user after BTA ended', err);
+									} else {
+										console.log(`BTA record updated for ${user.user}: ${totals[userIndex]} correct out of ${retData[1]}`);
+									}
+								});
+							});
+							// credit winner(s)
 							let max = Math.max(...totals);
 							let winners = [];
 							totals.filter((el, idx) => el == max ? winners.push(idx):'');
-							winners.forEach(idx => { // credit winner(s)
+							winners.forEach(idx => {
 								Records.updateOne({season:2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);

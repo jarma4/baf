@@ -10,11 +10,10 @@ function getBtaScoreboard(sport, season, type) {
       // create columns for each user
       $.each(retData.totals, function(i, rec){
 			outp += '<th>'+bafusers[rec.user]+'</th>';
-         outp2 += '<td>'+retData.totals[i].win.toFixed(1)+'</td>';
-         // outp3 += '<td>'+retData.totals[i].pct+'</td>';
+         outp2 += '<td>'+rec.win.toFixed(1)+'</td>';
+         outp3 += '<td>'+(rec.correct/rec.try).toPrecision(3)+'</td>';
       });
-      // outp += '</tr><tr><td>Season</td>'+outp2+'</tr><tr><td>$5 Bonus</td>'+outp3+'</tr></table>';
-      outp += '</tr><tr><td>Season</td>'+outp2+'</tr></table>';
+      outp += '</tr><tr><td>Wins</td>'+outp2+'</tr><tr><td>%</td>'+outp3+'</tr></table>';
       document.getElementById((type=='bta')?'btaScoreboard':'btaScoreboard').innerHTML = outp;
 	});
 }

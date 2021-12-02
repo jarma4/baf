@@ -21,7 +21,9 @@ var recordsSchema = new mongoose.Schema({
    loss: Number,
    win: Number,
    push: Number,
-   pct: Number
+   pct: Number,
+   correct: Number,
+   try: Number
 });
 
 var betsSchema = new mongoose.Schema({

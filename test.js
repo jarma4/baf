@@ -23,13 +23,16 @@ mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNe
 function checkSameDate(date1, date2){
 	return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 }
+const sprt = 'nba';
+const user = {user: 'jarma4'};
 
-const now = new Date(2021,10,1);
-const midnight = new Date()
-midnight.setHours(0,0,0,0);
-
-console.log(checkSameDate(now, midnight));
-
+Records.updateOne({season: 2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: 3,try: 1}}, err => { 
+	if(err) {
+		console.log('Error updating Record for user after BTA ended', err);
+	} else {
+		console.log(`BTA record updated for ${user.user}: 1 correct out of 1`);
+	}
+});
 
 // Records.find({season:2020,sport:'nba'}, function(err, retData){
 // 	console.log(retData);
