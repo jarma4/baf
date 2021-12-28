@@ -19,16 +19,17 @@ const request = require('request'),
 	// mongoose = require('mongoose');
 
 function getOdds(sport) {
-	let url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
 	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
-			let $ = cheerio.load(body);
+			const $ = cheerio.load(body);
 
 			// get matchup w/ team names & date
 			let pingpong = 0,
 			games = [],
-			matchup = {};
+			matchup = {};					
+			const today = new Date();
 			$('.op-matchup-team','#op-content-wrapper').each(function() {
 				if (pingpong++ % 2){
 					matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
@@ -36,11 +37,11 @@ function getOdds(sport) {
 					matchup = {};
 				}
 				else {
-					let tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
-					let temptime = $(this).parent().prev().prev().text().split(':');
-					matchup.date = new Date(tempdate+' '+new Date().getFullYear()+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
+					const tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
+					const temptime = $(this).parent().prev().prev().text().split(':');
+					matchup.date = new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
 					matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
-					tempdate='';
+					// tempdate='';
 				}
 			});
 
