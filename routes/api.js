@@ -561,7 +561,7 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 
 router.post('/getbtapicks', requireLogin, function(req,res){
 	let today = new Date(), targetDate = new Date(req.body.date);
-	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 16))};
+	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))}; //(today.getHours() < 11 || (today.getHours() == 11 && today.getMinutes() < 30))
 	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);

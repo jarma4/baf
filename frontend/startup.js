@@ -12,7 +12,7 @@ var username,
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP', 'ryan': 'RK'},
+   bafusers = {'jarma4': 'TJ', 'KRELL': 'EK', 'aaron': 'AW', 'Serg': 'SC', 'Jmcgeady': 'JM', 'kbscanlon': 'KS', 'russell': 'RR', 'distributederik': 'EJ', 'JuiceAlmighty': 'JH', 'tedbeckett01': 'TB', 'youngstevebrown': 'SB', 'firdavs': 'FP', 'ryan': 'RK'},
 	seasonStart = {},  // will get this date with sports in season
 	inSeason = {},  // will get this date with sports in season
    // for FETCH calls
@@ -265,5 +265,30 @@ async function initServiceWorker(){
       fetch('/api/pushsubscribe', postOptions);
       // .catch(retData => modalAlert(retData.type,retData.message));
    }
+}   
+
+function spritePosition (sport, team) {
+   var width = 56, height = 40, cols = 6, index,
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
+      nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
+   if (sport == 'nfl')
+      index = nfl_teams.indexOf(team);
+   else
+      index = nba_teams.indexOf(team);
+   if (index < 0)
+      index = 0;
+   return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
 }
-   
+
+function spritePosition2 (sport, team) {
+   var width = 35, height = 25, cols = 6, index,
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
+      nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
+   if (sport == 'nfl')
+      index = nfl_teams.indexOf(team);
+   else
+      index = nba_teams.indexOf(team);
+   if (index < 0)
+      index = 0;
+   return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
+}

@@ -1,100 +1,25 @@
 extends base
 
 block content
-	span.title Odds
+	span.title Bracket
 	//- strong.lead#nflWeek
 	.container-fluid
 		.row.no-gutters
 			.col-md-12
-				include ./sportsmenu.pug
-		.row.no-gutters
-			.col-md-4
-				#watchBets
-				#col1
-			.col-md-4
-				#col2
-			.col-md-4
-				#col3
-			//- .col-md-3
-			//-    #col4
-			//- .col-md-1
-			//-    #col5
-	#betModal.modal.fade
-		.modal-dialog
-			.modal-content
-				.modal-header
-					button.close(type='button', data-dismiss='modal') #[span &times;]
-					h4.text-center#betTitle
-				.modal-body
-					form
-						#betUserlist.form-group
-							label(for='userList') Send Bet To:
-							select#userList.form-control(autofocus)
-						#betLimitArea.form-group
-							.checkbox
-								label
-									input#betLimit(type='checkbox')
-									| Set Bet Limit
-							.input-group
-									button.btn-increment.btn.btn-primary(value="0")
-										span.glyphicon.glyphicon-minus
-									input#betLimitNum.small-inputbox(type='number', value="1")
-									button.btn-increment.btn.btn-primary(value="1")
-										span.glyphicon.glyphicon-plus
-						.checkbox
-							label
-								input#oddsWatch(type='checkbox')
-								| Set Odds Watch
-						#oddsWatchArea.form-group
-							.checkbox
-								label
-									input#oddsWatchSend(type='checkbox')
-									| Send bet when odds reached
-							label(for='betAmount') Notify when odds reach:
-							.input-group
-								button.btn-increment.btn.btn-primary(value="0")
-									span.glyphicon.glyphicon-minus
-								input#betOddsNew.small-inputbox(type='number')
-								button.btn-increment.btn.btn-primary(value="1")
-									span.glyphicon.glyphicon-plus
-						input#betUser2.nodisplay
-						input#betOdds.nodisplay
-						input#betType.nodisplay
-						input#betTeam1.nodisplay
-						input#betTeam2.nodisplay
-						input#betSport.nodisplay
-						input#betGametime.nodisplay
-				.modal-footer
-					button#betSubmit.btn.btn-success.btn-lg.btn-block(type='submit', data-dismiss='modal') Send Bet
-					//- button#betSave.btn.btn-primary.btn-lg.btn-block(type='submit', data-dismiss='modal') Set Odds Watch
-	#watchModal.modal.fade
-		.modal-dialog
-			.modal-content
-				.modal-header
-					button.close(type='button', data-dismiss='modal') #[span &times;]
-					h4#watchTitle
-				.modal-body
-					h4#watchText
-					#oddsMod.form-group
-						p#watchStatus.text-danger.hidden * Watch already triggered, currently deactivated
-						label(for='watchOddsNew') Notify when odds reach:
-						.input-group
-							button.btn-increment.btn.btn-primary(value="0")
-								span.glyphicon.glyphicon-minus
-							input#watchOddsNew.small-inputbox(type='number')
-							button.btn-increment.btn.btn-primary(value="1")
-								span.glyphicon.glyphicon-plus
-						.checkbox
-							label
-								input#watchSend(type='checkbox')
-								| Send bet when odds reached
-					button#watchModify.btn.btn-success.btn-lg.btn-block(type='submit', name='status', value='1', data-dismiss="modal") Modify odds
-					button#watchDelete.btn.btn-danger.btn-lg.btn-block(type='submit', name='status', value='2', data-dismiss="modal") Delete
-					input#watchId.nodisplay
-					input#watchModOdds.nodisplay
+				#sportMenu
+					ul
+						li.sportPick.nfl.selected
+							a NFL
+						li.sportPick.nba
+							a NBA   
+				select#bracketYear.btn-default.right
+							option(value='2021') 2021
+		.row
+			.col-md-12
+				#bracketInfoArea
+				#bracketPicksArea
+				button#bracketSubmitBtn.btn.btn-lg.btn-block.btn-primary.pushDown Join
 
 block scripts
 	script(type='text/javascript').
-		getOdds2()
-		getUsers()
-		getBets(($('.sportPick.selected').attr('class').split(/\s+/)[1]=='nfl')?10:11,'watchBets','watch')
+		getBracket()
