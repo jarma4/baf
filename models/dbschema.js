@@ -108,7 +108,7 @@ var ouGameSchema = new mongoose.Schema({
 var ouUserSchema = new mongoose.Schema({
    user: String,
    season: Number,
-   sport: String,
+   sport: String,  // nfl, nba, nfltourney, nbatourney
    0: String,
    1: String,
    2: String,
@@ -170,7 +170,8 @@ var atsSchema = new mongoose.Schema({
    13: Number,
    14: Number,
 	15: Number,
-	date: Date
+	date: Date,
+	tiebreaker: Number
 });
 var oddsSchema = new mongoose.Schema({
    sport: String,

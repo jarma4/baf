@@ -37,7 +37,7 @@ function getOdds(sport) {
 					matchup = {};
 				}
 				else {
-					const tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').last().attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
+					const tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
 					const temptime = $(this).parent().prev().prev().text().split(':');
 					matchup.date = new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
 					matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
@@ -52,7 +52,7 @@ function getOdds(sport) {
 				// if ($(this).not('.no-odds')) {  
 					// console.log(iter);
 					let tmp = $(this).find($('.op-bovada'));
-					if ($(tmp).attr('data-op-info') != undefined) {
+					if ($(tmp).attr('data-op-info') != undefined && JSON.parse($(tmp).attr('data-op-info')).fullgame != '') {
 						if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
 							games[iter].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 						}

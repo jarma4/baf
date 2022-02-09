@@ -1,49 +1,63 @@
-let picks = [{'0':0,'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'10':0,'11':0,'12':0}];
-
 let afcSeeding = ['TEN', 'KC', 'BUF', 'CIN', 'LV', 'NE', 'PIT'];
 let nfcSeeding = ['GB', 'TB', 'DAL', 'LAR', 'ARI', 'SF', 'PHI'];
-let roundName = ['Wildcard Round', 'Division Round', 'Conference Round', 'Super Bowl'];
 let bracket =[[], [], [], []];
+
 // initial draw: round1 2-7; round2 
 function initBracket() {
-	let round = [[...afcSeeding], [...nfcSeeding]];
-	round.forEach(conference => {
-		conference.shift(); // remove #1 seed leaving 6
-		const temp = conference.length;
-		for (let index = 0; index < temp; index++) {
-			if (index%2) {
-				bracket[0].push(conference.shift());
-			} else {
-				bracket[0].push(conference.pop());
-			}
-		}
-	});
-	bracket[1] = ['', '', '', [...afcSeeding].shift(), '', '', '', [...nfcSeeding].shift()];
-	bracket[2] = ['', '','', ''];
-	bracket[3] = ['',''];
-}
-
-function getBracket() {
-	let sport = 'nfl';
-	let gameIndex=0, slotIndex = 0;
-	let outp = '<table class="table table-consdensed">';
-	initBracket();
-	bracket.forEach((round, roundIndex) => {
-		outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+roundName[roundIndex]+'</td></tr>';
-		round.forEach((team, index) => {
-			if (index%2 == 0) {
-				outp += '<tr>';
-			}
-			outp += '<td class="td-odds"><button class="btn btn-toggle '+((!picks.length || (picks[0][gameIndex] == '1' && index%2 == 0) || (picks[0][gameIndex] == '2' && index%2))?'btn-success':'btn-default')+'" data-slot="'+slotIndex+'" data-game="'+gameIndex+'" data-name="'+team+'" data-round="'+roundIndex+'"><img id="'+(slotIndex++)+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png"></button></td>';
-			if (index%2) {
-				outp += '</tr>';
-				gameIndex++;
+	bracket = [['', '','', '', '', '','', '','', '','', ''],['', '','', '','', '','', ''],['', '','', ''], ['','']];
+	if (0) {
+		bracket[0] = [];
+		let round = [[...afcSeeding], [...nfcSeeding]];
+		round.forEach(conference => {
+			conference.shift(); // remove #1 seed leaving 6
+			const temp = conference.length;
+			for (let index = 0; index < temp; index++) {
+				if (index%2) {
+					bracket[0].push(conference.shift());
+				} else {
+					bracket[0].push(conference.pop());
+				}
 			}
 		});
+		bracket[1] = ['', '', '', [...afcSeeding].shift(), '', '', '', [...nfcSeeding].shift()];
+	}
+}
+
+function getChoices() {
+	let sport = 'nfl';
+	let roundInfo = [{title: 'Wildcard Round', number: 12}, {title: 'Division Round', number: 8}, {title: 'Conference Round', number: 4}, {title: 'Super Bowl', number: 2}];
+	let roundIndex = 0, gameIndex=0, slotIndex = 0;
+	postOptions.body = JSON.stringify({
+		'sport': sport+'tourney',
+		'season': 2021
 	});
-	outp += '</table>';
-	document.getElementById('bracketPicksArea').innerHTML = outp;
-	drawSprite(sport);
+	fetch('/api/getstandings', postOptions)
+	.then(res => res.json())
+	.then(retData => {
+		if(retData.users.length == 1) {
+			initBracket();
+			let outp = '<table class="table table-consdensed">';
+			roundInfo.forEach(round => {
+				outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+round.title+'</td></tr>';
+				retData.users[0].slice(roundIndex, round.number).forEach((team, index) => {
+					if (index%2 == 0) {
+						outp += '<tr>';
+					}
+					outp += '<td class="td-odds"><button class="btn btn-toggle '+((team && (retData.users[0][gameIndex] == '1' && index%2 == 0) || (retData.users[0][gameIndex] == '2' && index%2))?'btn-success':'btn-default')+'" data-slot="'+slotIndex+'" data-game="'+gameIndex+'" data-name="'+team.slice(0,2)+'" data-team="'+((slotIndex%2)?2:1)+'"><img id="'+(slotIndex++)+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png"></button></td>';
+					if (index%2) {
+						outp += '</tr>';
+						gameIndex++;
+					}
+				});
+				roundIndex += round.number;
+			});
+			outp += '</table>';
+			document.getElementById('bracketPicksArea').innerHTML = outp;
+			document.getElementById('bracketPicksArea').classList.remove('hidden');
+			document.getElementById('bracketActionBtn').textContent = 'Save';
+			drawSprite(sport);
+		}
+	});
 }
 
 function removeOpponent(round, team){
@@ -148,9 +162,11 @@ function toggleChoice(targetBtn){
 				bracket[2][3-index] = working.shift();
 			}
 		}
+	} else if (targetBtn.dataset.slot > 19 && targetBtn.dataset.slot < 24) {
+		removeOpponent(3,otherBtn.dataset.name); // if exist
+		bracket[3][(targetBtn.dataset.slot < 22)?0:1] = targetBtn.dataset.name;
 	}
 	drawSprite('nfl');
-	// getBracket();
 }
 
 function drawSprite(sport) {
@@ -165,27 +181,25 @@ function drawSprite(sport) {
 
 $('#bracketPicksArea').delegate('.btn-toggle', 'click' , event => {
 	event.preventDefault();
-	// let button = $(event.currentTarget);
 	toggleChoice(event.currentTarget);
-	// toggleChoice(button.data('game'));
 });
 
-$('#bracketSubmitBtn').on('click', event => {
-	if ($('#bracketSubmitBtn').text() == 'Join') {
+$('#bracketActionBtn').on('click', event => {
+	let sport = 'nfl';
+	if ($('#bracketActionBtn').text() == 'Join') {
 		$('#bracketPicksArea').removeClass('hidden');
-		$('#bracketSubmitBtn').text('Save');
+		$('#bracketActionBtn').text('Save');
 	} else { // button was Save
 		let picks = {};
 		$.each($('#bracketPicksArea .btn-success'), (idx, game) => {
-			picks[idx] = game.getAttribute('data-team');
+			picks[idx] = game.getAttribute('data-name');
 		});
 		postOptions.body = JSON.stringify({
-			'picks': JSON.stringify(picks),
-			'season': $('#bracketYear').val(),
-			'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
-			'date': new Date($('#bracketDate').data('date'))
+			'sport': sport+'tourney',
+			'season': 2021,
+			'choices': JSON.stringify(picks),
 		});
-		fetch('/api/updatebracket', postOptions)
+		fetch('/api/setouchoices', postOptions)
 		.then(res => res.json())
 		.then(retData => modalAlert(retData.type,retData.message))
 		.catch(retData => modalAlert(retData.type,retData.message));	

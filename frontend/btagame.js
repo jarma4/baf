@@ -31,7 +31,6 @@ function getBtaPicks(sport, season, period) {
 	.then(res => res.json())
 	.then(retData => {
 		let outp, today = new Date();
-		// const dayOf = checkSameDate(today, period) && ((sport == 'nfl')?(period.getDay()==0 && today.getHours() < 12): today.getHours() < 18);
 		if (!retData.timeToPick) { // in past or time to pick over, showing everyone's picks
 			if (retData.picks.length > 1)  {
 				let classAdd, totals = [];
@@ -96,6 +95,7 @@ function getBtaPicks(sport, season, period) {
 					outp += '<td class="td-odds"><button class="btn btn-toggle '+((retData.picks.length && retData.picks[0][i] == '2')?'btn-success':'btn-default')+'" data-game="'+i+'" data-team="2"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></td></tr>';
 				});
 				if (retData.picks.length) {
+					outp += '<tr><td colspan="2" class="help-heading">Total for last game:<input type="number" id="tiebreaker"></td></tr>';
 					$('#btaPicksArea').removeClass('hidden');
 					$('#btaChoiceBtn').text('Save');
 				}
@@ -120,6 +120,7 @@ $('#btaChoiceBtn').on('click', event => {
 		$.each($('#btaPicksArea .btn-success'), (idx, game) => {
 			picks[idx] = game.getAttribute('data-team');
 		});
+		picks.tiebreaker = document.getElementById('tiebreaker').value;
 		postOptions.body = JSON.stringify({
 			'picks': JSON.stringify(picks),
 			'season': $('#btaYear').val(),
@@ -206,8 +207,6 @@ function resetBta() {
 // back/forward button to get different scores
 $('.btaInc').on('click', function(event){
    event.preventDefault();
-   // var tmp = $('#atsWeek').text().split(' ');
-	// if ((Number(tmp[1]) > 9 && $(this).val()=='-1') || (Number(tmp[1]) < 17 && Number(tmp[1]) < getWeek(new Date(), 'nfl') && $(this).val()=='1'))
 	resetBta();
 	getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date(Number($('#btaDate').data('date'))+$(this).val()*(24*60*60*1000)));
 });
