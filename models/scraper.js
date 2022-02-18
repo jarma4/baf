@@ -347,13 +347,15 @@ module.exports = {
 						} else if (scores[game.team1] + game.spread == scores[game.team2]){
 							winner = 3;
 						}
-						Odds.updateOne({_id: game._id}, {ats: winner}, err => {
-							if (err) {
-								console.log('Error updating Odds winner when tallying ATS');
-							} else {
-								// console.log(game._id, winner);
-							}
-						});
+						if (winner) {
+							Odds.updateOne({_id: game._id}, {ats: winner, total: scores[game.team1]+scores[game.team2]}, err => {
+								if (err) {
+									console.log('Error updating Odds winner when tallying ATS');
+								} else {
+									console.log(game._id, winner, scores[game.team1]+scores[game.team2]);
+								}
+							});
+						}
 					});
 					// see if end of day and do tally
 					let promises = [];
@@ -406,11 +408,26 @@ module.exports = {
 								});
 							});
 							// credit winner(s)
-							let max = Math.max(...totals);
-							let winners = [];
-							totals.filter((el, idx) => el == max ? winners.push(idx):'');
-							winners.forEach(idx => {
-								Records.updateOne({season:2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/winners.length}}, err => {
+							const maxCorrect = Math.max(...totals);  //find highest # correct
+							let winners = [], overallWinner = [];
+							totals.filter((el, idx) => el == maxCorrect ? winners.push(idx):''); //store index of people that got maxCorrect
+							const lastTotal = retData[0][retData[0].length-1].total; //find total on last game
+							if (winners.length > 1) { // multiple winners, look at tiebreaker for each
+								let bestDiff = 999;
+								winners.forEach(userIndex=>{
+									const currentDiff = Math.abs(picks[userIndex].tiebreaker) - lastTotal;
+									if (currentDiff < bestDiff) { // single winner
+										overallWinner = [userIndex];
+									} else if (currentDiff == bestDiff) { // multiple winners
+										overallWinner.push(userIndex);
+									}
+									bestDiff = currentDiff;
+								});								
+							} else { // single winner
+								overallWinner = winners;
+							}
+							overallWinner.forEach(idx => {
+								Records.updateOne({season:2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
 									} else {

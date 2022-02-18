@@ -182,6 +182,7 @@ var oddsSchema = new mongoose.Schema({
    team2 : String,
    spread: Number,
 	index: Number,
+	total: Number,
 	ats: Number  // winner of game (3=push); 10 added when daily winner is chosen
 });
 
