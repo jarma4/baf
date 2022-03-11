@@ -1,0 +1,9 @@
+{
+   "git.ignoreLimitWarning": true,
+   "files.associations": {
+		"stdlib.h": "c",
+		"stdio.h": "c",
+		"*.orig": "c",
+		"usr_eth_test.h": "c"
+	}
+}

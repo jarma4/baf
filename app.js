@@ -63,7 +63,7 @@ const dailyCleaningCron = crontab.scheduleJob("29 17 * * *", scraper.dailyCleani
 // const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0", scraper.tallyBets2,['nfl']);
 
 // for NBA
-const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,21-23 * * *", scraper.tallyBets2,['nba']);
+const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyBets2,['nba']);
 // const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 // for the Over Under game

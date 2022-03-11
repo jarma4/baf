@@ -147,7 +147,7 @@ function updateRecord(user, category, sport, season) {
 				logger.error(user+' had trouble updating wins - '+new Date());
 				reject();
 			} else {
-				if (!res.n){ // didn't actually update because no record, create one;
+				if (!res.modifiedCount){ // didn't actually update because no record, create one;
 					// maybe error here, multiple new users created first time if multiple bets
 					let newrecord = new Records({
 						user: user,
@@ -352,7 +352,7 @@ module.exports = {
 								if (err) {
 									console.log('Error updating Odds winner when tallying ATS');
 								} else {
-									console.log(game._id, winner, scores[game.team1]+scores[game.team2]);
+									// console.log(game._id, winner, scores[game.team1]+scores[game.team2]);
 								}
 							});
 						}
@@ -415,7 +415,7 @@ module.exports = {
 							if (winners.length > 1) { // multiple winners, look at tiebreaker for each
 								let bestDiff = 999;
 								winners.forEach(userIndex=>{
-									const currentDiff = Math.abs(picks[userIndex].tiebreaker) - lastTotal;
+									const currentDiff = Math.abs(retData[2][userIndex].tiebreaker - lastTotal);
 									if (currentDiff < bestDiff) { // single winner
 										overallWinner = [userIndex];
 									} else if (currentDiff == bestDiff) { // multiple winners
