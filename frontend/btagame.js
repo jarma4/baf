@@ -98,7 +98,7 @@ function getBtaPicks(sport, season, period) {
 					outp += '<tr><td class="td-odds"><button class="btn btn-toggle '+((!retData.picks.length || retData.picks[0][i] == '1')?'btn-success':'btn-default')+'" data-game="'+i+'" data-team="1"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
 					outp += '<td class="td-odds"><button class="btn btn-toggle '+((retData.picks.length && retData.picks[0][i] == '2')?'btn-success':'btn-default')+'" data-game="'+i+'" data-team="2"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm2_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team2.slice(0,5)+'</td></tr><tr><td class="center bold">'+(0-rec.spread)+'</td></tr></table></button></td></td></tr>';
 				});
-				outp += '<tr><td colspan="2" class="help-heading">Total for last game:<input type="number" id="tiebreaker"></td></tr>';
+				outp += '<tr><td colspan="2" class="help-heading">Total for last game:<input type="number" id="tiebreaker" min="100" max="350"></td></tr>';
 				if (retData.picks.length) {
 					$('#btaPicksArea').removeClass('hidden');
 					$('#btaChoiceBtn').text('Save');

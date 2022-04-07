@@ -12,17 +12,17 @@ function getOdds (){
 	fetch('/api/getodds', postOptions)
    .then(res =>res.json())
    .then(retData => {
-      var sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
+      let sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
       // clear remnents of previous screens
-      for (var i = 1; i < 4; i++) {
+      for (let i = 1; i < 4; i++) {
          $('#col'+i).empty();
       }
       // store info globally to be used elsewhere
       window.oddsDb = retData.games;
 
-      var outp = '<table class="table">';
+      let outp = '<table class="table">';
       $.each(retData.games, function(i,rec){
-         var checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
+         let checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
          // gray out and disable if game already started
          if (date > new Date()) {
@@ -40,7 +40,7 @@ function getOdds (){
             outp = '<table class="table">';
          }
          // draw date row if needed
-         var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+         let tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
          if (tmpDate > prevDate)
             outp += '<tr class="modal-warning"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
          outp += '<tr><td class="td-odds"><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2" width="20px"><img id="tm1_'+i+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+((rec.spread != undefined)?rec.spread:'*')+'</td></tr></table></button></td>';
@@ -64,9 +64,9 @@ function getOdds (){
 }
 
 function getOdds2 (){
-   var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
+   let sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
    // if (!sport || $('#sport'+sport[0].toUpperCase()+sport.substr(1)).hasClass('dimmed'))
-   //    var sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';
+   //    let sport = ($('#sportNfl').hasClass('selected'))?'nfl':($('#sportNba').hasClass('selected'))?'nba':'soccer';
    // toggleSport(sport);
    postOptions.body = JSON.stringify({
       "sport": sport
@@ -74,17 +74,17 @@ function getOdds2 (){
 	fetch('/api/getodds', postOptions)
    .then(res =>res.json())
    .then(retData => {
-      var sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
+      let sportColor, prevDate=1, gameNum=0, listCount=(retData.games.length > 21)?Math.ceil(retData.games.length/3):7;
       // clear remnents of previous screens
-      for (var i = 1; i < 4; i++) {
+      for (let i = 1; i < 4; i++) {
          $('#col'+i).empty();
       }
       // store info globally to be used elsewhere
       window.oddsDb = retData.games;
 
-      var outp = '<table class="table">';
+      let outp = '<table class="table">';
       $.each(retData.games, function(i,rec){
-         var checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
+         let checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
          // gray out and disable if game already started
          if (date > new Date()) {
@@ -102,7 +102,7 @@ function getOdds2 (){
             outp = '<table class="table">';
          }
          // draw date row if needed
-         var tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+         let tmpDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
          if (tmpDate > prevDate)
             outp += '<tr class="modal-warning"><td colspan=3 class="center  odds-date-row">'+dayName[date.getDay()]+' '+monthName[date.getMonth()]+' '+date.getDate()+'</td></tr>';
          outp += '<tr><td class=""><button '+checkDisabled+'class="btn pushDown btn-'+btnColor1+'" data-toggle="modal" data-target="#betModal" data-game="'+gameNum+'" data-team="1" data-type="spread" data-sport="'+sport+'" data-gametime="'+rec.date+'"><table class="btnIcon"><tr><td rowspan="2"><img id="tm1_'+i+'" class="logo-sm" src="images/'+sport+'_logo_sprite_small.png?ver=1"></td><td class="center">'+rec.team1.slice(0,5)+'</td></tr><tr><td class="center bold">'+rec.spread+'</td></tr></table></button></td>';
@@ -127,7 +127,7 @@ function getOdds2 (){
 
 // prepopulate modal items with data from database
 $('#betModal').on('show.bs.modal', function (event) {
-   var vs1, vs2, odds, button = $(event.relatedTarget);
+   let vs1, vs2, odds, button = $(event.relatedTarget);
 
    // odds database in certain order, need to order bet elements so that user
    // choice is first before sent

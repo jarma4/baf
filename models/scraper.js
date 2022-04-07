@@ -271,7 +271,7 @@ module.exports = {
 		let teams, url, wk, today = new Date();
 		let scores = {};
 		
-		if (today.getHours() === 0) {// for late games, checking after midnight need to look at previous day
+		if (today.getHours() === 0) {// for late games, if checking after midnight, need to look at previous day
 			today.setHours(today.getHours()-1);
 		}
 		if (sprt=='nfl') {
@@ -360,7 +360,7 @@ module.exports = {
 					// see if end of day and do tally
 					let promises = [];
 					promises.push(new Promise((resolve, reject)=>{ // find number of games for today
-						Odds.find({date: new Date().setHours(0,0,0,0)}, (err, odds) => {
+						Odds.find({date: today}, (err, odds) => {
 							if(err) {
 								reject();
 							} else {
@@ -369,7 +369,7 @@ module.exports = {
 						}).sort({index:1});
 					}));
 					promises.push(new Promise((resolve, reject)=>{ // find number of games done today
-						Odds.find({date: new Date().setHours(0,0,0,0), ats: {$in:[1,2,3]}}, (err, done) => {
+						Odds.find({date: today, ats: {$in:[1,2,3]}}, (err, done) => {
 							if(err) {
 								reject();
 							} else {
@@ -378,7 +378,7 @@ module.exports = {
 						}).sort({index:1});
 					}));
 					promises.push(new Promise((resolve, reject)=>{ // find players for today
-						Ats.find({date: new Date().setHours(0,0,0,0)}, (err, picks) => {
+						Ats.find({date: today}, (err, picks) => {
 							if(err) {
 								reject();
 							} else {
@@ -435,7 +435,7 @@ module.exports = {
 									}
 								});
 							});
-							Odds.updateMany({date: new Date().setHours(0,0,0,0), ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
+							Odds.updateMany({date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
 								if(err) {
 									console.log('Error marking done games', err);
 								} else {
