@@ -485,7 +485,7 @@ module.exports = {
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
-				// console.log('starting update '+sport);
+				console.log('starting update '+sport);
 				Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
                let record = $('.table a:contains('+name+')').parent().next().text().split('-');
                // console.log(name,record);

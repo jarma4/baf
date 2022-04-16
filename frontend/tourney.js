@@ -1,74 +1,150 @@
 let afcSeeding = ['TEN', 'KC', 'BUF', 'CIN', 'LV', 'NE', 'PIT'];
 let nfcSeeding = ['GB', 'TB', 'DAL', 'LAR', 'ARI', 'SF', 'PHI'];
-let bracket =[[], [], [], []];
+let eastSeeding = ['MIA', 'PHI', 'BOS', 'MIL', 'CHI', 'BKN', 'TOR', 'ATL'];
+let westSeeding = ['PHO', 'DAL', 'MEM', 'GS', 'DEN', 'MIN', 'UTA', 'LAC'];
+// let eastSeeding = ['ATL', 'TOR', 'BKN', 'CHI', 'MIL', 'BOS', 'PHI', 'MIA'];
+let bracket =[[], ['', '','', '','', '','', ''], ['', '','', ''], ['','']];
 
 // initial draw: round1 2-7; round2 
-function initBracket() {
-	bracket = [['', '','', '', '', '','', '','', '','', ''],['', '','', '','', '','', ''],['', '','', ''], ['','']];
-	if (0) {
-		bracket[0] = [];
-		let round = [[...afcSeeding], [...nfcSeeding]];
-		round.forEach(conference => {
+function initBracket_old(sport) {
+	let round;
+	if (sport == 'nfl'){
+		round = [[...afcSeeding], [...nfcSeeding]];
+	} else {
+		round = [[...eastSeeding], [...westSeeding]];
+	}
+	round.forEach(conference => {
+		if (sport == 'nfl') {
 			conference.shift(); // remove #1 seed leaving 6
-			const temp = conference.length;
-			for (let index = 0; index < temp; index++) {
-				if (index%2) {
-					bracket[0].push(conference.shift());
-				} else {
-					bracket[0].push(conference.pop());
-				}
+		}
+		const temp = conference.length;
+		for (let index = 0; index < temp; index++) {
+			if (index%2) {
+				bracket[0].push(conference.shift());
+			} else {
+				bracket[0].push(conference.pop());
 			}
-		});
+		}
+	});
+	if (sport == 'nfl') {  // buys
 		bracket[1] = ['', '', '', [...afcSeeding].shift(), '', '', '', [...nfcSeeding].shift()];
 	}
 }
 
-function getChoices() {
-	let sport = 'nfl';
-	let roundInfo = [{title: 'Wildcard Round', number: 12}, {title: 'Division Round', number: 8}, {title: 'Conference Round', number: 4}, {title: 'Super Bowl', number: 2}];
-	let roundIndex = 0, gameIndex=0, slotIndex = 0;
+function initBracket(picks){
+	let round=0, slot=0;
+	for (let index=0; index < 30; ++index){
+		bracket[round][slot] = picks[index];
+		if (round == 0 && slot == 15){
+			++round;
+			slot = 0;
+		} else if (round == 1 && slot == 7 ){
+			++round;
+			slot = 0;
+		} else if (round == 2 && slot == 3 ){
+			++round;
+			slot = 0;
+		} else {
+			++slot;
+		}
+	}
+}
+function getTourney() {
+	let roundIndex = 0, gameIndex, slotIndex = 0;
+	let sport = 'nba';
+	let roundInfo; 
+	if (sport == 'nfl') {
+		roundInfo= [{title: 'Wildcard Round', number: 12}, {title: 'Division Round', number: 8}, {title: 'Conference Round', number: 4}, {title: 'Super Bowl', number: 2}];
+	} else {
+		roundInfo = [{title: 'First Round', number: 16}, {title: 'Conference Semi', number: 8}, {title: 'Conference Finals', number: 4}, {title: 'Finals', number: 2}];
+	}
 	postOptions.body = JSON.stringify({
 		'sport': sport+'tourney',
 		'season': 2021
 	});
-	fetch('/api/getstandings', postOptions)
+	fetch('/api/gettourney', postOptions)
 	.then(res => res.json())
 	.then(retData => {
-		if(retData.users.length == 1) {
-			initBracket();
+		if (!retData.results.length) {
+			initBracket(retData.users);
+			// initBracket(sport);
 			let outp = '<table class="table table-consdensed">';
 			roundInfo.forEach(round => {
 				outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+round.title+'</td></tr>';
-				retData.users[0].slice(roundIndex, round.number).forEach((team, index) => {
+				gameIndex = 0;
+				bracket[roundIndex].forEach((team, index) => {
 					if (index%2 == 0) {
 						outp += '<tr>';
 					}
-					outp += '<td class="td-odds"><button class="btn btn-toggle '+((team && (retData.users[0][gameIndex] == '1' && index%2 == 0) || (retData.users[0][gameIndex] == '2' && index%2))?'btn-success':'btn-default')+'" data-slot="'+slotIndex+'" data-game="'+gameIndex+'" data-name="'+team.slice(0,2)+'" data-team="'+((slotIndex%2)?2:1)+'"><img id="'+(slotIndex++)+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png"></button></td>';
+					outp += '<td class="td-odds"><button class="btn btn-toggle ';
+					if(team.endsWith('*')){
+						outp += 'btn-success" ';
+						bracket[roundIndex][index] = bracket[roundIndex][index].slice(0,-1);
+					} {
+						outp += 'btn-default" ';
+					}
+					outp +='data-round="'+roundIndex+'" data-slot="'+slotIndex+'" data-game="'+gameIndex+'" data-name="'+team.slice(0,2)+'" data-team="'+((slotIndex%2)?2:1)+'"><img id="'+(slotIndex++)+'" class="logo-md" src="images/'+sport+'_logo_sprite_medium.png"></button></td>';
 					if (index%2) {
 						outp += '</tr>';
 						gameIndex++;
 					}
 				});
-				roundIndex += round.number;
+				++roundIndex;
 			});
 			outp += '</table>';
 			document.getElementById('bracketPicksArea').innerHTML = outp;
-			document.getElementById('bracketPicksArea').classList.remove('hidden');
-			document.getElementById('bracketActionBtn').textContent = 'Save';
 			drawSprite(sport);
+		} else {
+			let points=[];
+			let outp = '<table class="table table-consdensed"><tr><th>Game</th><th>Win</th>';
+			retData.users.forEach((rec, userIndex) =>{
+				outp += '<th>'+bafusers[rec.user]+'</th>';
+				points[userIndex] = 0;
+			});
+			outp += '<tr>';
+			let multiplier = 1;
+			retData.results.forEach((item, gameIndex) => {
+				outp += '<tr><td>'+item.team+'</td><td>'+item.status+'</td>';
+				retData.users.forEach((rec, userIndex) =>{
+					outp += '<td>'+rec[gameIndex]+'</td>';
+					if (gameIndex > 7 && gameIndex < 12) {
+						multiplier = 2;
+					} else if (gameIndex > 11 && gameIndex < 14) {
+						multiplier = 3;
+					} else if (gameIndex == 14) {
+						multiplier = 4;
+					}
+					if (rec[gameIndex] == item.status){
+						points[userIndex] += multiplier;
+					}
+				});
+				outp += '</tr>';
+			});
+			outp += '<tr><td>Totals</td><td></td>';
+			retData.users.forEach((rec, userIndex) =>{
+				outp += '<td>'+points[userIndex]+'</td>';
+			});
+			outp += '</tr></table>';
+			document.getElementById('bracketResultsArea').innerHTML = outp;
 		}
 	});
 }
 
 function removeOpponent(round, team){
+	let btn;
 	for (let index = round; index < bracket.length; index++) {
+		btn = document.querySelector('button[data-round="'+index+'"][data-name="'+team+'"]');
+		if(btn && btn.classList.contains('btn-success')){
+			btn.classList.remove('btn-success');
+			btn.classList.add('btn-default');
+		}
 		bracket[index] = bracket[index].map(element => element == team?'':element);
 	}
 }
 
 function toggleChoice(targetBtn){
 	let otherBtn, working = [];
-	document.querySelectorAll('button[data-game="'+targetBtn.dataset.game+'"]').forEach(team => {
+	document.querySelectorAll('button[data-game="'+targetBtn.dataset.game+'"][data-round="'+targetBtn.dataset.round+'"]').forEach(team => {
 		if(team.dataset.name != targetBtn.dataset.name) {
 			otherBtn = team;
 		}
@@ -87,86 +163,13 @@ function toggleChoice(targetBtn){
 		otherBtn.classList.remove('btn-default');
 		otherBtn.classList.add('btn-success');
 	}
-	// look at slot#, 
-	if (targetBtn.dataset.slot < 6) {
-		removeOpponent(1,otherBtn.dataset.name); // if exist
-		working = bracket[1].slice(0,4); // get conference teams
-		working.push(targetBtn.dataset.name); // add chosen team
-		if(working.length>4) { // remove empty slot if full
-			working.splice(working.indexOf(''),1);
-		}
-		// order according to seeding; empty slot given 999 so sort puts at end
-		working = working.map(team => (afcSeeding.indexOf(team)<0)?999:afcSeeding.indexOf(team)).sort();
-		working = working.map(seed => (seed == 999) ? '': afcSeeding[seed]); // get names from seeding
-		const temp = working.length;
-		for (let index = 0; index < temp; index++) { // put in bracket
-			if (index%2) {
-				bracket[1][3-index] = working.pop();
-				// bracket[1][3-index].dataset.name = working.pop();
-			} else {
-				bracket[1][3-index] = working.shift();
-				// bracket[1][3-index].dataset.name = working.shift();
-			}
-		}
-	} else if (targetBtn.dataset.slot > 5 && targetBtn.dataset.slot < 12) {
-		removeOpponent(1,otherBtn.dataset.name); // if exist
-		working = bracket[1].slice(4,bracket[1].length); // get conference teams
-		working.push(targetBtn.dataset.name); // add chosen team
-		if(working.length>4) { // remove empty slot if full
-			working.splice(working.indexOf(''),1);
-		}
-		// order according to seeding; empty slot given 999 so sort puts at end
-		working = working.map(team => (nfcSeeding.indexOf(team)<0)?999:nfcSeeding.indexOf(team)).sort();
-		working = working.map(seed => (seed == 999) ? '': nfcSeeding[seed]); // get names from seeding
-		const temp = working.length;
-		for (let index = 0; index < temp; index++) { // put in bracket
-			if (index%2) {
-				bracket[1][7-index] = working.pop();
-			} else {
-				bracket[1][7-index] = working.shift();
-			}
-		}
-	} else if (targetBtn.dataset.slot > 11 && targetBtn.dataset.slot < 16) {
-		removeOpponent(2,otherBtn.dataset.name); // if exist
-		working = bracket[2].slice(0,2); // get conference teams
-		working.push(targetBtn.dataset.name); // add chosen team
-		if(working.length>2) { // remove empty slot if full
-			working.splice(working.indexOf(''),1);
-		}
-		// order according to seeding; empty slot given 999 so sort puts at end
-		working = working.map(team => (afcSeeding.indexOf(team)<0)?999:afcSeeding.indexOf(team)).sort();
-		working = working.map(seed => (seed == 999) ? '': afcSeeding[seed]); // get names from seeding
-		const temp = working.length;
-		for (let index = 0; index < temp; index++) { // put in bracket
-			if (index%2) {
-				bracket[2][1-index] = working.pop();
-			} else {
-				bracket[2][1-index] = working.shift();
-			}
-		}
-	} else if (targetBtn.dataset.slot > 15 && targetBtn.dataset.slot < 20) {
-		removeOpponent(2,otherBtn.dataset.name); // if exist
-		working = bracket[2].slice(2,bracket[2].length); // get conference teams
-		working.push(targetBtn.dataset.name); // add chosen team
-		if(working.length>2) { // remove empty slot if full
-			working.splice(working.indexOf(''),1);
-		}
-		// order according to seeding; empty slot given 999 so sort puts at end
-		working = working.map(team => (nfcSeeding.indexOf(team)<0)?999:nfcSeeding.indexOf(team)).sort();
-		working = working.map(seed => (seed == 999) ? '': nfcSeeding[seed]); // get names from seeding
-		const temp = working.length;
-		for (let index = 0; index < temp; index++) { // put in bracket
-			if (index%2) {
-				bracket[2][3-index] = working.pop();
-			} else {
-				bracket[2][3-index] = working.shift();
-			}
-		}
-	} else if (targetBtn.dataset.slot > 19 && targetBtn.dataset.slot < 24) {
-		removeOpponent(3,otherBtn.dataset.name); // if exist
-		bracket[3][(targetBtn.dataset.slot < 22)?0:1] = targetBtn.dataset.name;
+	if (targetBtn.dataset.round < 3) {
+		removeOpponent(Number(targetBtn.dataset.round)+1, otherBtn.dataset.name);
+		// place team in next round 
+		const index = Number(targetBtn.dataset.game)%2  + Math.trunc(Number(targetBtn.dataset.game)/2)*2;
+		bracket[Number(targetBtn.dataset.round)+1][index] = targetBtn.dataset.name;
 	}
-	drawSprite('nfl');
+	drawSprite('nba');
 }
 
 function drawSprite(sport) {
@@ -174,7 +177,7 @@ function drawSprite(sport) {
 	bracket.forEach(round => {
 		round.forEach(team => {
 			$('#'+slotIndex).css('object-position', spritePosition(sport, team));
-			$('#'+slotIndex++).parent().attr('data-name', team);
+			$('#'+slotIndex++).parent().attr('data-name', ((team.endsWith('*'))?team.slice(0, -1):team));
 		});
 	});
 }
@@ -185,23 +188,36 @@ $('#bracketPicksArea').delegate('.btn-toggle', 'click' , event => {
 });
 
 $('#bracketActionBtn').on('click', event => {
-	let sport = 'nfl';
+	let sport = 'nba';
 	if ($('#bracketActionBtn').text() == 'Join') {
+		// fetch picks
 		$('#bracketPicksArea').removeClass('hidden');
 		$('#bracketActionBtn').text('Save');
-	} else { // button was Save
+		document.getElementById('bracketActionBtn').dataset.toggle = 'modal';
+		document.getElementById('bracketActionBtn').dataset.target = '#tourneyModal';
+} else { // button was Save
 		let picks = {};
-		$.each($('#bracketPicksArea .btn-success'), (idx, game) => {
-			picks[idx] = game.getAttribute('data-name');
+		$.each($('.btn-toggle'), (idx, game) => {
+			picks[game.getAttribute('data-slot')] = game.getAttribute('data-name')+((game.classList.contains('btn-success'))?'*':'');
 		});
-		postOptions.body = JSON.stringify({
-			'sport': sport+'tourney',
-			'season': 2021,
-			'choices': JSON.stringify(picks),
-		});
-		fetch('/api/setouchoices', postOptions)
-		.then(res => res.json())
-		.then(retData => modalAlert(retData.type,retData.message))
-		.catch(retData => modalAlert(retData.type,retData.message));	
+		let modalText = "Ready to send all your picks?";
+		if ($('.btn-toggle.btn-success').length != 15) {
+			modalText = 'Warning, only '+$('.btn-toggle.btn-success').length+' out of 15 picks chosen.  Still send?';
+		}
+		$('#tourneyAcceptText').text(modalText);
+		$('#tourneySport').val(sport);
+		$('#tourneyPicks').val(JSON.stringify(picks));
 	}
+});
+
+$('#tourneyAcceptSubmit').on('click', function() {
+   postOptions.body = JSON.stringify({
+		'sport': $('#tourneySport').val()+'tourney',
+		'season': 2021,
+		'choices': $('#tourneyPicks').val(),
+	});
+	fetch('/api/setouchoices', postOptions)
+	.then(res => res.json())
+	.then(retData => modalAlert(retData.type,retData.message))
+	.catch(retData => modalAlert(retData.type,retData.message));	
 });

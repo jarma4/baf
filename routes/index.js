@@ -95,3 +95,7 @@ router.get('/atsgame', function(req, res) {
 router.get('/btagame', function(req, res) {
    res.render('btagame', {pagename:'btaame'});
 });
+
+router.get('/tourney', function(req, res) {
+   res.render('tourney', {pagename:'tourney'});
+});

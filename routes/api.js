@@ -8,20 +8,9 @@ const express = require('express'),
 		session = require('client-sessions'),
 		bcrypt = require('bcryptjs'),
 		Util = require('../models/util'),
-		// Scraper = require('../models/scraper'),
-		// Users = require('../models/dbschema').Users,
-		// Records = require('../models/dbschema').Records,
-		// Bets = require('../models/dbschema').Bets,
-		// Sports = require('../models/dbschema').Sports,
-		// OUgame = require('../models/dbschema').OUgame,
-		// OUuser = require('../models/dbschema').OUuser,
-		// Ats = require('../models/dbschema').Ats,
-		// Odds = require('../models/dbschema').Odds,
-		// Scores = require('../models/dbschema').Scores,
-		// Messages = require('../models/dbschema').Messages,
-		// Props = require('../models/dbschema').Props,
 		mongoose = require('mongoose'),
-		webpush = require('web-push');
+		webpush = require('web-push'),
+		Tourney = require('./tourney');
 
 require('dotenv').config();
 
@@ -198,7 +187,7 @@ router.post('/changebet', requireLogin, function(req,res){
 	switch (req.body.action) {
 		case 'delete':  // delete bet
 			// if not save later bet or future, decrement bet flag notice
-			let  tmp = new Promise(function(resolve, reject) {
+			let  tmp = new Promise((resolve, reject) => {
 				Bets.findOne({_id:req.body.id}, function(err, singleBet){
 					if(err) {
 						console.log(err);
@@ -453,7 +442,7 @@ router.get('/getprops', requireLogin, function(req,res){
 });
 
 router.post('/acceptprop', requireLogin, function(req,res){
-	Bets.update({_id: req.body.id}, {user2: req.session.user._id}, function(err){
+	Bets.updateOne({_id: req.body.id}, {user2: req.session.user._id}, function(err){
 		if (err) {
 			console.log("Prop accept error: "+err);
 		} else {
@@ -548,6 +537,75 @@ router.post('/ousignup', requireLogin, function(req,res){
 		}
 	});
 });
+// router.post('/testresults', (req, res) => {
+// 	OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
+// 		if (err) {
+// 			console.log(err);
+// 		} else {
+// 			res.json({results: results, users:[{"0":"MIA","1":"TOR","2":"BOS","3":"MIL","4":"PHO","5":"UTA","6":"MEM","7":"GS","8":"TOR","9":"","10":"DDD","11":"","12":"PHO","13":"DDD","14":"PHO",user:'jarma4'}]});
+// 		}
+// 	}).sort({index: 1});
+// });
+
+router.post('/gettourney', function (req, res) {
+	if (new Date() < new Date("4/16/2022 12:00")){
+		OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
+			if (err) {
+				console.log(err);
+			} else if (result) {
+				res.json({results: [], users: result});
+			} else {
+				const newRecord = {
+					user: req.session.user._id,
+					season: Number(req.body.season),
+					sport: req.body.sport
+				};
+				const nbaFirstRound = ['ATL', 'MIA', 'TOR', 'PHI', 'BKN', 'BOS', 'CHI', 'MIL', 'NOP', 'PHO', 'UTA', 'DAL', 'MIN', 'MEM', 'DEN', 'GS']; // 8, 1, 5, 4, 7, 2, 6, 3 ...
+				for (let index=0; index < 30; ++index){
+					if (index < 16) {
+						newRecord[index] = nbaFirstRound[index];
+					} else {
+						newRecord[index] = '';
+					}
+				}
+				new OUuser(newRecord).save(err => {
+					if (err) {
+						console.log('Error saving new OUuser: '+err);
+					} else {
+						res.json({results: [], users: newRecord});
+					}
+				});
+			}
+		});
+	} else { // after selection time
+
+		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
+			if (err) {
+				console.log(err);
+			} else {
+				let allPicks=[];
+				users.forEach((user, userIndex)=>{
+					let game = 0,userPicks = {};
+					userPicks['user'] = user.user;
+					for(let i=0; i < 30; ++i){
+						if(user[i].endsWith('*')){
+							userPicks[game] = user[i].slice(0,-1);
+							++game;
+						}
+					}
+					allPicks.push(userPicks);
+				});
+				OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
+					if (err) {
+						console.log(err);
+					} else {
+						res.json({results: results, users: allPicks});
+					}
+				}).sort({index: 1});
+			}
+		});
+	}
+});   
 
 router.post('/getbtascoreboard', requireLogin, (req,res) => {
 	Records.find({season: Number(req.body.season), sport: 'bta'+req.body.sport}).sort({user:1})
@@ -764,7 +822,7 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 });
 
 function getDebtList (person){
-	return new Promise (function(resolve, reject) {
+	return new Promise ((resolve, reject) => {
 		let debtList = {owes: {}, isowed: {}};
 
 		Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: person}, {user2: person}]}]}, function(err, bets){
@@ -800,7 +858,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
 
 	getDebtList(req.session.user._id)
 	.then(debtList1 => {
-		promises.push(new Promise(function(resolve, reject){
+		promises.push(new Promise((resolve, reject) =>{
 			// check isowed 2way list first
 			for (let debtor in debtList1.isowed) {
 				// find 2way match
@@ -876,22 +934,6 @@ router.post("/pushsubscribe", (req, res) => {
 router.post('/getodds', function (req, res) {
 	res.sendFile('./json/'+req.body.sport+'_odds.json', {'root':__dirname+'/..'});
 }); 
-
-// router.get('/nflodds', function (req, res) {
-// 	res.sendFile('./json/nfl_odds.json', {'root':__dirname+'/..'});
-// });   
-
-// router.get('/nbaodds', function (req, res) {
-// 	res.sendFile('./json/nba_odds.json', {'root':__dirname+'/..'});
-// });   
-
-// router.get('/ncaaodds', function (req, res) {
-// 	res.sendFile('./json/ncaab_odds.json', {'root':__dirname+'/..'});
-// });   
-
-// router.get('/soccerodds', function (req, res) {
-// 	res.sendFile('./json/soccer_odds.json', {'root':__dirname+'/..'});
-// });   
 
 // gets userlist for bet select list
 router.get('/users', requireLogin, function(req,res){

@@ -68,7 +68,7 @@ const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyB
 
 // for the Over Under game
 // const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
-const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+// const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
 // for the ATS game
 // const publishAtsCron = crontab.scheduleJob("0 19 * * 5", scraper.publishAtsOdds);
