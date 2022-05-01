@@ -7,7 +7,7 @@ $(document).ready(function() {
 //global variables
 var username,
    // used for swiping between pages
-   urls = ['/', '/odds', '/bets', '/stats', '/futures', '/props', '/overunder', '/btagame', '/options'],
+   urls = ['/', '/odds', '/bets', '/stats', '/futures', '/props', '/overunder', '/btagame', '/tourney', '/options'],
    // declared global so that charts can be updated between functions
    winChart,
    monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],

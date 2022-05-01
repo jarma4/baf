@@ -36,6 +36,7 @@
       "gulp-nodemon": "^2.5.0",
       "gulp-plumber": "^1.2.1",
       "gulp-sass": "^5.1.0",
-      "gulp-terser": "^2.1.0"
+      "gulp-terser": "^2.1.0",
+      "sass": "^1.50.0"
    }
 }

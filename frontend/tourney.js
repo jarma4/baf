@@ -106,7 +106,7 @@ function getTourney() {
 			retData.results.forEach((item, gameIndex) => {
 				outp += '<tr><td>'+item.team+'</td><td>'+item.status+'</td>';
 				retData.users.forEach((rec, userIndex) =>{
-					outp += '<td>'+rec[gameIndex]+'</td>';
+					outp += '<td class="'+((rec[gameIndex]==item.status)?'heading-success':'')+'">'+rec[gameIndex]+'</td>';
 					if (gameIndex > 7 && gameIndex < 12) {
 						multiplier = 2;
 					} else if (gameIndex > 11 && gameIndex < 14) {

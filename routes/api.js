@@ -537,15 +537,6 @@ router.post('/ousignup', requireLogin, function(req,res){
 		}
 	});
 });
-// router.post('/testresults', (req, res) => {
-// 	OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
-// 		if (err) {
-// 			console.log(err);
-// 		} else {
-// 			res.json({results: results, users:[{"0":"MIA","1":"TOR","2":"BOS","3":"MIL","4":"PHO","5":"UTA","6":"MEM","7":"GS","8":"TOR","9":"","10":"DDD","11":"","12":"PHO","13":"DDD","14":"PHO",user:'jarma4'}]});
-// 		}
-// 	}).sort({index: 1});
-// });
 
 router.post('/gettourney', function (req, res) {
 	if (new Date() < new Date("4/16/2022 12:00")){
@@ -578,7 +569,6 @@ router.post('/gettourney', function (req, res) {
 			}
 		});
 	} else { // after selection time
-
 		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
 			if (err) {
 				console.log(err);

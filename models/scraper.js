@@ -25,48 +25,42 @@ function getOdds(sport) {
 		if(!err && response.statusCode == 200) {
 			const $ = cheerio.load(body);
 
-			// get matchup w/ team names & date
-			let pingpong = 0,
-			games = [],
-			matchup = {};					
+			let  games = [];
 			const today = new Date();
-			$('.op-matchup-team','#op-content-wrapper').each(function() {
-				if (pingpong++ % 2){
-					matchup.team2 = '@'+JSON.parse($(this).attr('data-op-name')).short_name;
-					games.push(matchup);
-					matchup = {};
-				}
-				else {
-					const tempdate = JSON.parse($(this).parent().parent().prevAll('.no-group-name').attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
-					const temptime = $(this).parent().prev().prev().text().split(':');
-					matchup.date = new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2));
-					matchup.team1 = JSON.parse($(this).attr('data-op-name')).short_name;
-					// tempdate='';
-				}
+			// get matchup w/ team names & date
+			$('.op-block__matchup-time').each((index, element)=>{
+				const tempdate = JSON.parse($(element).parent().prevAll('.op-block__separator--left').attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
+				const temptime = $(element).text().split(':');
+				games.push({date: new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2))});
 			});
-
+			gameIndex = 0;
+			$('.md-hide','.op-block__matchup.basketball').each((index, element)=>{
+				if (index % 2) {
+					games[gameIndex].team2 = '@'+$(element).text();
+					gameIndex++;
+				} else {
+					games[gameIndex].team1 = $(element).text();
+				}	 
+			});
 			// get odds for matchups 
-			let gameIndex = 0;
-			$('.op-item-row-wrapper','#op-results').each(function(iter){
-				// fix: games found above may not have odds (.no-odds-wrapper) but be followed by ones that do so the gameIndex will be wrong and odds will be put on wrong game
-				// if ($(this).not('.no-odds')) {  
-					// console.log(iter);
-					let tmp = $(this).find($('.op-bovada'));
-					if ($(tmp).attr('data-op-info') != undefined && JSON.parse($(tmp).attr('data-op-info')).fullgame != '') {
-						if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-							games[iter].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
-						}
-						else {
-							games[iter].spread = 0;
-						}
-						games[iter].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
-						games[iter].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
-						games[iter].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
-						games[iter].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-						games[iter].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
+			gameIndex = 0;
+			$('.op-block__row','.op-block.odds').each((index, element) =>{
+				let tmp = $(element).children().next().children().children();
+				if ($(tmp).attr('data-op-info') != undefined && JSON.parse($(tmp).attr('data-op-info')).fullgame != '') {
+					if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
+						games[index].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
 					}
+					else {
+						games[index].spread = 0;
+					}
+					games[index].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
+					games[index].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
+					games[index].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
+					games[index].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
+					games[index].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
+				}
 				gameIndex++;
-			});
+			});			
 
 			// go through odds Watches and act if necessary
 			// console.log('checking watches');
