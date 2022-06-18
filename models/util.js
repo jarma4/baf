@@ -47,8 +47,8 @@ module.exports = {
 		return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 	},
 	seasonStart: {
-      nfl: new Date(2021,8,9),
-      nba: new Date(2021,9,19),
+      nfl: new Date(2022,8,8),
+      nba: new Date(2022,9,19),
       ncaab: new Date(2022,2,16)
 	},
 	monthName : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],

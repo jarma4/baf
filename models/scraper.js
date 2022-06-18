@@ -1,7 +1,4 @@
 // const { resolve } = require('path');
-const { Sports, Odds } = require('./dbschema');
-const { getWeek, seasonStart } = require('./util');
-
 const request = require('request'),
 	fs = require('fs'),
 	cheerio = require('cheerio'),
@@ -10,10 +7,10 @@ const request = require('request'),
 	Users = require('./dbschema').Users,
 	Bets = require('./dbschema').Bets,
 	Records = require('./dbschema').Records,
-	// Scores = require('./dbschema').Scores,
+	Sports = require('./dbschema').Sports,
 	OUgame = require('./dbschema').OUgame,
 	Ats = require('./dbschema').Ats,
-	// Odds = require('./dbschema').Odds,
+	Odds = require('./dbschema').Odds,
 	Api = require('../routes/api'),
 	puppeteer = require('puppeteer');
 	// mongoose = require('mongoose');
@@ -33,8 +30,8 @@ function getOdds(sport) {
 				const temptime = $(element).text().split(':');
 				games.push({date: new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2))});
 			});
-			gameIndex = 0;
-			$('.md-hide','.op-block__matchup.basketball').each((index, element)=>{
+			let gameIndex = 0;
+			$('.md-hide','.op-block__matchup.'+((sport == 'nfl')?'football':(sport == 'nba')?'basketball':sport)).each((index, element)=>{
 				if (index % 2) {
 					games[gameIndex].team2 = '@'+$(element).text();
 					gameIndex++;
@@ -326,7 +323,7 @@ module.exports = {
 			});
 
 			// finally go through ATS odds and mark
-			Odds.find({season:2021, sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+			Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 				// console.log('Updating Odds');
 				if (err) {
 					console.log('Error getting Odds when tallying ATS');
@@ -393,7 +390,7 @@ module.exports = {
 							});
 							// increment record for each user with # of picks correct and # games
 							retData[2].forEach((user, userIndex) => {
-								Records.updateOne({season: 2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
+								Records.updateOne({season: Util.seasonStart[sport].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
 									if(err) {
 										console.log('Error updating Record for user after BTA ended', err);
 									} else {
@@ -421,7 +418,7 @@ module.exports = {
 								overallWinner = winners;
 							}
 							overallWinner.forEach(idx => {
-								Records.updateOne({season:2021, sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
+								Records.updateOne({season: Util.seasonStart[sport].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
 									} else {
@@ -450,11 +447,11 @@ module.exports = {
 		let promises = [];
 		let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
 
-		Odds.find({season:2021, sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+		Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 			if (err) {
 				console.log('Error getting odds when doing ATS totals');
 			} else if (odds.length) {
-				Ats.find({season:2021, sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
+				Ats.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
 					if (err2) {
 						console.log('Error finding ATS users when doing ATS totals');
 					} else if (users.length){
