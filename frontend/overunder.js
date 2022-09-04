@@ -1,8 +1,8 @@
 // Update status of special over/under wager these guys have
 function getOverunder() {
    var sport = $('.sportPick.selected').attr('class').split(/\s+/)[1];
-
-   if (inSeason[sport] && new Date() < new Date(seasonStart[sport])){
+	const today = new Date();
+   if (inSeason[sport] && today < new Date(seasonStart[sport]) && today.getFullYear() == $('#ouYear').val()){
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();

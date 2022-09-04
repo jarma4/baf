@@ -13,12 +13,12 @@ require('dotenv').config()
 // http site
 const app_http = express();
 app_http.use(compression());
-app_http.use('/', express.static(__dirname + '/public'));
+// app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
 	// res.sendfile('./public/react.html');
    res.redirect(301, 'https://2dollarbets.com');
 });
-app_http.listen(80, function(){
+app_http.listen(80, '192.168.1.200', function(){
    console.log('redirecting on port 80');
 });
 
@@ -46,7 +46,7 @@ const options = {
    key: fs.readFileSync('./sslcert/privkey.pem')
 };
 
-https.createServer(options, app_https).listen(443, function () {
+https.createServer(options, app_https).listen(443, '192.168.1.200', function () {
    console.log('listening at on port 443');
 });
 
