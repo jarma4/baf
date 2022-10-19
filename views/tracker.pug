@@ -1,0 +1,48 @@
+extends base
+
+block content
+	span.title Tracker
+	.container-fluid
+		.row.no-gutters
+			.col-md-12
+				#sportMenu
+					ul
+						li.sportPick.nfl
+							a NFL
+						li.sportPick.nba.selected
+							a NBA   
+				select#trackerYear.btn-default.right
+							option(value='2022') 2022
+		.row
+			.col-md-4
+				.panel.panel-success
+					p.help-heading Your picks today:
+					#dailyPicks
+					a#dailyPicksBtn.btn.btn-lg.btn-block.btn-warning.hidden(data-toggle="modal", data-target="#picksModal") Make Daily Picks
+			.col-md-4
+				.panel.panel-primary
+					.panel-heading
+						| ATS Performance
+						button#trackerToggle.btn.btn-success.right.pushUp vs Your Picks
+					#tracker
+
+block modals
+	#teamModal.modal.fade
+		.modal-dialog
+			.modal-content
+				.modal-header
+					button.close(type='button', data-dismiss='modal') #[span &times;]
+					.panel.panel-primary
+						.panel-heading
+							#teamTitle
+						#trackerHistory
+	#picksModal.modal.fade
+		.modal-dialog
+			.modal-content
+				.modal-header
+					button.close(type='button', data-dismiss='modal') #[span &times;]
+					.panel.panel-primary
+						.panel-heading
+							h4 Daily Picks
+						#trackerPicksArea
+						button#trackerSubmitBtn.btn.btn-lg.btn-block.btn-primary.pushDown Save

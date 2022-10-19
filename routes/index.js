@@ -56,14 +56,6 @@ router.get('/stats', function(req, res) {
    res.render('stats', {pagename:'stats'});
 });
 
-router.get('/messageboard', function(req, res) {
-   res.render('msg', {pagename:'msg'});
-});
-
-router.get('/scores', function(req, res) {
-   res.render('scores', {pagename:'scores'});
-});
-
 router.get('/props', function(req, res) {
    res.render('props', {pagename:'props'});
 });
@@ -84,12 +76,8 @@ router.get('/login', function(req, res) {
    res.render('login', {pagename:'login'});
 });
 
-router.get('/log', function(req, res) {
-   res.render('log', {pagename:'log'});
-});
-
-router.get('/atsgame', function(req, res) {
-   res.render('atsgame', {pagename:'atgame'});
+router.get('/test', function(req, res) {
+   res.render('test', {pagename:'test'});
 });
 
 router.get('/btagame', function(req, res) {
@@ -98,4 +86,8 @@ router.get('/btagame', function(req, res) {
 
 router.get('/tourney', function(req, res) {
    res.render('tourney', {pagename:'tourney'});
+});
+
+router.get('/tracker', function(req, res) {
+   res.render('tracker', {pagename:'tracker'});
 });

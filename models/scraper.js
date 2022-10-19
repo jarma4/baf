@@ -1,18 +1,19 @@
 // const { resolve } = require('path');
+const { Users, Records, Bets, Sports, OUgame, Odds, Tracker, Ats} = require('./dbschema');
 const request = require('request'),
 	fs = require('fs'),
 	cheerio = require('cheerio'),
 	logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
-	Util = require('./util'),
-	Users = require('./dbschema').Users,
-	Bets = require('./dbschema').Bets,
-	Records = require('./dbschema').Records,
-	Sports = require('./dbschema').Sports,
-	OUgame = require('./dbschema').OUgame,
-	Ats = require('./dbschema').Ats,
-	Odds = require('./dbschema').Odds,
-	Api = require('../routes/api'),
-	puppeteer = require('puppeteer');
+	Util = require('./util');
+	// Users = require('./dbschema').Users,
+	// Bets = require('./dbschema').Bets,
+	// Records = require('./dbschema').Records,
+	// Sports = require('./dbschema').Sports,
+	// OUgame = require('./dbschema').OUgame,
+	// Ats = require('./dbschema').Ats,
+	// Odds = require('./dbschema').Odds,
+	// Api = require('../routes/api'),
+	// puppeteer = require('puppeteer');
 	// mongoose = require('mongoose');
 
 function getOdds(sport) {
@@ -278,11 +279,12 @@ module.exports = {
 		new Promise((resolve, reject) => {
 			request(url, function (err, response, body) {
 				if(!err && response.statusCode == 200) {
-					let $ = cheerio.load(body);
-					let scoresClass = $('.single-score-card.postgame');
+					const $ = cheerio.load(body);
+					const scoresClass = $('.single-score-card.postgame');
 					for (let idx = 0; idx < scoresClass.length; idx++){
-						scores[teams[$(scoresClass[idx]).find('a.team').first().text()]] = Number($(scoresClass[idx]).find('a.team').first().parent().parent().find('td').last().text().replace(/\s/g,''));
-						scores['@'+teams[$(scoresClass[idx]).find('a.team').last().text()]] = Number($(scoresClass[idx]).find('a.team').last().parent().parent().find('td').last().text().replace(/\s/g,''));
+						const matchup = $(scoresClass[idx]).find('a:nth-child(2)');
+						scores[teams[matchup.first().text()]] = Number(matchup.first().parent().parent().find('td').last().text().replace(/\s/g,''));
+						scores['@'+teams[matchup.last().text()]] = Number(matchup.last().parent().parent().find('td').last().text().replace(/\s/g,''));
 					}
 					resolve();
 				}
@@ -323,7 +325,7 @@ module.exports = {
 			});
 
 			// finally go through ATS odds and mark
-			Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+			Odds.find({season: Util.seasonStart[sprt].getFullYear(), sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
 				// console.log('Updating Odds');
 				if (err) {
 					console.log('Error getting Odds when tallying ATS');
@@ -368,8 +370,8 @@ module.exports = {
 							}
 						}).sort({index:1});
 					}));
-					promises.push(new Promise((resolve, reject)=>{ // find players for today
-						Ats.find({date: today}, (err, picks) => {
+					promises.push(new Promise((resolve, reject)=>{ // find BTA players for today
+						Ats.find({sport: sprt, date: today}, (err, picks) => {
 							if(err) {
 								reject();
 							} else {
@@ -379,7 +381,7 @@ module.exports = {
 					}));
 					Promise.all(promises).then(retData =>{
 						// checki if any BTA today and if all done
-						if (retData[0].length && (retData[0].length == retData[1])) { 
+						if (retData[2].length && (retData[0].length == retData[1])) { 
 							let totals = new Array(retData[2].length).fill(0);
 							retData[0].forEach((game, gameIndex) => {  // go through odds for all games
 								retData[2].forEach((user, userIndex) => {  // get correct for each person
@@ -390,7 +392,7 @@ module.exports = {
 							});
 							// increment record for each user with # of picks correct and # games
 							retData[2].forEach((user, userIndex) => {
-								Records.updateOne({season: Util.seasonStart[sport].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
+								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
 									if(err) {
 										console.log('Error updating Record for user after BTA ended', err);
 									} else {
@@ -418,7 +420,7 @@ module.exports = {
 								overallWinner = winners;
 							}
 							overallWinner.forEach(idx => {
-								Records.updateOne({season: Util.seasonStart[sport].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
+								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
 									} else {
@@ -441,35 +443,35 @@ module.exports = {
 		});
 	},
 
-	atsTotals:  sport => {
-		let today = new Date(2021,1,5);
-		let u = [];
-		let promises = [];
-		let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
+	// atsTotals:  sport => {
+	// 	let today = new Date(2021,1,5);
+	// 	let u = [];
+	// 	let promises = [];
+	// 	let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
 
-		Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
-			if (err) {
-				console.log('Error getting odds when doing ATS totals');
-			} else if (odds.length) {
-				Ats.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
-					if (err2) {
-						console.log('Error finding ATS users when doing ATS totals');
-					} else if (users.length){
-						odds.forEach((rec, oddsIndex) => {
-							users.forEach((user, userIndex) => {  // show each user's pick
-								if (Number(user[oddsIndex])==rec.ats) {
-									totals[userIndex] += 1;
-								}
-							});
-						});
-						console.log(totals);
-						console.log(Math.max(...totals));
-					}
-				}).sort({user:1});
-			}
-		}).sort({index:1});
+	// 	Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+	// 		if (err) {
+	// 			console.log('Error getting odds when doing ATS totals');
+	// 		} else if (odds.length) {
+	// 			Ats.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
+	// 				if (err2) {
+	// 					console.log('Error finding ATS users when doing ATS totals');
+	// 				} else if (users.length){
+	// 					odds.forEach((rec, oddsIndex) => {
+	// 						users.forEach((user, userIndex) => {  // show each user's pick
+	// 							if (Number(user[oddsIndex])==rec.ats) {
+	// 								totals[userIndex] += 1;
+	// 							}
+	// 						});
+	// 					});
+	// 					console.log(totals);
+	// 					console.log(Math.max(...totals));
+	// 				}
+	// 			}).sort({user:1});
+	// 		}
+	// 	}).sort({index:1});
 
-	},
+	// },
 
 	updateStandings: function(sport){
 		const url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
@@ -496,4 +498,55 @@ module.exports = {
 			}
 		});
 	},
+	getDailyOdds: (sport, date) => {
+		const today = new Date(date);
+		let index = 0;
+		// get odds for the day to be processed the next day
+		console.log('getting daily odds');
+		const current = JSON.parse(fs.readFileSync('json/'+sport+'_odds.json'));
+		current.games.forEach(game => {
+			if (new Date(game.date).getDate() == today.getDate() && new Date(game.date).getMonth() == today.getMonth()) {  //only look at today, may include future odds
+				// console.log('loop');
+				new Odds({
+					team1: game.team1,
+					team2: game.team2,
+					spread: game.spread,
+					date: game.date,
+					sport: sport,
+					week: Util.getWeek(today, sport),
+					date: today.setHours(0,0,0,0),
+					season: 2022,
+					ats: 0,
+					index: index++
+				}).save(err2 => {
+					if(err2)
+						console.log('Error saving new odds: '+err);
+				});
+			}
+		});
+	},
+	processTracker: (sport, date) => {
+		console.log(`Processing ${sport} Tracker for ${date}`);
+		Odds.find({sport: sport, date: date}, (err, odds) => {
+			console.log('records found:', odds.length);
+			if (err) {
+				console.log('Error getting weeks ATS odds: '+err);
+			} else if (odds.length) {
+				odds.forEach(game => {
+					Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0}}, err => {
+						if(err) {
+							console.log('Error updating team1 Tracker: '+err);
+						}
+					});
+					Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0}}, err => {
+						if(err) {
+							console.log('Error updating team2 Tracker: '+err);
+						}
+					});
+				});
+			}
+		});
+	}
+	// process the day before odds
+	// save to new collection 
 };

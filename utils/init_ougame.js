@@ -31,3 +31,4 @@ for (let team in (args[0] == 'nfl')?Util.nflTeams:Util.nbaTeams) {
 		}
 	});
 }
+process.exit(1);

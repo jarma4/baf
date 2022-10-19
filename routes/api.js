@@ -1,5 +1,5 @@
 const { seasonStart } = require('../models/util');
-const { Users, Records, Bets, Sports, OUgame, OUuser, Ats, Odds} = require('../models/dbschema');
+const { Users, Records, Bets, Sports, OUgame, OUuser, Ats, Odds, Tracker} = require('../models/dbschema');
 const express = require('express'),
 		bodyParser = require('body-parser'),
 		fs = require('fs'),
@@ -690,13 +690,52 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 router.post('/updatebta', requireLogin, (req,res) => {
 	let today = new Date();
 
-	if((today.getHours >= 18)) {
+	if((today.getHours >= 12)) {
 		res.send({'type':'danger', 'message':'Games started, no changes'});
 	} else {
 		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
 			if (err)
 				console.log("ATS change error: "+err);
 			else {
+				res.send({'type':'success', 'message':'Picks updated'});
+			}
+		});
+	}
+});
+
+router.post('/getTracker', requireLogin, (req,res) => {
+	let promises = [];
+	const today = new Date().setHours(0,0,0,0);
+	promises.push(Tracker.find({user: 'system', season: Number(req.body.season), sport: req.body.sport}).sort({team:1}));
+	promises.push(Odds.find({sport: 'nba', date: today}).sort({index:1}));
+	promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15')); //only send picks
+	Promise.all(promises).then(results => {
+		res.send(results);
+	});
+});
+
+router.post('/trackerTeam', requireLogin, function(req,res){
+	Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}],
+						  sport: req.body.sport,
+						  season: req.body.season}, (err, odds) => {
+		if (err) {
+			console.log('Error getting tracker team stats:'+err);
+		} else {
+			res.json(odds);
+		}
+	});
+});
+
+router.post('/trackerPicks', requireLogin, (req,res) => {
+	let today = new Date();
+	if((today.getHours >= 23)) {
+		res.send({'type':'danger', 'message':'Games started, no changes'});
+	} else {
+		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
+			if (err) {
+				res.send({'type':'danger', 'message':'Picks not updated'});
+				console.log("ATS change error: "+err);
+			} else {
 				res.send({'type':'success', 'message':'Picks updated'});
 			}
 		});

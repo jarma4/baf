@@ -1,6 +1,6 @@
-var mongoose = require('mongoose');
+let mongoose = require('mongoose');
 
-var usersSchema = new mongoose.Schema({
+let usersSchema = new mongoose.Schema({
    _id : String,  //really username
    password : String,
    sms : String,
@@ -14,7 +14,7 @@ var usersSchema = new mongoose.Schema({
    pref_default_page: String
 });
 
-var recordsSchema = new mongoose.Schema({
+let recordsSchema = new mongoose.Schema({
    user : String,
    sport : String,
    season : Number,
@@ -26,7 +26,7 @@ var recordsSchema = new mongoose.Schema({
    try: Number
 });
 
-var betsSchema = new mongoose.Schema({
+let betsSchema = new mongoose.Schema({
    date: Date,
    season : Number,
    user1 : String,
@@ -49,45 +49,13 @@ var betsSchema = new mongoose.Schema({
 	limit: Number
 });
 
-var msgSchema = new mongoose.Schema({
-   date : Date,
-   user : String,
-   message : String
-});
-
-var scoresSchema = new mongoose.Schema({
-   date : Date,
-   team1 : String,
-   score1 : Number,
-   team2 : String,
-   score2 : Number,
-   '1h1' : Number,
-   '1h2' : Number,
-   winner: Number,
-   week : Number,
-   sport : String,
-	season: Number,
-	spread: Number,
-   index: Number
-});
-
-var propsSchema = new mongoose.Schema({
-   date : Date,
-   user1 : String,
-   user2 : String,
-   amount : Number,
-   prop: String,
-   odds: Number,
-   winner: Number
-});
-
-var sportsSchema = new mongoose.Schema({
+let sportsSchema = new mongoose.Schema({
    sport: String,
    start : Date,
    inseason : Boolean,
 });
 
-var ouGameSchema = new mongoose.Schema({
+let ouGameSchema = new mongoose.Schema({
    team : String,
    win : Number,
    loss : Number,
@@ -105,7 +73,7 @@ var ouGameSchema = new mongoose.Schema({
    sergio: String
 },{collection:'ougame'});
 
-var ouUserSchema = new mongoose.Schema({
+let ouUserSchema = new mongoose.Schema({
    user: String,
    season: Number,
    sport: String,  // nfl, nba, nfltourney, nbatourney
@@ -143,17 +111,12 @@ var ouUserSchema = new mongoose.Schema({
    31: String
 },{collection:'ouuser'});
 
-var logsSchema = new mongoose.Schema({
-   time: Date,
-   level: Number,
-   message: String
-});
-
-var atsSchema = new mongoose.Schema({
+// stores BTA choices and also Tracker picks
+let atsSchema = new mongoose.Schema({
    user: String,
    season: Number,
    week: Number,
-   sport: String,
+   sport: String, //nba, nfl, tracknba
    0: Number,
    1: Number,
    2: Number,
@@ -173,7 +136,8 @@ var atsSchema = new mongoose.Schema({
 	date: Date,
 	tiebreaker: Number
 });
-var oddsSchema = new mongoose.Schema({
+
+let oddsSchema = new mongoose.Schema({
    sport: String,
    season : Number,
    week: Number,
@@ -183,20 +147,31 @@ var oddsSchema = new mongoose.Schema({
    spread: Number,
 	index: Number,
 	total: Number,
-	ats: Number  // winner of game (3=push); 10 added when daily winner is chosen
+	ats: Number,  // winner of game (3=push); 10 added when daily winner is chosen
+	b2b: Boolean
 });
+
+let trackerSchema = new mongoose.Schema({
+   sport: String,
+   season : Number,
+	user: String,
+   team : String,
+   home_games: Number,
+   away_games: Number,
+   b2b_games: Number,
+	home_won: Number,
+	away_won: Number,
+	b2b_won: Number
+},{collection:'tracker'});
 
 module.exports = {
    Users : mongoose.model('Users', usersSchema),
    Records : mongoose.model('Records', recordsSchema),
    Bets : mongoose.model('Bets', betsSchema),
-   Scores : mongoose.model('Scores', scoresSchema),
-   Messages : mongoose.model('Messages', msgSchema),
-   Props : mongoose.model('Props', propsSchema),
    Sports : mongoose.model('Sports', sportsSchema),
    OUgame : mongoose.model('OUgame', ouGameSchema),
    OUuser : mongoose.model('OUuser', ouUserSchema),
-   Logs : mongoose.model('Logs', logsSchema),
    Ats : mongoose.model('Ats', atsSchema),
-   Odds : mongoose.model('Odds', oddsSchema)
+   Odds : mongoose.model('Odds', oddsSchema),
+   Tracker : mongoose.model('Tracker', trackerSchema)
 };
