@@ -5,16 +5,6 @@ const request = require('request'),
 	cheerio = require('cheerio'),
 	logger = require('pino')({}, fs.createWriteStream('./json/log.json', {'flags': 'a'})),
 	Util = require('./util');
-	// Users = require('./dbschema').Users,
-	// Bets = require('./dbschema').Bets,
-	// Records = require('./dbschema').Records,
-	// Sports = require('./dbschema').Sports,
-	// OUgame = require('./dbschema').OUgame,
-	// Ats = require('./dbschema').Ats,
-	// Odds = require('./dbschema').Odds,
-	// Api = require('../routes/api'),
-	// puppeteer = require('puppeteer');
-	// mongoose = require('mongoose');
 
 function getOdds(sport) {
 	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
@@ -442,37 +432,6 @@ module.exports = {
 			}).sort({index:1});
 		});
 	},
-
-	// atsTotals:  sport => {
-	// 	let today = new Date(2021,1,5);
-	// 	let u = [];
-	// 	let promises = [];
-	// 	let totals = new Array(20).fill(0); // less than 20 player in 2db, initialize everyone to 0
-
-	// 	Odds.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err, odds)=>{
-	// 		if (err) {
-	// 			console.log('Error getting odds when doing ATS totals');
-	// 		} else if (odds.length) {
-	// 			Ats.find({season: Util.seasonStart[sport].getFullYear(), sport: sport, date: today.setHours(0,0,0,0)}, (err2, users) => {
-	// 				if (err2) {
-	// 					console.log('Error finding ATS users when doing ATS totals');
-	// 				} else if (users.length){
-	// 					odds.forEach((rec, oddsIndex) => {
-	// 						users.forEach((user, userIndex) => {  // show each user's pick
-	// 							if (Number(user[oddsIndex])==rec.ats) {
-	// 								totals[userIndex] += 1;
-	// 							}
-	// 						});
-	// 					});
-	// 					console.log(totals);
-	// 					console.log(Math.max(...totals));
-	// 				}
-	// 			}).sort({user:1});
-	// 		}
-	// 	}).sort({index:1});
-
-	// },
-
 	updateStandings: function(sport){
 		const url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
 		request(url, function (err, response, body) {
@@ -527,26 +486,38 @@ module.exports = {
 	},
 	processTracker: (sport, date) => {
 		console.log(`Processing ${sport} Tracker for ${date}`);
-		Odds.find({sport: sport, date: date}, (err, odds) => {
-			console.log('records found:', odds.length);
-			if (err) {
-				console.log('Error getting weeks ATS odds: '+err);
-			} else if (odds.length) {
-				odds.forEach(game => {
-					Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0}}, err => {
-						if(err) {
-							console.log('Error updating team1 Tracker: '+err);
-						}
-					});
-					Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0}}, err => {
-						if(err) {
-							console.log('Error updating team2 Tracker: '+err);
-						}
-					});
+		let promises = [];
+		promises.push(Odds.find({sport: sport, date: date}).sort({index:1}));
+		promises.push(Ats.find({sport: 'tracker'+sport, date: date}).sort({user:1})); //only send picks,no _id
+		Promise.all(promises).then(results => {
+			results[0].forEach((game, index) => {
+				// take care of overall(system) stats first
+				Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0}}, err => {
+					if(err) {
+						console.log('Error updating system team1 Tracker: '+err);
+					}
 				});
-			}
+				Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0}}, err => {
+					if(err) {
+						console.log('Error updating system team2 Tracker: '+err);
+					}
+				});
+				// next look at user trackers
+				results[1].forEach(user => {
+					if (user[index] != undefined){ //only mark if user has pick for game
+						Tracker.updateOne({user: user.user, team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: ((game.ats==1 || game.ats==11) && user[index] == 1)?1:0}}, err => {
+							if(err) {
+								console.log(`Error updating ${user.user} team1 Tracker: `+err);
+							}
+						});
+						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0}}, err => {
+							if(err) {
+								console.log(`Error updating ${user.user} team2 Tracker: `+err);
+							}
+						});	
+					}
+				});
+			});
 		});
 	}
-	// process the day before odds
-	// save to new collection 
 };

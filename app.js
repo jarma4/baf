@@ -70,8 +70,8 @@ const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateS
 // const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
 // 
-const getDailyOddsCron = crontab.scheduleJob("0 6 * * *", scraper.getDailyOdds,['nba', new Date()]);
-const processTrackerCron = crontab.scheduleJob("0 6 * * *", scraper.processTracker,['nba', Util.previousDay(new Date()).setHours(0,0,0,0)]); // day before at midnight
+const getDailyOddsCron = crontab.scheduleJob("5 6 * * *", scraper.getDailyOdds,['nba', new Date()]);
+const processTrackerCron = crontab.scheduleJob("0 4 * * *", scraper.processTracker,['nba', Util.previousDay(new Date()).setHours(0,0,0,0)]); // day before at midnight
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 	const now = new Date();

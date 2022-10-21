@@ -18,8 +18,16 @@ function getTracker() {
 		}
 		// show over Tracker stats
       let outp = '<table class="table table-condensed"><tr><th>Team</th><th>G</th><th>All</th><th>Home</th><th>Away</th><th>B2B</th></tr>';
+		let system1,system2,system3,user1,user2,user3;
       $.each(retData[0], (index, rec) => {
-			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+((rec.home_games+rec.away_games)?((rec.home_won+rec.away_won)/(rec.home_games+rec.away_games)).toPrecision(3):'0')+'</td><td>'+((rec.home_games)?(rec.home_won/rec.home_games).toPrecision(3):'0')+'</td><td>'+((rec.away_games)?(rec.away_won/rec.away_games).toPrecision(3):'0')+'</td><td>'+((rec.b2b_games != 0)?(rec.wonB2b/rec.games).toPrecision(3):0)+'</td></tr>';
+			system1=(rec.home_games+rec.away_games)?((rec.home_won+rec.away_won)/(rec.home_games+rec.away_games)).toPrecision(3):0;
+			system2=(rec.home_games)?(rec.home_won/rec.home_games).toPrecision(3):0;
+			system3=(rec.away_games)?(rec.away_won/rec.away_games).toPrecision(3):0;
+			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+system1+'</td><td>'+system2+'</td><td>'+system3+'</td><td>'+((rec.b2b_games != 0)?(rec.wonB2b/rec.games).toPrecision(3):0)+'</td></tr>';
+			user1=(retData[3][index].home_games+retData[3][index].away_games)?((retData[3][index].home_won+retData[3][index].away_won)/(retData[3][index].home_games+retData[3][index].away_games)).toPrecision(3):0;
+			user2=(retData[3][index].home_games)?(retData[3][index].home_won/retData[3][index].home_games).toPrecision(3):0;
+			user3=(retData[3][index].away_games)?(retData[3][index].away_won/retData[3][index].away_games).toPrecision(3):0;
+			outp += '<tr><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[3][index].home_games+retData[3][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[3][index].b2b_games != 0)?(retData[3][index].wonB2b/retData[3][index].games).toPrecision(3):0)+'</td></tr>';
       });
       outp += '</table>';
       document.getElementById('tracker').innerHTML = outp;
@@ -34,31 +42,7 @@ $('#trackerToggle').on('click' , event => {
 	}
 });
 
-$('#TrackerChoiceBtn').on('click', event => {
-	// if ($('#TrackerChoiceBtn').text() == 'Join') {
-	// 	$('#TrackerPicksArea').removeClass('hidden');
-	// 	$('#TrackerChoiceBtn').text('Save');
-	// } else { // button was Save
-	// 	let picks = {};
-	// 	$.each($('#TrackerPicksArea .btn-success'), (idx, game) => {
-	// 		picks[idx] = game.getAttribute('data-team');
-	// 	});
-	// 	picks.tiebreaker = document.getElementById('tiebreaker').value;
-	// 	postOptions.body = JSON.stringify({
-	// 		'picks': JSON.stringify(picks),
-	// 		'season': $('#TrackerYear').val(),
-	// 		'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],
-	// 		'date': new Date($('#TrackerDate').data('date'))
-	// 	});
-	// 	fetch('/api/updateTracker', postOptions)
-	// 	.then(res => res.json())
-	// 	.then(retData => modalAlert(retData.type,retData.message))
-	// 	.catch(retData => modalAlert(retData.type,retData.message));	
-	// }
-});
-
 $('#teamModal').on('show.bs.modal', event => {
-	// event.preventDefault();
 	const button = $(event.relatedTarget);
 	const team = button.data('team');
 	postOptions.body = JSON.stringify({
@@ -76,8 +60,6 @@ $('#teamModal').on('show.bs.modal', event => {
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td>';
          outp += '<td>'+((side == 'away')?rec.team2.slice(1):rec.team1)+'</td><td>'+rec.spread+'</td>';
 			outp += '<td>'+(((side == 'away' && (rec.ats == 1 || rec.ats == 11)) || (side == 'home' && (rec.ats == 2 || rec.ats == 12)))?'W':'L')+'</td><td>'+((side == 'home')?'H':'A')+'</td><td>N</td></tr>';
-
-			// rec.team1.replace('@','')+'</td><td>'+rec.team2.replace('@','')+' ('+rec.user2.slice(0,6)+')</td><td>'+((rec.status==4)?'W':((rec.status==5)?'L':'P'));
    	});
    	outp += '</table>';
    	document.getElementById("trackerHistory").innerHTML = outp;

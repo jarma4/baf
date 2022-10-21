@@ -91,3 +91,4 @@ router.get('/tourney', function(req, res) {
 router.get('/tracker', function(req, res) {
    res.render('tracker', {pagename:'tracker'});
 });
+
