@@ -75,7 +75,8 @@ module.exports = {
       ncaab: new Date(2022,2,16)
 	},
 	previousDay: date => {
-		return new Date(date.setDate(date.getDate()-1))
+		const temp=new Date(date);
+		return new Date(temp.setDate(temp.getDate()-1));
 	},
 	monthName : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],

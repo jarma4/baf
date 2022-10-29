@@ -53,7 +53,7 @@ https.createServer(options, app_https).listen(443, '192.168.1.200', function () 
 const scraper = require('./models/scraper');
 
 // schedule worker jobs
-const oddsCron = crontab.scheduleJob("*/5 7-23 * * *", scraper.refreshOddsInfo);
+const oddsCron = crontab.scheduleJob("*/5 5-23 * * *", scraper.refreshOddsInfo);
 // const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
 const clearUnactedCron = crontab.scheduleJob("*/5 12-22 * * *", scraper.clearUnactedBets);
 const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
@@ -69,9 +69,9 @@ const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyB
 const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
 // const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
-// 
+const markDailyBack2Back = crontab.scheduleJob("55 23 * * *", scraper.markBack2Back,['nba', new Date()]);
 const getDailyOddsCron = crontab.scheduleJob("5 6 * * *", scraper.getDailyOdds,['nba', new Date()]);
-const processTrackerCron = crontab.scheduleJob("0 4 * * *", scraper.processTracker,['nba', Util.previousDay(new Date()).setHours(0,0,0,0)]); // day before at midnight
+// const processTrackerCron = crontab.scheduleJob("30 7 * * *", scraper.processTracker,['nba', Util.previousDay(new Date())]); // day before at midnight
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 	const now = new Date();

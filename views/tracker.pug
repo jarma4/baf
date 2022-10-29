@@ -15,12 +15,17 @@ block content
 							option(value='2022') 2022
 		.row
 			.col-md-4
-				.panel.panel-success
-					p.help-heading Your picks today:
-					#dailyPicks
-					a#dailyPicksBtn.btn.btn-lg.btn-block.btn-warning.hidden(data-toggle="modal", data-target="#picksModal") Make Daily Picks
-			.col-md-4
 				.panel.panel-primary
+					.panel-heading
+						span#picksDate
+						button.picksInc.btn.btn-default.right.pushUp(value=1)
+							span.glyphicon.glyphicon-chevron-right
+						button.picksInc.btn.btn-default.right.pushUp(value=-1)
+							span.glyphicon.glyphicon-chevron-left
+					#dailyPicks
+					a#dailyPicksBtn.btn.btn-lg.btn-block.btn-warning(data-toggle="modal", data-target="#picksModal") Make Daily Picks
+			.col-md-4
+				.panel.panel-success
 					.panel-heading
 						| ATS Performance
 						button#trackerToggle.btn.btn-success.right.pushUp.hidden vs Your Picks

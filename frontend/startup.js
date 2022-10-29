@@ -99,6 +99,7 @@ function initPage(){
 			getBtaScoreboard(sport, $('#btaYear').val(), 'bta');
 			break;
 		case '/tracker':
+			getTrackerPicks('nba', new Date());
 			getTracker();
 			break;
 	}

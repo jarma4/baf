@@ -10,37 +10,51 @@ function getTracker() {
    .then(retData => {
 		// save daily odds for picks later
 		dailyOdds = retData[1];
-		// daily picks not made so far, show button
-		if (retData[2] == null) {
-			document.getElementById('dailyPicksBtn').classList.remove('hidden');
-		} else {
-			showPicks(retData[2]);
-		}
-		// show over Tracker stats
       let outp = '<table class="table table-condensed"><tr><th>Team</th><th>G</th><th>All</th><th>Home</th><th>Away</th><th>B2B</th></tr>';
 		let system1,system2,system3,user1,user2,user3;
       $.each(retData[0], (index, rec) => {
 			system1=(rec.home_games+rec.away_games)?((rec.home_won+rec.away_won)/(rec.home_games+rec.away_games)).toPrecision(3):0;
 			system2=(rec.home_games)?(rec.home_won/rec.home_games).toPrecision(3):0;
 			system3=(rec.away_games)?(rec.away_won/rec.away_games).toPrecision(3):0;
-			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+system1+'</td><td>'+system2+'</td><td>'+system3+'</td><td>'+((rec.b2b_games != 0)?(rec.wonB2b/rec.games).toPrecision(3):0)+'</td></tr>';
-			user1=(retData[3][index].home_games+retData[3][index].away_games)?((retData[3][index].home_won+retData[3][index].away_won)/(retData[3][index].home_games+retData[3][index].away_games)).toPrecision(3):0;
-			user2=(retData[3][index].home_games)?(retData[3][index].home_won/retData[3][index].home_games).toPrecision(3):0;
-			user3=(retData[3][index].away_games)?(retData[3][index].away_won/retData[3][index].away_games).toPrecision(3):0;
-			outp += '<tr><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[3][index].home_games+retData[3][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-success':(user1<system1)?'heading-danger':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[3][index].b2b_games != 0)?(retData[3][index].wonB2b/retData[3][index].games).toPrecision(3):0)+'</td></tr>';
+			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+system1+'</td><td>'+system2+'</td><td>'+system3+'</td><td>'+((rec.b2b_games != 0)?(rec.b2b_won/rec.b2b_games).toPrecision(3):0)+'</td></tr>';
+			if (retData[2].length){
+				user1=(retData[2][index].home_games+retData[2][index].away_games)?((retData[2][index].home_won+retData[2][index].away_won)/(retData[2][index].home_games+retData[2][index].away_games)).toPrecision(3):0;
+				user2=(retData[2][index].home_games)?(retData[2][index].home_won/retData[2][index].home_games).toPrecision(3):0;
+				user3=(retData[2][index].away_games)?(retData[2][index].away_won/retData[2][index].away_games).toPrecision(3):0;
+				outp += '<tr><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[2][index].home_games+retData[2][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[2][index].b2b_games != 0)?(retData[2][index].b2b_won/retData[2][index].b2b_games).toPrecision(3):0)+'</td></tr>';
+			}
       });
       outp += '</table>';
       document.getElementById('tracker').innerHTML = outp;
 	});
 }
 
-$('#trackerToggle').on('click' , event => {
-	if ($('#trackerToggle').text() == 'vs Your Picks'){
-		$('#trackerToggle').text('Overall');
-	} else {
-		$('#trackerToggle').text('vs Your Picks');
-	}
-});
+function getTrackerPicks(sport, period) {
+	$('#picksDate').text(`${dayName[period.getDay()]} ${monthName[period.getMonth()]} ${period.getDate()}`);
+	$('#picksDate').data('date',period);
+	document.getElementById('dailyPicks').innerHTML = '';
+	document.getElementById("dailyPicksBtn").classList.remove('hidden');
+	postOptions.body = JSON.stringify({
+		'sport': sport, 
+		'season': $('#trackerYear').val(),
+		'period': period
+   });
+   fetch('/api/getTrackerPicks', postOptions)
+   .then(res => res.json())
+   .then(results => {
+		if(results[0] != null) {
+			let outp = '<ul>';
+			for (const key in results[0]) {
+				outp += '<li>'+((results[0][key] == 1)?`${results[1][key].team1} ${results[1][key].spread} over ${results[1][key].team2}`:`${results[1][key].team2} ${-1*results[1][key].spread} over ${results[1][key].team1}`)+'</li>';
+			}
+			outp += '</ol>';
+			document.getElementById('dailyPicks').innerHTML = outp;
+			document.getElementById("dailyPicksBtn").classList.add('hidden');
+			// document.getElementsByClassName("help-heading").classList.remove('hidden');
+		}	
+	});
+
+}
 
 $('#teamModal').on('show.bs.modal', event => {
 	const button = $(event.relatedTarget);
@@ -103,17 +117,6 @@ $('#trackerPicksArea').delegate('.btn-toggle', 'click' , event => {
 	}
 });
 
-function showPicks(picks) {
-	let outp = '<ul>';
-	for (const key in picks) {
-		outp += '<li>'+((picks[key] == 1)?`${dailyOdds[key].team1} ${dailyOdds[key].spread} over ${dailyOdds[key].team2}`:`${dailyOdds[key].team2} ${-1*dailyOdds[key].spread} over ${dailyOdds[key].team1}`)+'</li>';
-	}
-	outp += '</ol>';
-	document.getElementById('dailyPicks').innerHTML = outp;
-	document.getElementById("dailyPicksBtn").classList.add('hidden');
-	// document.getElementsByClassName("help-heading").classList.remove('hidden');
-}
-
 $('#trackerSubmitBtn').on('click', event => {
 	let picks = {};
 	$('#picksModal').modal('hide');
@@ -135,11 +138,15 @@ $('#trackerSubmitBtn').on('click', event => {
    .catch(retData => modalAlert(retData.type,retData.message));
 });
 
-function resetTracker() {
-	// $('#trackerInfoArea').addClass('hidden');
-	// document.getElementById("trackerInfoArea").innerHTML = '<p class="title center">Another Time</p>';
-	// $('#trackerPicksArea').addClass('hidden');
-}
+// back/forward button to get different scores
+$('.picksInc').on('click', function(event){
+	event.preventDefault();
+   // let parsed = $('#picksDate').text().split(' ');
+	const currentDate = new Date($('#picksDate').text()+' '+$('#trackerYear').val());
+	if ((currentDate >  seasonStart[$('.sportPick.selected').attr('class').split(/\s+/)[1]] && $(this).val()=='-1') || (currentDate != new Date(new Date().setHours(0,0,0,0)) && $(this).val()=='1')){
+		getTrackerPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], new Date(Number($('#picksDate').data('date'))+$(this).val()*(24*60*60*1000)));
+	}
+});
 
 $('#trackerYear').on('change', function(){
 	// resetTracker();

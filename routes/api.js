@@ -707,18 +707,26 @@ router.post('/getTracker', requireLogin, (req,res) => {
 	let promises = [];
 	const today = new Date().setHours(0,0,0,0);
 	promises.push(Tracker.find({user: 'system', season: Number(req.body.season), sport: req.body.sport}).sort({team:1}));
-	promises.push(Odds.find({sport: 'nba', date: today}).sort({index:1}));
-	promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15')); //only send picks
+	promises.push(Odds.find({sport: req.body.sport, date: today}).sort({index:1}));
+	// promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15')); //only send picks
 	promises.push(Tracker.find({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}).sort({team:1}));
 	Promise.all(promises).then(results => {
 		res.send(results);
 	});
 });
 
+router.post('/getTrackerPicks', requireLogin, (req,res) => {
+	let promises = [];
+	const today = new Date(req.body.period).setHours(0,0,0,0);
+	promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15'));
+	promises.push(Odds.find({sport: req.body.sport, date: today}).sort({index:1}));
+	Promise.all(promises).then(results=>{
+		res.send(results);
+	});
+});
+
 router.post('/trackerTeam', requireLogin, function(req,res){
-	Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}],
-						  sport: req.body.sport,
-						  season: req.body.season}, (err, odds) => {
+	Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}}, (err, odds) => {
 		if (err) {
 			console.log('Error getting tracker team stats:'+err);
 		} else {
