@@ -66,17 +66,18 @@ const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyB
 // const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 // for the Over Under game
-const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
-// const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
+const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
-const markDailyBack2Back = crontab.scheduleJob("55 23 * * *", scraper.markBack2Back,['nba', new Date()]);
-const getDailyOddsCron = crontab.scheduleJob("5 6 * * *", scraper.getDailyOdds,['nba', new Date()]);
-// const processTrackerCron = crontab.scheduleJob("30 7 * * *", scraper.processTracker,['nba', Util.previousDay(new Date())]); // day before at midnight
+// for Tracker
+const markDailyBack2Back = crontab.scheduleJob("55 23 * * *", scraper.markBack2Back,['nba']);
+const getDailyOddsCron = crontab.scheduleJob("0 6 * * *", scraper.getDailyOdds,['nba']);
+const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 	const now = new Date();
 	// copy mongo db's to backup area
-   var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), function(error, stdout, stderr) {
+   var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
       if (error || stderr) {
          console.log(error);
          console.log(stderr);

@@ -730,7 +730,15 @@ router.post('/trackerTeam', requireLogin, function(req,res){
 		if (err) {
 			console.log('Error getting tracker team stats:'+err);
 		} else {
-			res.json(odds);
+			let userPicks={};
+			Ats.find({sport: req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15', (err, picks) => {
+				if (picks.length){
+					odds.forEach(game => {
+							
+					});
+					res.json({odds: odds, picks: userPicks});
+				}
+			});
 		}
 	});
 });

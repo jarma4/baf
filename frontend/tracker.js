@@ -42,7 +42,7 @@ function getTrackerPicks(sport, period) {
    fetch('/api/getTrackerPicks', postOptions)
    .then(res => res.json())
    .then(results => {
-		if(results[0] != null) {
+		if(results[0] != null && results[0][0] != undefined) { // check if first pick exists
 			let outp = '<ul>';
 			for (const key in results[0]) {
 				outp += '<li>'+((results[0][key] == 1)?`${results[1][key].team1} ${results[1][key].spread} over ${results[1][key].team2}`:`${results[1][key].team2} ${-1*results[1][key].spread} over ${results[1][key].team1}`)+'</li>';
@@ -68,7 +68,7 @@ $('#teamModal').on('show.bs.modal', event => {
 	.then(res => res.json())
    .then(retData => {
    	let outp = '<table class="table"><tr><th>Date</th><th>Opp</th><th>Spread</th><th>W/L</th><th>H/A</th><th>B2B</th></tr>';
-   	$.each(retData, function(i,rec){
+   	retData.odds.forEach((rec, i) => {
          const date=new Date(rec.date);
 			const side = (rec.team1 == team)?'away':'home';
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td>';
@@ -143,7 +143,7 @@ $('.picksInc').on('click', function(event){
 	event.preventDefault();
    // let parsed = $('#picksDate').text().split(' ');
 	const currentDate = new Date($('#picksDate').text()+' '+$('#trackerYear').val());
-	if ((currentDate >  seasonStart[$('.sportPick.selected').attr('class').split(/\s+/)[1]] && $(this).val()=='-1') || (currentDate != new Date(new Date().setHours(0,0,0,0)) && $(this).val()=='1')){
+	if ((currentDate > seasonStart[$('.sportPick.selected').attr('class').split(/\s+/)[1]] && $(this).val()=='-1') || (currentDate.getTime() != new Date(new Date().setHours(0,0,0,0)).getTime() && $(this).val()=='1')){
 		getTrackerPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], new Date(Number($('#picksDate').data('date'))+$(this).val()*(24*60*60*1000)));
 	}
 });
