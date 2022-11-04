@@ -200,7 +200,7 @@ router.post('/changebet', requireLogin, function(req,res){
 					}
 				});
 			}).then(function() {
-				Bets.remove({_id:req.body.id}, function(err){
+				Bets.deleteOne({_id:req.body.id}, function(err){
 					if(err)
 						console.log(err);
 					else {
@@ -224,7 +224,7 @@ router.post('/changebet', requireLogin, function(req,res){
 					changeUser(req.session.user._id, 'bets', -1);
 					Util.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
 					if (acceptedBet.limit > 1) {	// number of bets to give is limited but this not the last; update others
-						Bets.update({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, function(err) {
+						Bets.updateMany({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, function(err) {
 								if (err)
 									console.log(err);
 							});
@@ -234,7 +234,7 @@ router.post('/changebet', requireLogin, function(req,res){
 								changeUser(otherBet.user2, 'bets', -1);
 							});
 						}).then(function(){
-							Bets.update({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+							Bets.updateMany({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
 								if (err)
 									console.log(err);
 							});
@@ -247,7 +247,7 @@ router.post('/changebet', requireLogin, function(req,res){
 			});
 			break;
 		case 'refused':   // bet refused
-			Bets.update({_id:req.body.id},{status:req.body.status, comment:req.body.comment}, function(err){
+			Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment}, function(err){
 				if(err){
 					console.log(err);
 				} else {
@@ -258,7 +258,7 @@ router.post('/changebet', requireLogin, function(req,res){
 			});
 			break;
 		case 'change':
-			Bets.update({_id: req.body.id}, req.body, function(err) {
+			Bets.updateOne({_id: req.body.id}, req.body, function(err) {
 				if(err)
 					console.log(err);
 				else {
@@ -726,20 +726,29 @@ router.post('/getTrackerPicks', requireLogin, (req,res) => {
 });
 
 router.post('/trackerTeam', requireLogin, function(req,res){
-	Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}}, (err, odds) => {
-		if (err) {
-			console.log('Error getting tracker team stats:'+err);
-		} else {
-			let userPicks={};
-			Ats.find({sport: req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15', (err, picks) => {
-				if (picks.length){
-					odds.forEach(game => {
-							
-					});
-					res.json({odds: odds, picks: userPicks});
+	let promises = [];
+	promises.push(Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}}).sort({date:1}));
+	promises.push(Ats.find({sport: 'tracker'+req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 1	2 13 14 15').sort({date:1}));
+	Promise.all(promises).then(results => {
+		let userPicks = [];
+		if (results[1].length){ // don't bother going through if no user picks
+			let gameIndex, pickIndex;
+			for(gameIndex = 0; gameIndex < results[0].length; gameIndex++) { // go through all odds then check if user has pick
+				gameDate = new Date(results[0][gameIndex].date);
+				for (pickIndex = 0; pickIndex < results[1].length; pickIndex++){ // go through all user picks
+					userDate = new Date(results[1][pickIndex].date);
+					if(userDate.getTime() == gameDate.getTime()){
+						userPicks.push({date: gameDate, userPick: results[1][pickIndex][results[0][gameIndex].index]});
+						break; //done looking through picks
+					} else if (userDate > gameDate || pickIndex+1 == results[1].length) {
+						userPicks.push({date: gameDate, userPick: 0}); // past game date, didn't make a pick
+						break; //done looking through picks
+					}
 				}
-			});
+			}
 		}
+		// console.log(userPicks);
+		res.json({odds: results[0], picks: userPicks});
 	});
 });
 
@@ -763,7 +772,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 	if (req.body.password) {
 		req.body.password = bcrypt.hashSync(req.body.password, 10);
 	}
-	Users.update({_id:req.session.user},req.body, function(err){
+	Users.updateOne({_id:req.session.user},req.body, function(err){
 		if(err){
 			console.log(err);
 		} else {
@@ -793,11 +802,11 @@ function markPaid(betid, user) {
 				single.team2 = tmp2;
 			}
 			// below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
-			Users.update({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
+			Users.updateOne({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
 				if(err)
 					console.log(err);
 			});
-			Users.update({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
+			Users.updateOne({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
 				if(err)
 					console.log(err);
 			});
@@ -966,7 +975,7 @@ router.get('/getlogs', function (req, res) {
 
 router.post("/pushsubscribe", (req, res) => {
 	console.log('pushsubscribe');
-	Users.update({_id:req.session.user}, {push: JSON.stringify(req.body)}, function(err){
+	Users.updateOne({_id:req.session.user}, {push: JSON.stringify(req.body)}, function(err){
 		if(err){
 			console.log(err);
 		} else {
@@ -1047,7 +1056,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 function changeUser(user, key, inc) {
 	let tmp = {};
 	tmp[key] = inc;
-	Users.update({_id: user}, {$inc: tmp}, function(err){
+	Users.updateOne({_id: user}, {$inc: tmp}, function(err){
 		if(err)
 			console.log('Trouble with changing user '+key);
 	});
