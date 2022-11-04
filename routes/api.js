@@ -730,6 +730,7 @@ router.post('/trackerTeam', requireLogin, function(req,res){
 	promises.push(Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}}).sort({date:1}));
 	promises.push(Ats.find({sport: 'tracker'+req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 1	2 13 14 15').sort({date:1}));
 	Promise.all(promises).then(results => {
+		console.log(`${results[0].length} ${results[1].length}`)
 		let userPicks = [];
 		if (results[1].length){ // don't bother going through if no user picks
 			let gameIndex, pickIndex;
@@ -747,7 +748,7 @@ router.post('/trackerTeam', requireLogin, function(req,res){
 				}
 			}
 		}
-		// console.log(userPicks);
+		console.log(userPicks);
 		res.json({odds: results[0], picks: userPicks});
 	});
 });

@@ -67,13 +67,14 @@ $('#teamModal').on('show.bs.modal', event => {
    fetch('/api/trackerTeam', postOptions)
 	.then(res => res.json())
    .then(retData => {
-   	let outp = '<table class="table"><tr><th>Date</th><th>Opp</th><th>Spread</th><th>W/L</th><th class="help-heading">You</th><th>H/A</th><th>B2B</th></tr>';
+		const showUser = retData.picks.length > 0;
+   	let outp = '<table class="table"><tr><th>Date</th><th>Opp</th><th>Spread</th><th>W/L</th>'+((showUser)?'<th class="help-heading">You</th>':'')+'<th>H/A</th><th>B2B</th></tr>';
    	retData.odds.forEach((rec, index) => {
          const date=new Date(rec.date);
 			const side = (rec.team1 == team)?'away':'home';
-   		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td>'+'<td>'+((side == 'away')?rec.team2.slice(1):rec.team1)+'</td>';
-         outp += '<td>'+rec.spread+'</td><td>'+(((side == 'away' && (rec.ats == 1 || rec.ats == 11)) || (side == 'home' && (rec.ats == 2 || rec.ats == 12)))?'W':'L')+'</td>';
-			outp += '<td>'+((side == 'away' && (rec.ats == 1 || rec.ats == 11) && retData.picks[index].userPick == 1) || (side == 'home' && (rec.ats == 2 || rec.ats == 12) && retData.picks[index].userPick == 2)?'W':(retData.picks[index].userPick == 0)?'':'L')+'</td><td>'+((side == 'home')?'H':'A')+'</td><td>'+(((side == 'away' && rec.b2b1)||(side == 'home' && rec.b2b2))?'Y':'N')+'</td></tr>';
+   		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td>'+'<td>'+((side == 'away')?rec.team2.slice(1):rec.team1)+'</td><td>'+rec.spread+'</td><td>'+(((side == 'away' && (rec.ats == 1 || rec.ats == 11)) || (side == 'home' && (rec.ats == 2 || rec.ats == 12)))?'W':'L')+'</td>';
+			outp += (showUser)?'<td>'+((side == 'away' && (rec.ats == 1 || rec.ats == 11) && retData.picks[index].userPick == 1) || (side == 'home' && (rec.ats == 2 || rec.ats == 12) && retData.picks[index].userPick == 2)?'W':(retData.picks[index].userPick == 0)?'':'L')+'</td>':'';
+			outp += '<td>'+((side == 'home')?'H':'A')+'</td><td>'+(((side == 'away' && rec.b2b1)||(side == 'home' && rec.b2b2))?'Y':'N')+'</td></tr>';
    	});
    	outp += '</table>';
    	document.getElementById("trackerHistory").innerHTML = outp;

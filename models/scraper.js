@@ -209,7 +209,7 @@ module.exports = {
 
 	dailyCleaning: function(){
 		// below searches for refused bets and deletes after 2 days
-		Bets.remove({$or:[
+		Bets.deleteMany({$or:[
 							{$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]},
 							{$and:[{status:0}, {type: {$in: ['take', 'give']}}, {date:{$lt:new Date()}}]}]},
 							 function(err){
