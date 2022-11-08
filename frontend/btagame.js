@@ -6,14 +6,15 @@ function getBtaScoreboard(sport, season, type) {
    fetch('/api/getbtascoreboard', postOptions)
    .then(res => res.json())
    .then(retData => {
-      let outp2='', outp3='', outp = '<table class="table table-condensed"><tr><th></th>';
+      let outp2='', outp3='', outp4='', outp = '<table class="table table-condensed"><tr><th></th>';
       // create columns for each user
       $.each(retData.totals, function(i, rec){
 			outp += '<th>'+bafusers[rec.user]+'</th>';
          outp2 += '<td>'+rec.win.toFixed(1)+'</td>';
+         outp4 += '<td>'+rec.games+'</td>';
          outp3 += '<td>'+(rec.correct/rec.try).toPrecision(3)+'</td>';
       });
-      outp += '</tr><tr><td>Wins</td>'+outp2+'</tr><tr><td>%</td>'+outp3+'</tr></table>';
+      outp += '</tr><tr><td>Wins</td>'+outp2+'</tr><tr><td>Events</td>'+outp4+'</tr><tr><td>%</td>'+outp3+'</tr></table>';
       document.getElementById((type=='bta')?'btaScoreboard':'btaScoreboard').innerHTML = outp;
 	});
 }

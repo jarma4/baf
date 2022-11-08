@@ -23,7 +23,8 @@ let recordsSchema = new mongoose.Schema({
    push: Number,
    pct: Number,
    correct: Number,
-   try: Number
+   try: Number,
+	games: Number
 });
 
 let betsSchema = new mongoose.Schema({
@@ -149,7 +150,8 @@ let oddsSchema = new mongoose.Schema({
 	total: Number,
 	ats: Number,  // winner of game (3=push); 10 added when daily winner is chosen
 	b2b1: Boolean,
-	b2b2: Boolean
+	b2b2: Boolean,
+	bta: Boolean
 });
 
 let trackerSchema = new mongoose.Schema({
@@ -165,18 +167,10 @@ let trackerSchema = new mongoose.Schema({
 	b2b_won: Number,
 },{collection:'tracker'});
 
-let tmpSchema = new mongoose.Schema({
+let btaSchema = new mongoose.Schema({
    sport: String,
    season : Number,
-	user: String,
-   team : String,
-   home_games: Number,
-   away_games: Number,
-   b2b_games: Number,
-	home_won: Number,
-	away_won: Number,
-	b2b_won: Number
-},{collection:'tmp'});
+},{collection:'bta'});
 
 module.exports = {
    Users : mongoose.model('Users', usersSchema),
@@ -187,6 +181,5 @@ module.exports = {
    OUuser : mongoose.model('OUuser', ouUserSchema),
    Ats : mongoose.model('Ats', atsSchema),
    Odds : mongoose.model('Odds', oddsSchema),
-   Tracker : mongoose.model('Tracker', trackerSchema),
-   Tmp : mongoose.model('Tmp', tmpSchema)
+   Tracker : mongoose.model('Tracker', trackerSchema)
 };

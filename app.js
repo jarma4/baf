@@ -71,7 +71,7 @@ const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStan
 
 // for Tracker
 const markDailyBack2Back = crontab.scheduleJob("55 23 * * *", scraper.markBack2Back,['nba']);
-const getDailyOddsCron = crontab.scheduleJob("0 7 * * *", scraper.getDailyOdds,['nba']);
+const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
 const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
 
 const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {

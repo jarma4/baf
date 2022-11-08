@@ -30,10 +30,11 @@ function getTracker() {
 }
 
 function getTrackerPicks(sport, period) {
+	const today = new Date();
 	$('#picksDate').text(`${dayName[period.getDay()]} ${monthName[period.getMonth()]} ${period.getDate()}`);
 	$('#picksDate').data('date',period);
 	document.getElementById('dailyPicks').innerHTML = '';
-	document.getElementById("dailyPicksBtn").classList.remove('hidden');
+	// document.getElementById("dailyPicksBtn").classList.remove('hidden');
 	postOptions.body = JSON.stringify({
 		'sport': sport, 
 		'season': $('#trackerYear').val(),
@@ -42,7 +43,7 @@ function getTrackerPicks(sport, period) {
    fetch('/api/getTrackerPicks', postOptions)
    .then(res => res.json())
    .then(results => {
-		if(results[0] != null && results[0][0] != undefined) { // check if first pick exists
+		if(results[0] != null && Object.keys(results[0]).length != 0) {
 			let outp = '<ul>';
 			for (const key in results[0]) {
 				outp += '<li>'+((results[0][key] == 1)?`${results[1][key].team1} ${results[1][key].spread} over ${results[1][key].team2}`:`${results[1][key].team2} ${-1*results[1][key].spread} over ${results[1][key].team1}`)+'</li>';
@@ -51,7 +52,9 @@ function getTrackerPicks(sport, period) {
 			document.getElementById('dailyPicks').innerHTML = outp;
 			document.getElementById("dailyPicksBtn").classList.add('hidden');
 			// document.getElementsByClassName("help-heading").classList.remove('hidden');
-		}	
+		} else if (period.getDate() == today.getDate() && period.getMonth() == today.getMonth()){
+			document.getElementById("dailyPicksBtn").classList.remove('hidden');
+		}
 	});
 
 }
@@ -134,7 +137,7 @@ $('#trackerSubmitBtn').on('click', event => {
    .then(res => res.json())
    .then(retData => {
 		modalAlert(retData.type,retData.message);
-		showPicks(picks);
+		getTrackerPicks('nba', new Date());
 	})
    .catch(retData => modalAlert(retData.type,retData.message));
 });
@@ -142,6 +145,7 @@ $('#trackerSubmitBtn').on('click', event => {
 // back/forward button to get different scores
 $('.picksInc').on('click', function(event){
 	event.preventDefault();
+	document.getElementById("dailyPicksBtn").classList.add('hidden');
    // let parsed = $('#picksDate').text().split(' ');
 	const currentDate = new Date($('#picksDate').text()+' '+$('#trackerYear').val());
 	if ((currentDate > seasonStart[$('.sportPick.selected').attr('class').split(/\s+/)[1]] && $(this).val()=='-1') || (currentDate.getTime() != new Date(new Date().setHours(0,0,0,0)).getTime() && $(this).val()=='1')){

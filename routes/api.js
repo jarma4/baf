@@ -610,7 +610,7 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 router.post('/getbtapicks', requireLogin, function(req,res){
 	let today = new Date(), targetDate = new Date(req.body.date);
 	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))}; //(today.getHours() < 11 || (today.getHours() == 11 && today.getMinutes() < 30))
-	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport}, (err, odds) =>{
+	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}, (err, odds) =>{
 		if (err) {
 			console.log('Error getting weeks ATS odds: '+err);
 		} else {
@@ -662,6 +662,7 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 							date: targetDate.setHours(0,0,0,0),
 							season: req.body.season,
 							ats: 0,
+							bta: true,
 							index: index++
 						}).save(err2 => {
 							if(err2)
@@ -707,7 +708,7 @@ router.post('/getTracker', requireLogin, (req,res) => {
 	let promises = [];
 	const today = new Date().setHours(0,0,0,0);
 	promises.push(Tracker.find({user: 'system', season: Number(req.body.season), sport: req.body.sport}).sort({team:1}));
-	promises.push(Odds.find({sport: req.body.sport, date: today}).sort({index:1}));
+	promises.push(Odds.find({sport: req.body.sport, date: today, bta: {$exists: false}}).sort({index:1}));
 	// promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15')); //only send picks
 	promises.push(Tracker.find({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}).sort({team:1}));
 	Promise.all(promises).then(results => {
@@ -719,7 +720,7 @@ router.post('/getTrackerPicks', requireLogin, (req,res) => {
 	let promises = [];
 	const today = new Date(req.body.period).setHours(0,0,0,0);
 	promises.push(Ats.findOne({user: req.session.user._id, sport: 'tracker'+req.body.sport, date: today},'-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15'));
-	promises.push(Odds.find({sport: req.body.sport, date: today}).sort({index:1}));
+	promises.push(Odds.find({sport: req.body.sport, date: today, bta: {$exists: false}}).sort({index:1}));
 	Promise.all(promises).then(results=>{
 		res.send(results);
 	});
@@ -727,10 +728,9 @@ router.post('/getTrackerPicks', requireLogin, (req,res) => {
 
 router.post('/trackerTeam', requireLogin, function(req,res){
 	let promises = [];
-	promises.push(Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}}).sort({date:1}));
+	promises.push(Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}, bta: {$exists: false}}).sort({date:1}));
 	promises.push(Ats.find({sport: 'tracker'+req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 1	2 13 14 15').sort({date:1}));
 	Promise.all(promises).then(results => {
-		console.log(`${results[0].length} ${results[1].length}`)
 		let userPicks = [];
 		if (results[1].length){ // don't bother going through if no user picks
 			let gameIndex, pickIndex;
@@ -748,7 +748,6 @@ router.post('/trackerTeam', requireLogin, function(req,res){
 				}
 			}
 		}
-		console.log(userPicks);
 		res.json({odds: results[0], picks: userPicks});
 	});
 });
@@ -1000,55 +999,25 @@ router.get('/users', requireLogin, function(req,res){
 
 // called when new page is loaded
 router.get('/doorbell', requireLogin, function(req,res){
-	let today = new Date(),
-		answer = {
-			type: 'message',
-			sports: []
-			// username: req.session.user._id
-		};
+	let promises = [];
+	let answer = {
+		type: 'message',
+		username: req.session.user._id,
+		sports: []
+	};
 
-		let sportsPromise = new Promise((resolve, reject)=>{
-		Sports.find({inseason: true}, {sport:1, start: 1}, (err, sports)=>{
-			if (err)
-				reject(err);
-			sports.forEach(sport => {
-				answer.sports.push(sport);
-			});
-			resolve();
+	promises.push(Sports.find({inseason: true}, {sport:1, start: 1}));
+	promises.push(Users.findOne({_id: req.session.user}));
+	promises.push(Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}));
+	promises.push(Bets.findOne({$and:[{type: 'prop'}, {$or:[{user2: 'OPEN'}, {user2:req.session.user}]}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}));
+	Promise.all(promises).then(results =>{
+		results[0].forEach(sport => {
+			answer.sports.push(sport);
 		});
-	});
-	let betsPromise = new Promise((resolve, reject)=>{
-		Users.findOne({_id: req.session.user}, (err,user)=>{
-			if (err)
-				reject(err);
-			if (user){
-				answer.bets = user.bets;
-				answer.debts = user.debts;
-			}
-			resolve();
-		});
-	});
-	let futuresPromise = new Promise((resolve, reject)=>{
-		Bets.findOne({$and:[{status: 0},{$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, future) {
-			if (err)
-				reject(err);
-			if (future) {
-				answer.futures = true;
-			}
-			resolve();
-		});
-	});
-	let propsPromise = new Promise((resolve, reject)=>{
-		Bets.findOne({$and:[{type: 'prop'}, {user2: 'OPEN'}, {date:{$gt:new Date().setHours(0,0)-(1000*60*60*24*7)}}]}, function(err, prop) {
-			if (err)
-				reject(err);
-			if (prop) {
-				answer.props = true;
-			}
-			resolve();
-		});
-	});
-	Promise.all([sportsPromise, betsPromise, futuresPromise, propsPromise]).then(values=>{
+		answer.bets = results[1].bets;
+		answer.debts = results[1].debts;
+		answer.futures = results[2]?true:false;
+		answer.props = results[3]?true:false;
 		// console.log(answer);
 		res.send(answer);
 	});

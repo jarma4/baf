@@ -345,7 +345,7 @@ module.exports = {
 					// see if end of day and do tally
 					let promises = [];
 					promises.push(new Promise((resolve, reject)=>{ // find number of games for today
-						Odds.find({date: today}, (err, odds) => {
+						Odds.find({sport: sprt, bta: true, date: today}, (err, odds) => {
 							if(err) {
 								reject();
 							} else {
@@ -354,7 +354,7 @@ module.exports = {
 						}).sort({index:1});
 					}));
 					promises.push(new Promise((resolve, reject)=>{ // find number of games done today
-						Odds.find({date: today, ats: {$in:[1,2,3]}}, (err, done) => {
+						Odds.find({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, (err, done) => {
 							if(err) {
 								reject();
 							} else {
@@ -384,7 +384,7 @@ module.exports = {
 							});
 							// increment record for each user with # of picks correct and # games
 							retData[2].forEach((user, userIndex) => {
-								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{correct: totals[userIndex], try: retData[1]}}, err => { 
+								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{games: 1, correct: totals[userIndex], try: retData[1]}}, err => { 
 									if(err) {
 										console.log('Error updating Record for user after BTA ended', err);
 									} else {
@@ -416,7 +416,7 @@ module.exports = {
 									if (err) {
 										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
 									} else {
-										console.log(`Updated BTA win for ${retData[2][idx].user}`);
+										console.log(`Updated BTA win for ${retData[2][idx].user} @ ${new Date()}`);
 									}
 								});
 							});
@@ -463,8 +463,8 @@ module.exports = {
 		const tmpDate = new Date();
 		console.log(`Checking Back2Back for ${tmpDate}`);
 		const promises=[], away=[], home=[];
-		promises.push(Odds.find({sport:sport, date: tmpDate.setHours(0,0,0,0)}, '-_id team1 team2'));
-		promises.push(Odds.find({sport:sport, date:Util.previousDay(tmpDate)}, '-_id team1 team2'));
+		promises.push(Odds.find({sport:sport, date: tmpDate.setHours(0,0,0,0), bta: {$exists: false}}, '-_id team1 team2'));
+		promises.push(Odds.find({sport:sport, date:Util.previousDay(tmpDate), bta: {$exists: false}}, '-_id team1 team2'));
 		Promise.all(promises).then(results => {
 			results[0].forEach(today=>{
 				results[1].forEach(yesterday =>{
@@ -478,14 +478,14 @@ module.exports = {
 			console.log(away, home);
 			away.forEach(team =>{
 				console.log(team);
-				Odds.updateOne({date: tmpDate,team1: team}, {b2b1: true}, err =>{
+				Odds.updateOne({date: tmpDate,team1: team, bta: {$exists: false}}, {b2b1: true}, err =>{
 					if (err) {
 						console.log('Error updating B2B team1:',err);
 					}
 				});
 			});
 			home.forEach(team =>{
-				Odds.updateOne({date: tmpDate,team2: team}, {b2b2: true}, err =>{
+				Odds.updateOne({date: tmpDate,team2: team, bta: {$exists: false}}, {b2b2: true}, err =>{
 					if (err) {
 						console.log('Error updating B2B team2:',err);
 					}
@@ -507,9 +507,8 @@ module.exports = {
 					date: date.setHours(0,0,0,0),
 					sport: sport,
 					week: Util.getWeek(date, sport),
-					season: 2022,
+					season: Util.seasonStart[sport].getFullYear(),
 					ats: 0,
-					b2b: false,
 					index: index++
 				}).save(err => {
 					if(err)
@@ -524,18 +523,18 @@ module.exports = {
 		date.setHours(0,0,0,0);  //set to midnight
 		console.log(`Processing ${sport} Tracker for ${date}`);
 		let promises = [];
-		promises.push(Odds.find({sport: sport, date: date}).sort({index:1}));
+		promises.push(Odds.find({sport: sport, date: date, bta: {$exists: false}}).sort({index:1}));
 		promises.push(Ats.find({sport: 'tracker'+sport, date: date}).sort({user:1}));
 		Promise.all(promises).then(results => {
 			console.log(` - Found ${results[0].length} games`);
 			results[0].forEach((game, index) => {
 				// take care of overall(system) stats first
-				Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: (game.b2b1 && (game.ats==1 || game.ats==11))?1:0}}, err => {
+				Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: (game.b2b1 && (game.ats==1 || game.ats==11))?1:0}}, err => {
 					if(err) {
 						console.log('Error updating system team1 Tracker: '+err);
 					}
 				});
-				Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: (game.b2b2 && (game.ats==2 || game.ats==12))?1:0}}, err => {
+				Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: (game.b2b2 && (game.ats==2 || game.ats==12))?1:0}}, err => {
 					if(err) {
 						console.log('Error updating system team2 Tracker: '+err);
 					}
@@ -543,12 +542,12 @@ module.exports = {
 				// next look at user trackers
 				results[1].forEach(user => {
 					if (user[index] != undefined){ //only mark if user has pick for game
-						Tracker.updateOne({user: user.user, team: game.team1, sport: sport, season: 2022}, {$inc: {away_games: 1, away_won: ((game.ats==1 || game.ats==11) && user[index] == 1)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: ((game.b2b1 && (game.ats==1 || game.ats==11)) && user[index] == 1)?1:0}}, err => {
+						Tracker.updateOne({user: user.user, team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: ((game.ats==1 || game.ats==11) && user[index] == 1)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: ((game.b2b1 && (game.ats==1 || game.ats==11)) && user[index] == 1)?1:0}}, err => {
 							if(err) {
 								console.log(`Error updating ${user.user} team1 Tracker: `+err);
 							}
 						});
-						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: 2022}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b1 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}}, err => {
+						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b1 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}}, err => {
 							if(err) {
 								console.log(`Error updating ${user.user} team2 Tracker: `+err);
 							}

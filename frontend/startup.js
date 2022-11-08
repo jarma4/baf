@@ -5,7 +5,7 @@ $(document).ready(function() {
 });
 
 //global variables
-var username,
+let username,
    // used for swiping between pages
    urls = ['/', '/odds', '/bets', '/stats', '/futures', '/props', '/overunder', '/btagame', '/tourney', '/options'],
    // declared global so that charts can be updated between functions
@@ -37,7 +37,7 @@ function doorBell(){
 		if(retData.type == 'command'){
 			eval(retData.message);
 		} else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
-			// username = retData.username; // keep around for things
+			username = retData.username; // keep around for things
 			if (retData.bets) {
 				$('#notify1').removeClass('hidden');
 				addAnimation('bounce', 15000, 'notify1');

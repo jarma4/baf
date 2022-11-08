@@ -22,8 +22,8 @@ block content
 							span.glyphicon.glyphicon-chevron-right
 						button.picksInc.btn.btn-default.right.pushUp(value=-1)
 							span.glyphicon.glyphicon-chevron-left
-					#dailyPicks
-					a#dailyPicksBtn.btn.btn-lg.btn-block.btn-warning(data-toggle="modal", data-target="#picksModal") Make Daily Picks
+					#dailyPicks.pushDown
+					a#dailyPicksBtn.btn.btn-lg.btn-block.btn-warning(data-toggle="modal", data-target="#picksModal").hidden Make Daily Picks
 			.col-md-4
 				.panel.panel-success
 					.panel-heading
@@ -35,19 +35,15 @@ block modals
 	#teamModal.modal.fade
 		.modal-dialog
 			.modal-content
-				.modal-header
+				.modal-body
+					span.title#teamTitle
 					button.close(type='button', data-dismiss='modal') #[span &times;]
-					.panel.panel-primary
-						.panel-heading
-							#teamTitle
-						#trackerHistory
+					#trackerHistory
 	#picksModal.modal.fade
 		.modal-dialog
 			.modal-content
-				.modal-header
+				.modal-body
+					span.title Daily Picks
 					button.close(type='button', data-dismiss='modal') #[span &times;]
-					.panel.panel-primary
-						.panel-heading
-							h4 Daily Picks
-						#trackerPicksArea
-						button#trackerSubmitBtn.btn.btn-lg.btn-block.btn-primary.pushDown Save
+					#trackerPicksArea
+					button#trackerSubmitBtn.btn.btn-lg.btn-block.btn-primary.pushDown Save

@@ -30,7 +30,7 @@ function showProps() {
       var outp = '<table class="table"><tr><th>Who</th><th>Who</th><th>Prop</th></tr>';
       $.each(retData, function(i,rec){
          outp += '<tr>'+((rec.status == 4)?'<td class="heading-success">':(rec.status == 5)?'<td class="heading-danger">':'<td>')+rec.user1.slice(0,5)+'</td>';
-         outp += (rec.user2 == 'OPEN')?'<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#propAcceptModal" data-id="'+rec._id+'" data-prop="'+rec.team1+'"><span class="glyphicon glyphicon-hand-left"></span></button>':((rec.status == 4)?'<td class="heading-danger">':(rec.status == 5)?'<td class="heading-success">':'<td>')+rec.user2.slice(0,5);
+         outp += (rec.status == 0 && (rec.user2 == 'OPEN' || rec.user2 == username))?'<td><button class="btn btn-sm btn-success" data-toggle="modal" data-target="#propAcceptModal" data-id="'+rec._id+'" data-prop="'+rec.team1+'"><span class="glyphicon glyphicon-hand-left"></span></button>':((rec.status == 4)?'<td class="heading-danger">':(rec.status == 5)?'<td class="heading-success">':'<td>')+rec.user2.slice(0,5);
          outp += '</td><td>'+rec.team1+'</td></tr>';
       });
       outp += '</table>';
