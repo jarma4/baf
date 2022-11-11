@@ -547,7 +547,7 @@ module.exports = {
 								console.log(`Error updating ${user.user} team1 Tracker: `+err);
 							}
 						});
-						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b1 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}}, err => {
+						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b2 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}}, err => {
 							if(err) {
 								console.log(`Error updating ${user.user} team2 Tracker: `+err);
 							}

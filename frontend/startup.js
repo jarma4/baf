@@ -1,6 +1,7 @@
 // "use strict";
 
 $(document).ready(function() {
+	document.documentElement.style.setProperty('--viewPortHeight', `${window.innerHeight*0.01}px`);
    doorBell();
 });
 
@@ -27,7 +28,6 @@ let username,
    getOptions = {
       credentials: 'same-origin',
    };
-
    
 // called when new page loaded
 function doorBell(){

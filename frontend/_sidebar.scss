@@ -27,7 +27,8 @@ $sidebar-background: #3a3f44;
     position: fixed;
     left: $sidebar-width;
     width: 0;
-    height: 100vh;
+    height: 100vh;  //fallback for below
+	 height: calc(var(--viewPortHeight, 1vh)*100); //variabel viewPortHeight set in JS
     margin-left: -$sidebar-width;
     overflow-y: auto;
     background: $sidebar-background;
@@ -81,6 +82,7 @@ $sidebar-background: #3a3f44;
 .on_bottom {
 	position: absolute;
 	bottom: 0;
+	padding-bottom: 10px;
 }
 
 #page-content-wrapper {

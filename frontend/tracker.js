@@ -21,7 +21,7 @@ function getTracker() {
 				user1=(retData[2][index].home_games+retData[2][index].away_games)?((retData[2][index].home_won+retData[2][index].away_won)/(retData[2][index].home_games+retData[2][index].away_games)).toPrecision(3):0;
 				user2=(retData[2][index].home_games)?(retData[2][index].home_won/retData[2][index].home_games).toPrecision(3):0;
 				user3=(retData[2][index].away_games)?(retData[2][index].away_won/retData[2][index].away_games).toPrecision(3):0;
-				outp += '<tr><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[2][index].home_games+retData[2][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[2][index].b2b_games != 0)?(retData[2][index].b2b_won/retData[2][index].b2b_games).toPrecision(3):0)+'</td></tr>';
+				outp += '<tr class="userPicks hidden"><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[2][index].home_games+retData[2][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[2][index].b2b_games != 0)?(retData[2][index].b2b_won/retData[2][index].b2b_games).toPrecision(3):0)+'</td></tr>';
 			}
       });
       outp += '</table>';
@@ -153,8 +153,15 @@ $('.picksInc').on('click', function(event){
 	}
 });
 
-$('#trackerYear').on('change', function(){
-	// resetTracker();
-	// getTracker($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#trackerYear').val(), new Date())
+$('#picksToggle').on('change', () => {
+	if(this.checked){
+		Array.from(document.getElementsByClassName('userPicks'), row => {
+			row.classList.remove('hidden');
+		});
+	} else {
+		Array.from(document.getElementsByClassName('userPicks'), row => {
+			row.classList.add('hidden');
+		});
+	}
 });
 
