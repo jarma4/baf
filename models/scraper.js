@@ -218,37 +218,6 @@ module.exports = {
 			else
 				logger.info('Refused bets cleared - '+new Date());
 		});
-		// find bettors who haven't bet in a month and remove PCT so not to display in stats
-		// Sports.find({inseason: true, sport: {$in: ['nfl', 'nba']}}, (err, sports) => {
-		// 	if (!err){
-		// 		let year; 
-		// 		sports.forEach(sprt => {
-		// 			year = sprt.start.getFullYear();
-		// 			Records.find({season:year,sport:sprt.sport}, (err, players)=>{
-		// 				if (!err) {
-		// 					Bets.find({season:year,sport:sprt.sport, status: {$in: [4,5,6]}}, (err, bets)=>{
-		// 						if (!err) {
-		// 							const avgBets = bets.length - players.length;
-		// 							players.forEach(player => {
-		// 								Bets.findOne({season:year, sport:sprt.sport, $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
-		// 									if(!err){
-		// 										if (lastBet.week <= Util.getWeek(new Date(), sprt.sport)-4) {
-		// 											Records.update({season:year,sport:sprt.sport,user: player.user}, {$unset:{pct:1}}, (err, result)=>{
-		// 												if (!err) {
-		// 													console.log(`No bets for ${player.user} in month, clearing PCT`);
-		// 												}
-		// 											});
-		// 										}
-		// 									}
-		// 								}).sort({date:-1});
-		// 							});
-		// 						}
-		// 					});
-		// 				}
-		// 			});
-		// 		});
-		// 	}
-		// });
 	},
 
 	tallyBets2: function(sprt){
@@ -420,7 +389,7 @@ module.exports = {
 									}
 								});
 							});
-							Odds.updateMany({date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
+							Odds.updateMany({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
 								if(err) {
 									console.log('Error marking done games', err);
 								} else {
@@ -477,7 +446,6 @@ module.exports = {
 			});
 			console.log(away, home);
 			away.forEach(team =>{
-				console.log(team);
 				Odds.updateOne({date: tmpDate,team1: team, bta: {$exists: false}}, {b2b1: true}, err =>{
 					if (err) {
 						console.log('Error updating B2B team1:',err);
@@ -493,6 +461,44 @@ module.exports = {
 			});
 		});
 	},
+	processOdds: (sport) => {
+		const promises = []; 
+		function getTeamLast10Back2Back(team){
+			let last10, b2b = 0, previousGame = new Date(Util.seasonStart.nba);
+			return new Promise((resolve, reject) => {
+				Odds.find({season: Util.seasonStart[sport].getFullYear(), sport:sport, $or: [{team1: team},{team2: '@'+team}], ats: {$ne: 0}, bta: {$exists: false}}, (err, games) => {
+					last10 = 0;
+					games.reverse().forEach((game, index) => {
+						if ((game.team1 == team && (game.ats == 1 || game.ats == 11)) || (game.team2 == '@'+team && (game.ats == 2 || game.ats == 12))) {
+							last10 += 1;
+						}
+						if (index == 9 && game.date.getTime() == Util.previousDay(new Date().setHours(0,0,0,0)).getTime() && Util.previousDay(game.date).getTime() == previousGame.getTime()){
+							Odds.updateOne({_id: game._id}, (game.team1 == team)?{b2b1: true}:{b2b2: true}, err=> {
+								if(err) {
+									console.log(`Problem marking b2b for ${team}: `, err);
+								}
+							});			
+						}
+						previousGame = game.date;
+					});
+					resolve ({team: team, last10: last10, b2b: b2b});
+				}).limit(10).sort({date:-1});
+			});
+		}
+		console.log(`Processing ${sport} Odds for ${date}`);
+		for (let teamCity in Util.nbaTeams){
+			promises.push(getTeamLast10Back2Back(Util.nbaTeams[teamCity]));
+		}
+		Promise.all(promises).then(results => {
+			results.forEach(team => {
+				Tracker.updateOne({user: 'system', sport: sport, season: Util.seasonStart[sport].getFullYear(), team: team.team}, {last10: team.last10}, err=> {
+					if(err) {
+						console.log(`Problem marking last10 for ${team}: `, err);
+					}
+				});
+			});	
+		});
+	},	
 	getDailyOdds: (sport) => {
 		let index = 0;
 		const date = new Date();
@@ -558,3 +564,36 @@ module.exports = {
 		});
 	}
 };
+
+
+		// find bettors who haven't bet in a month and remove PCT so not to display in stats
+		// Sports.find({inseason: true, sport: {$in: ['nfl', 'nba']}}, (err, sports) => {
+		// 	if (!err){
+		// 		let year; 
+		// 		sports.forEach(sprt => {
+		// 			year = sprt.start.getFullYear();
+		// 			Records.find({season:year,sport:sprt.sport}, (err, players)=>{
+		// 				if (!err) {
+		// 					Bets.find({season:year,sport:sprt.sport, status: {$in: [4,5,6]}}, (err, bets)=>{
+		// 						if (!err) {
+		// 							const avgBets = bets.length - players.length;
+		// 							players.forEach(player => {
+		// 								Bets.findOne({season:year, sport:sprt.sport, $or:[{user1: player.user}, {user2: player.user}], status: {$in:[4,5,6]}}, (err, lastBet)=>{
+		// 									if(!err){
+		// 										if (lastBet.week <= Util.getWeek(new Date(), sprt.sport)-4) {
+		// 											Records.update({season:year,sport:sprt.sport,user: player.user}, {$unset:{pct:1}}, (err, result)=>{
+		// 												if (!err) {
+		// 													console.log(`No bets for ${player.user} in month, clearing PCT`);
+		// 												}
+		// 											});
+		// 										}
+		// 									}
+		// 								}).sort({date:-1});
+		// 							});
+		// 						}
+		// 					});
+		// 				}
+		// 			});
+		// 		});
+		// 	}
+		// });

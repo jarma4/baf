@@ -165,6 +165,7 @@ let trackerSchema = new mongoose.Schema({
 	home_won: Number,
 	away_won: Number,
 	b2b_won: Number,
+	last10: Number
 },{collection:'tracker'});
 
 let btaSchema = new mongoose.Schema({

@@ -10,18 +10,18 @@ function getTracker() {
    .then(retData => {
 		// save daily odds for picks later
 		dailyOdds = retData[1];
-      let outp = '<table class="table table-condensed"><tr><th>Team</th><th>G</th><th>All</th><th>Home</th><th>Away</th><th>B2B</th></tr>';
+      let outp = '<table class="table table-condensed"><tr><th>Team</th><th>G</th><th>All</th><th>Home</th><th>Away</th><th>B2B</th><th>L10</th></tr>';
 		let system1,system2,system3,user1,user2,user3;
       $.each(retData[0], (index, rec) => {
-			system1=(rec.home_games+rec.away_games)?((rec.home_won+rec.away_won)/(rec.home_games+rec.away_games)).toPrecision(3):0;
-			system2=(rec.home_games)?(rec.home_won/rec.home_games).toPrecision(3):0;
-			system3=(rec.away_games)?(rec.away_won/rec.away_games).toPrecision(3):0;
-			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+system1+'</td><td>'+system2+'</td><td>'+system3+'</td><td>'+((rec.b2b_games != 0)?(rec.b2b_won/rec.b2b_games).toPrecision(3):0)+'</td></tr>';
+			system1=(rec.home_games+rec.away_games)?((rec.home_won+rec.away_won)/(rec.home_games+rec.away_games)).toPrecision(3).slice(1):0;
+			system2=(rec.home_games)?(rec.home_won/rec.home_games).toPrecision(3).slice(1):0;
+			system3=(rec.away_games)?(rec.away_won/rec.away_games).toPrecision(3).slice(1):0;
+			outp += '<tr><td><a href="#" data-toggle="modal" data-target="#teamModal" data-team="'+rec.team+'">'+rec.team+'</a></td><td>'+(rec.home_games+rec.away_games)+'</td><td>'+system1+'</td><td>'+system2+'</td><td>'+system3+'</td><td>'+((rec.b2b_games != 0)?(rec.b2b_won/rec.b2b_games).toPrecision(3).slice(1):0)+' ('+rec.b2b_games+')</td><td>'+rec.last10+'</td></tr>';
 			if (retData[2].length){
-				user1=(retData[2][index].home_games+retData[2][index].away_games)?((retData[2][index].home_won+retData[2][index].away_won)/(retData[2][index].home_games+retData[2][index].away_games)).toPrecision(3):0;
-				user2=(retData[2][index].home_games)?(retData[2][index].home_won/retData[2][index].home_games).toPrecision(3):0;
-				user3=(retData[2][index].away_games)?(retData[2][index].away_won/retData[2][index].away_games).toPrecision(3):0;
-				outp += '<tr class="userPicks hidden"><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[2][index].home_games+retData[2][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[2][index].b2b_games != 0)?(retData[2][index].b2b_won/retData[2][index].b2b_games).toPrecision(3):0)+'</td></tr>';
+				user1=(retData[2][index].home_games+retData[2][index].away_games)?((retData[2][index].home_won+retData[2][index].away_won)/(retData[2][index].home_games+retData[2][index].away_games)).toPrecision(3).slice(1):0;
+				user2=(retData[2][index].home_games)?(retData[2][index].home_won/retData[2][index].home_games).toPrecision(3).slice(1):0;
+				user3=(retData[2][index].away_games)?(retData[2][index].away_won/retData[2][index].away_games).toPrecision(3).slice(1):0;
+				outp += '<tr class="userPicks hidden"><td class="center notoppadding help-heading">you</td><td class="notoppadding">'+(retData[2][index].home_games+retData[2][index].away_games)+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user1+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user2+'</td><td class="notoppadding '+((user1>system1)?'heading-succes':(user1<system1)?'heading-dange':'')+'">'+user3+'</td><td class="notoppadding">'+((retData[2][index].b2b_games != 0)?(retData[2][index].b2b_won/retData[2][index].b2b_games).toPrecision(3).slice(1)+'('+retData[2][index].b2b_games+')':0)+'</td></tr>';
 			}
       });
       outp += '</table>';
@@ -153,7 +153,7 @@ $('.picksInc').on('click', function(event){
 	}
 });
 
-$('#picksToggle').on('change', () => {
+$('#picksToggle').on('change', function(event) {
 	if(this.checked){
 		Array.from(document.getElementsByClassName('userPicks'), row => {
 			row.classList.remove('hidden');
