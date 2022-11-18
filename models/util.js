@@ -4,12 +4,11 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const telnyx = require('telnyx')(process.env.BAF_TELNYX);
 
-var textList = {};
-
 module.exports = {
-   textUser: (to, message, pref2) => {
+	textUser: (to, message, pref2) => {
 		// console.log(`in text ${message}`);
 		// return;
+		let textList = {};
       Users.findOne({_id: to}, function(err,user){
          if (err) {
             console.log(err);
@@ -78,6 +77,7 @@ module.exports = {
 		const temp=new Date(date);
 		return new Date(temp.setDate(temp.getDate()-1));
 	},
+	dailyB2b: {},
 	monthName : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
    dayName : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 	nflTeams: {

@@ -1,6 +1,7 @@
 // const { resolve } = require('path');
 const { isModuleNamespaceObject } = require('util/types');
 const { Users, Records, Bets, Sports, OUgame, Odds, Tracker, Ats} = require('./dbschema');
+const { dailyB2b } = require('./util');
 const request = require('request'),
 	fs = require('fs'),
 	exec = require('child_process').exec,
@@ -428,39 +429,6 @@ module.exports = {
 			}
 		});
 	},
-	markBack2Back: (sport) => {
-		const tmpDate = new Date();
-		console.log(`Checking Back2Back for ${tmpDate}`);
-		const promises=[], away=[], home=[];
-		promises.push(Odds.find({sport:sport, date: tmpDate.setHours(0,0,0,0), bta: {$exists: false}}, '-_id team1 team2'));
-		promises.push(Odds.find({sport:sport, date:Util.previousDay(tmpDate), bta: {$exists: false}}, '-_id team1 team2'));
-		Promise.all(promises).then(results => {
-			results[0].forEach(today=>{
-				results[1].forEach(yesterday =>{
-					if(today.team1 == yesterday.team1 || today.team1 == yesterday.team2.slice[1]){
-						away.push(today.team1);
-					} else if (today.team2.slice(1) == yesterday.team1 || today.team2 == yesterday.team2) {
-						home.push(today.team2);
-					}
-				});
-			});
-			console.log(away, home);
-			away.forEach(team =>{
-				Odds.updateOne({date: tmpDate,team1: team, bta: {$exists: false}}, {b2b1: true}, err =>{
-					if (err) {
-						console.log('Error updating B2B team1:',err);
-					}
-				});
-			});
-			home.forEach(team =>{
-				Odds.updateOne({date: tmpDate,team2: team, bta: {$exists: false}}, {b2b2: true}, err =>{
-					if (err) {
-						console.log('Error updating B2B team2:',err);
-					}
-				});
-			});
-		});
-	},
 	processOdds: (sport) => {
 		const promises = []; 
 		function getTeamLast10Back2Back(team){
@@ -476,6 +444,9 @@ module.exports = {
 							Odds.updateOne({_id: game._id}, (game.team1 == team)?{b2b1: true}:{b2b2: true}, err=> {
 								if(err) {
 									console.log(`Problem marking b2b for ${team}: `, err);
+								} else {
+									console.log(`${team} back to back`);
+									dailyB2b[team] = (game.team1 == team)?'away':'home';
 								}
 							});			
 						}
@@ -485,7 +456,7 @@ module.exports = {
 				}).limit(10).sort({date:-1});
 			});
 		}
-		console.log(`Processing ${sport} Odds for ${date}`);
+		console.log(`Processing ${sport} Odds for ${new Date()}`);
 		for (let teamCity in Util.nbaTeams){
 			promises.push(getTeamLast10Back2Back(Util.nbaTeams[teamCity]));
 		}
@@ -496,7 +467,7 @@ module.exports = {
 						console.log(`Problem marking last10 for ${team}: `, err);
 					}
 				});
-			});	
+			});
 		});
 	},	
 	getDailyOdds: (sport) => {
@@ -523,6 +494,7 @@ module.exports = {
 			}
 		});
 		console.log(` - ${index} games today`);
+		Util.textUser('jarma4', JSON.stringify(dailyB2b));  //send me the daily back to backs
 	},
 	processTracker: (sport) => {
 		const date = Util.previousDay(new Date());

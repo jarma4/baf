@@ -201,6 +201,39 @@ function checkSameDate(date1, date2){
 	return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 }
 
+function sortTable(target, col) {
+	let rows, switching, i, x, y, shouldSwitch, increment = 1;  
+	switching = true;
+	while (switching) {
+		switching = false;  
+		rows = target.getElementsByTagName("TR");
+		if (rows.length > 31) {
+			increment = 2;
+		}
+		for (i = 1; i < (rows.length - 1); i+=increment) {
+			//start by saying there should be no switching:  
+			shouldSwitch = false;
+			x = rows[i].getElementsByTagName("TD")[col];
+			y = rows[i + increment].getElementsByTagName("TD")[col];
+				if ((isNaN(Number(x.innerHTML))?x.innerHTML:Number(x.innerHTML)) < (isNaN(Number(y.innerHTML))?y.innerHTML:Number(y.innerHTML))) {
+				shouldSwitch= true;  
+				break;
+			}    
+		}    
+		if (shouldSwitch) {
+			if (rows.length > 31) {
+				rows[i].parentNode.insertBefore(rows[i+increment], rows[i]);  
+				rows[i+1].parentNode.insertBefore(rows[i+1+increment], rows[i+1]);  
+			} else {
+				rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);  
+			}
+			switching = true;
+		}    
+	}   
+	$(target).find('th').removeClass('text-danger'); 
+	$(target).find('th:eq('+col+')').addClass('text-danger'); 
+ } 
+ 
 // Global stuff
 $('#loginSubmit').on('click', function(){
    postOptions.body = JSON.stringify({
