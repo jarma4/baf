@@ -471,19 +471,19 @@ module.exports = {
 		});
 	},	
 	getDailyOdds: (sport) => {
-		let index = 0;
-		const date = new Date();
-		console.log(`getting daily odds ${date}`);
+		let index = 0, playsToday = [], playsToday2 = [], info = {back2back: []};
+		const today = new Date();
+		console.log(`getting daily odds ${today}`);
 		const current = JSON.parse(fs.readFileSync('json/'+sport+'_odds.json'));
 		current.games.forEach(game => {
-			if (new Date(game.date).getDate() == date.getDate() && new Date(game.date).getMonth() == date.getMonth()) {  //only look at today, may include future odds
+			if (new Date(game.date).getDate() == today.getDate() && new Date(game.date).getMonth() == today.getMonth()) {  //only look at today, may include future odds
 				new Odds({
 					team1: game.team1,
 					team2: game.team2,
 					spread: game.spread,
-					date: date.setHours(0,0,0,0),
+					date: today.setHours(0,0,0,0),
 					sport: sport,
-					week: Util.getWeek(date, sport),
+					week: Util.getWeek(today, sport),
 					season: Util.seasonStart[sport].getFullYear(),
 					ats: 0,
 					index: index++
@@ -491,10 +491,26 @@ module.exports = {
 					if(err)
 						console.log('Error saving new odds: '+err);
 				});
+				playsToday.push(game.team1, game.team2.slice(1));
+				playsToday2.push('@'+game.team1, game.team2);
+			}
+		});
+		Odds.find({sport: sport, season: Util.seasonStart[sport].getFullYear(), date: Util.previousDay(today).setHours(0,0,0,0), bta: {$exists: false}, $or: [{team1: {$in: playsToday}}, {team2: {$in: playsToday2}}]}, (err, games) => {
+			if (err) {
+				console.log('Error finding teams tha played yesterday: ', err);
+			} else {
+				games.forEach(game => {
+					if (playsToday.includes(game.team1)) {
+						info.back2back.push(game.team1);
+					} else if ([playsToday.includes(game.team2.slice(1))]) {
+						info.back2back.push(game.team2.slice(1));
+					}
+				});
+				Util.textUser('jarma4', JSON.stringify(info));
+				console.log(info);
 			}
 		});
 		console.log(` - ${index} games today`);
-		Util.textUser('jarma4', JSON.stringify(dailyB2b));  //send me the daily back to backs
 	},
 	processTracker: (sport) => {
 		const date = Util.previousDay(new Date());
