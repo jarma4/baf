@@ -4,12 +4,13 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const telnyx = require('telnyx')(process.env.BAF_TELNYX);
 
+let textList = {};
+
 module.exports = {
 	textUser: (to, message, pref2) => {
 		// console.log(`in text ${message}`);
 		// return;
-		let textList = {};
-      Users.findOne({_id: to}, function(err,user){
+      Users.findOne({_id: to}, (err,user) => {
          if (err) {
             console.log(err);
          } else if (user){
@@ -21,14 +22,14 @@ module.exports = {
                   textList[to] = 1;
                }
 					// only text user once every 90 seconds
-               setTimeout(function(){
+               setTimeout(() => {
                   if (textList[to]) {
                      // console.log('text sending to '+user.sms);
                      telnyx.messages.create({
                         'from': process.env.TEXTFROM,
                         'to': '+1'+user.sms,
                         'text': message + ' - 2DB'
-                     }).then(function(response){
+                     }).then(response => {
                         console.log('texted',message); // asynchronously handled
                      });
                      textList[to] = 0;

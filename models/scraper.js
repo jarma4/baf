@@ -25,7 +25,7 @@ function getOdds(sport) {
 				games.push({date: new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2))});
 			});
 			let gameIndex = 0;
-			$('.md-hide','.op-block__matchup.'+((sport == 'nfl')?'football':(sport == 'nba')?'basketball':sport)).each((index, element)=>{
+			$('.md-hide','.op-block__matchup.'+((sport == 'nfl' || sport == 'ncaaf')?'football':(sport == 'nba' || sport == 'ncaab')?'basketball':sport)).each((index, element)=>{
 				if (index % 2) {
 					games[gameIndex].team2 = '@'+$(element).text();
 					gameIndex++;
@@ -445,7 +445,6 @@ module.exports = {
 								if(err) {
 									console.log(`Problem marking b2b for ${team}: `, err);
 								} else {
-									console.log(`${team} back to back`);
 									dailyB2b[team] = (game.team1 == team)?'away':'home';
 								}
 							});			
@@ -507,7 +506,6 @@ module.exports = {
 					}
 				});
 				Util.textUser('jarma4', JSON.stringify(info));
-				console.log(info);
 			}
 		});
 		console.log(` - ${index} games today`);

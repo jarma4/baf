@@ -8,12 +8,12 @@ const https = require('https'),
 
 // process.traceDeprecation = true;
 
-require('dotenv').config()
+require('dotenv').config();
 
 // http site
 const app_http = express();
 app_http.use(compression());
-// app_http.use('/', express.static(__dirname + '/public'));
+app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
    res.redirect(301, 'https://2dollarbets.com');
 });

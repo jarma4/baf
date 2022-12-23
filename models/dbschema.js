@@ -11,7 +11,8 @@ let usersSchema = new mongoose.Schema({
    pref_nba_everyone: Boolean,
    pref_text_receive: Boolean,
    pref_text_accept: Boolean,
-   pref_default_page: String
+   pref_default_page: String,
+	secure: String
 });
 
 let recordsSchema = new mongoose.Schema({
@@ -60,6 +61,7 @@ let ouGameSchema = new mongoose.Schema({
    team : String,
    win : Number,
    loss : Number,
+	tie: Number,
    projection: Number,
    line : Number,
    status: String,

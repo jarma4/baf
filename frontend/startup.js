@@ -35,7 +35,10 @@ function doorBell(){
 	.then(res =>res.json())
 	.then(retData => {
 		if(retData.type == 'command'){
-			eval(retData.message);
+			// eval(retData.message);
+			if (retData.message == 'login') {
+				$("#loginModal").modal();
+			}
 		} else if (retData.type == 'message'){  // bets waiting; too lazy to clean up css
 			username = retData.username; // keep around for things
 			if (retData.bets) {

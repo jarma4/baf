@@ -14,7 +14,12 @@ const express = require('express'),
 
 require('dotenv').config();
 
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.BAF_MONGO_URI)
+.then(()=>{})
+.catch(err=>{
+	console.log(err);
+});
+// mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
 router = express.Router();
 
@@ -53,7 +58,8 @@ function requireLogin (req, res, next) {
 	if (!req.user) {
 		// console.log('no auth');
 		// res.redirect('/login');
-		res.send({'type':'command', 'message':'$("#loginModal").modal()'});
+		// res.send({'type':'command', 'message':'$("#loginModal").modal()'});
+		res.send({'type':'command', 'message':'login'});
 	} else {
 		next();
 	}
