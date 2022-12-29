@@ -48,7 +48,7 @@ https.createServer(options, app_https).listen(443, process.env.IP, function () {
    console.log('listening at on port 443');
 });
 
-if (process.env.ENVIRONMENT == 'dev'){
+if (process.env.ENVIRONMENT == 'production'){
 
 	// manage data gathering via scraper model and schedule
 	const scraper = require('./models/scraper');
