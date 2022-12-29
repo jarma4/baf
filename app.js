@@ -3,8 +3,7 @@ const https = require('https'),
       fs = require('fs'),
       crontab = require('node-crontab'),
       exec = require('child_process').exec,
-		compression = require('compression'),
-		Util = require('./models/util');
+		compression = require('compression');
 
 // process.traceDeprecation = true;
 
@@ -17,7 +16,7 @@ app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
    res.redirect(301, 'https://2dollarbets.com');
 });
-app_http.listen(80, '192.168.1.200', function(){
+app_http.listen(80, process.env.IP, function(){
    console.log('redirecting on port 80');
 });
 
@@ -45,52 +44,54 @@ const options = {
    key: fs.readFileSync('./sslcert/privkey.pem')
 };
 
-https.createServer(options, app_https).listen(443, '192.168.1.200', function () {
+https.createServer(options, app_https).listen(443, process.env.IP, function () {
    console.log('listening at on port 443');
 });
 
-// manage data gathering via scraper model and schedule
-const scraper = require('./models/scraper');
+if (process.env.ENVIRONMENT == 'dev'){
 
-// schedule worker jobs
-const oddsCron = crontab.scheduleJob("*/5 5-23 * * *", scraper.refreshOddsInfo);
-// const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
-const clearUnactedCron = crontab.scheduleJob("*/5 12-22 * * *", scraper.clearUnactedBets);
-const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
+	// manage data gathering via scraper model and schedule
+	const scraper = require('./models/scraper');
 
-// for NFL
-const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1,4", scraper.tallyBets2,['nfl']);
+	// schedule worker jobs
+	const oddsCron = crontab.scheduleJob("*/5 5-23 * * *", scraper.refreshOddsInfo);
+	// const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
+	const clearUnactedCron = crontab.scheduleJob("*/5 12-22 * * *", scraper.clearUnactedBets);
+	const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
 
-// for NBA
-const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyBets2,['nba']);
-// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
+	// for NFL
+	const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1,4", scraper.tallyBets2,['nfl']);
 
-// for the Over Under game
-const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
-const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
+	// for NBA
+	const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,20-23 * * *", scraper.tallyBets2,['nba']);
+	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
-// for Tracker
-const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
-const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
-const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
+	// for the Over Under game
+	const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+	const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
-const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
-	const now = new Date();
-	// copy mongo db's to backup area
-   var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
-      if (error || stderr) {
-         console.log(error);
-         console.log(stderr);
-      }
+	// for Tracker
+	const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
+	const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
+	const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
+
+	const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
+		const now = new Date();
+		// copy mongo db's to backup area
+		var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
+			if (error || stderr) {
+				console.log(error);
+				console.log(stderr);
+			}
+		});
+		// move weekly ATS game odds file to backup area
+		// cmd = exec('mv json/ats_* backup/ats', function(error, stdout, stderr) {
+		//    if (error || stderr) {
+		//       console.log(error);
+		//       console.log(stderr);
+		//    }
+		// });
+		console.log('Backups - '+now);
 	});
-	// move weekly ATS game odds file to backup area
-	// cmd = exec('mv json/ats_* backup/ats', function(error, stdout, stderr) {
-   //    if (error || stderr) {
-   //       console.log(error);
-   //       console.log(stderr);
-   //    }
-	// });
-   console.log('Backups - '+now);
-});
-
+}
 

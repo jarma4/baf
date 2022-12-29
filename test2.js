@@ -11,11 +11,13 @@ const { getDefaultSettings } = require('http2');
 const { previousDay } = require('./models/util');
 
 require('dotenv').config();
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.BAF_MONGO_URI)
+.then(()=>{})
+.catch(err=>{
+	console.log(err);
+});
 
-const test = {back2back: ['ATL', 'PHO']};
-Util.textUser('jarma4', JSON.stringify(test));
-// Scraper.getDailyOdds('nba');
+Scraper.processTracker('nba');
 // let playsToday = [], playsToday2 = [], info = {back2back: []};
 // const sport = 'nba';
 // const today = new Date();
