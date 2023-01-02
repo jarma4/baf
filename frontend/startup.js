@@ -101,6 +101,9 @@ function initPage(){
 			getBtaPicks(sport, $('#btaYear').val(), new Date());
 			getBtaScoreboard(sport, $('#btaYear').val(), 'bta');
 			break;
+		case '/tourney':
+			getTourney();
+			break;
 		case '/tracker':
 			getTrackerPicks('nba', new Date());
 			getTracker();

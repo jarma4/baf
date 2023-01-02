@@ -54,6 +54,7 @@ let betsSchema = new mongoose.Schema({
 let sportsSchema = new mongoose.Schema({
    sport: String,
    start : Date,
+	playoffs: Date,
    inseason : Boolean,
 });
 

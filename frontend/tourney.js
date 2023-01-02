@@ -51,8 +51,9 @@ function initBracket(picks){
 }
 function getTourney() {
 	let roundIndex = 0, gameIndex, slotIndex = 0;
-	let sport = 'nba';
+	let sport = $('.sportPick.selected').text().toLowerCase();
 	let roundInfo; 
+	$('#bracketResultsArea').empty();
 	if (sport == 'nfl') {
 		roundInfo= [{title: 'Wildcard Round', number: 12}, {title: 'Division Round', number: 8}, {title: 'Conference Round', number: 4}, {title: 'Super Bowl', number: 2}];
 	} else {
@@ -60,7 +61,7 @@ function getTourney() {
 	}
 	postOptions.body = JSON.stringify({
 		'sport': sport+'tourney',
-		'season': 2021
+		'season': $('#bracketYear').val()
 	});
 	fetch('/api/gettourney', postOptions)
 	.then(res => res.json())
@@ -220,4 +221,8 @@ $('#tourneyAcceptSubmit').on('click', function() {
 	.then(res => res.json())
 	.then(retData => modalAlert(retData.type,retData.message))
 	.catch(retData => modalAlert(retData.type,retData.message));	
+});
+
+$('#bracketYear').on('change', function(){
+	getTourney();	
 });
