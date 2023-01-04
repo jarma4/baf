@@ -545,7 +545,6 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/gettourney', function (req, res) {
-	console.log(req.body);
 	if (new Date() < new Date("4/16/2022 12:00")){
 		OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
 			if (err) {

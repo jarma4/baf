@@ -494,20 +494,21 @@ module.exports = {
 				playsToday2.push('@'+game.team1, game.team2);
 			}
 		});
-		Odds.find({sport: sport, season: Util.seasonStart[sport].getFullYear(), date: Util.previousDay(today).setHours(0,0,0,0), bta: {$exists: false}, $or: [{team1: {$in: playsToday}}, {team2: {$in: playsToday2}}]}, (err, games) => {
-			if (err) {
-				console.log('Error finding teams tha played yesterday: ', err);
-			} else {
-				games.forEach(game => {
-					if (playsToday.includes(game.team1)) {
-						info.back2back.push(game.team1);
-					} else if ([playsToday.includes(game.team2.slice(1))]) {
-						info.back2back.push(game.team2.slice(1));
-					}
-				});
-				Util.textUser('jarma4', JSON.stringify(info));
-			}
-		});
+		// text B2B info
+		// Odds.find({sport: sport, season: Util.seasonStart[sport].getFullYear(), date: Util.previousDay(today).setHours(0,0,0,0), bta: {$exists: false}, $or: [{team1: {$in: playsToday}}, {team2: {$in: playsToday2}}]}, (err, games) => {
+		// 	if (err) {
+		// 		console.log('Error finding teams tha played yesterday: ', err);
+		// 	} else {
+		// 		games.forEach(game => {
+		// 			if (playsToday.includes(game.team1)) {
+		// 				info.back2back.push(game.team1);
+		// 			} else if ([playsToday.includes(game.team2.slice(1))]) {
+		// 				info.back2back.push(game.team2.slice(1));
+		// 			}
+		// 		});
+		// 		Util.textUser('jarma4', JSON.stringify(info));
+		// 	}
+		// });
 		console.log(` - ${index} games today`);
 	},
 	processTracker: (sport) => {

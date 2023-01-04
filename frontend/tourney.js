@@ -1,5 +1,5 @@
-let afcSeeding = ['TEN', 'KC', 'BUF', 'CIN', 'LV', 'NE', 'PIT'];
-let nfcSeeding = ['GB', 'TB', 'DAL', 'LAR', 'ARI', 'SF', 'PHI'];
+let afcSeeding = ['BUF', 'KC', 'CIN', 'JAC', 'BAL', 'LAC', 'MIA'];
+let nfcSeeding = ['PHI', 'MIN', 'SF', 'TB', 'DAL', 'NYG', 'WAS'];
 let eastSeeding = ['MIA', 'PHI', 'BOS', 'MIL', 'CHI', 'BKN', 'TOR', 'ATL'];
 let westSeeding = ['PHO', 'DAL', 'MEM', 'GS', 'DEN', 'MIN', 'UTA', 'LAC'];
 // let eastSeeding = ['ATL', 'TOR', 'BKN', 'CHI', 'MIL', 'BOS', 'PHI', 'MIA'];
@@ -33,15 +33,15 @@ function initBracket_old(sport) {
 
 function initBracket(picks){
 	let round=0, slot=0;
-	for (let index=0; index < 30; ++index){
+	for (let index=0; index < (sport == 'nfl'?28:30); ++index){
 		bracket[round][slot] = picks[index];
-		if (round == 0 && slot == 15){
+		if (round == 0 && slot == (sport == 'nfl'?11:15)){
 			++round;
 			slot = 0;
-		} else if (round == 1 && slot == 7 ){
+		} else if (round == 1 && slot == 7){
 			++round;
 			slot = 0;
-		} else if (round == 2 && slot == 3 ){
+		} else if (round == 2 && slot == 3){
 			++round;
 			slot = 0;
 		} else {
@@ -67,8 +67,8 @@ function getTourney() {
 	.then(res => res.json())
 	.then(retData => {
 		if (!retData.results.length) {
-			initBracket(retData.users);
-			// initBracket(sport);
+			// initBracket(retData.users, sport);
+			initBracket_old(sport);
 			let outp = '<table class="table table-consdensed">';
 			roundInfo.forEach(round => {
 				outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+round.title+'</td></tr>';
@@ -144,6 +144,7 @@ function removeOpponent(round, team){
 }
 
 function toggleChoice(targetBtn){
+	let sport = $('.sportPick.selected').text().toLowerCase();
 	let otherBtn, working = [];
 	document.querySelectorAll('button[data-game="'+targetBtn.dataset.game+'"][data-round="'+targetBtn.dataset.round+'"]').forEach(team => {
 		if(team.dataset.name != targetBtn.dataset.name) {
@@ -167,10 +168,11 @@ function toggleChoice(targetBtn){
 	if (targetBtn.dataset.round < 3) {
 		removeOpponent(Number(targetBtn.dataset.round)+1, otherBtn.dataset.name);
 		// place team in next round 
-		const index = Number(targetBtn.dataset.game)%2  + Math.trunc(Number(targetBtn.dataset.game)/2)*2;
+		const byeAdder = (sport == 'nfl' && (targetBtn.dataset.round == 0 && targetBtn.dataset.game > 2))?1:0;
+		const index = Number(targetBtn.dataset.game)%2  + Math.trunc(Number(targetBtn.dataset.game)/2)*2 + byeAdder;
 		bracket[Number(targetBtn.dataset.round)+1][index] = targetBtn.dataset.name;
 	}
-	drawSprite('nba');
+	drawSprite(sport);
 }
 
 function drawSprite(sport) {
@@ -189,7 +191,7 @@ $('#bracketPicksArea').delegate('.btn-toggle', 'click' , event => {
 });
 
 $('#bracketActionBtn').on('click', event => {
-	let sport = 'nba';
+	let sport = $('.sportPick.selected').text().toLowerCase();
 	if ($('#bracketActionBtn').text() == 'Join') {
 		// fetch picks
 		$('#bracketPicksArea').removeClass('hidden');

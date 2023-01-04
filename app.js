@@ -74,11 +74,11 @@ if (process.env.ENVIRONMENT == 'production'){
 	const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
 	const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
 	const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
-
-	const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
+} else {
+	const backupsCron = crontab.scheduleJob('0 1 * * 3', function () {
 		const now = new Date();
 		// copy mongo db's to backup area
-		var cmd = exec('mongodump -dbaf -ubaf -p'+process.env.BAF_MONGO+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
+		var cmd = exec('mongodump --uri mongodb+srv://baf:'+process.env.BAF_MONGO+'@cluster0.taks6.mongodb.net/baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
 			if (error || stderr) {
 				console.log(error);
 				console.log(stderr);
