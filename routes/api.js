@@ -505,6 +505,7 @@ router.post('/getousignup', requireLogin, function(req,res){
 });
 
 router.post('/setouchoices', requireLogin, function(req,res){
+	console.log(req.body);
 	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), function(err){
 		if (err)
 			console.log("OU choice change error: "+err);
