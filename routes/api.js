@@ -579,7 +579,6 @@ router.post('/gettourney', function (req, res) {
 			}
 		});
 	} else { // after selection time
-		console.log('past');
 		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
 			if (err) {
 				console.log(err);
@@ -588,7 +587,7 @@ router.post('/gettourney', function (req, res) {
 				users.forEach((user, userIndex)=>{
 					let game = 0,userPicks = {};
 					userPicks['user'] = user.user;
-					for(let i=0; i < 30; ++i){
+					for(let i=0; i < (req.body.sport.substring(0,3) == 'nfl'?26:30); ++i){
 						if(user[i].endsWith('*')){
 							userPicks[game] = user[i].slice(0,-1);
 							++game;
