@@ -506,7 +506,7 @@ router.post('/getousignup', requireLogin, function(req,res){
 
 router.post('/setouchoices', requireLogin, function(req,res){
 	console.log(req.body);
-	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), function(err){
+	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true }, function(err){
 		if (err)
 			console.log("OU choice change error: "+err);
 		else {
@@ -546,36 +546,40 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/gettourney', function (req, res) {
-	if (new Date() < new Date("4/16/2022 12:00")){
+	// console.log(req.session.user._id,req.body);
+	if (new Date() < new Date("1/14/2023 15:30")){
+		console.log('before');
 		OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
 			if (err) {
 				console.log(err);
 			} else if (result) {
 				res.json({results: [], users: result});
 			} else {
-				const newRecord = {
-					user: req.session.user._id,
-					season: Number(req.body.season),
-					sport: req.body.sport
-				};
-				const nbaFirstRound = ['ATL', 'MIA', 'TOR', 'PHI', 'BKN', 'BOS', 'CHI', 'MIL', 'NOP', 'PHO', 'UTA', 'DAL', 'MIN', 'MEM', 'DEN', 'GS']; // 8, 1, 5, 4, 7, 2, 6, 3 ...
-				for (let index=0; index < 30; ++index){
-					if (index < 16) {
-						newRecord[index] = nbaFirstRound[index];
-					} else {
-						newRecord[index] = '';
-					}
-				}
-				new OUuser(newRecord).save(err => {
-					if (err) {
-						console.log('Error saving new OUuser: '+err);
-					} else {
-						res.json({results: [], users: newRecord});
-					}
-				});
+				// const newRecord = {
+				// 	user: req.session.user._id,
+				// 	season: Number(req.body.season),
+				// 	sport: req.body.sport
+				// };
+				// const nbaFirstRound = ['ATL', 'MIA', 'TOR', 'PHI', 'BKN', 'BOS', 'CHI', 'MIL', 'NOP', 'PHO', 'UTA', 'DAL', 'MIN', 'MEM', 'DEN', 'GS']; // 8, 1, 5, 4, 7, 2, 6, 3 ...
+				// for (let index=0; index < 30; ++index){
+				// 	if (index < 16) {
+				// 		newRecord[index] = nbaFirstRound[index];
+				// 	} else {
+				// 		newRecord[index] = '';
+				// 	}
+				// }
+				// new OUuser(newRecord).save(err => {
+				// 	if (err) {
+				// 		console.log('Error saving new OUuser: '+err);
+				// 	} else {
+				// 		res.json({results: [], users: newRecord});
+				// 	}
+				// });
+						res.json({results: [], users: []});
 			}
 		});
 	} else { // after selection time
+		console.log('past');
 		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
 			if (err) {
 				console.log(err);

@@ -95,7 +95,6 @@ function toggleChoice(targetBtn){
 			}
 			conference[round+1].splice(conference.indexOf(''),1);
 			conference[round+1].splice(location, 0, name);
-			console.log(conference[round+1]);
 			updateBracket('nfl', round+1);
 		} else {
 		 index = Number(targetBtn.dataset.game) % 2  + Math.trunc(Number(targetBtn.dataset.game) / 2) * 2;
@@ -122,8 +121,11 @@ function getTourney() {
 	.then(res => res.json())
 	.then(retData => {
 		if (!retData.results.length) {
-			// initBracket(retData.users, sport);
-			updateBracket('nfl',0);
+			// if (retData.users){
+			// 	initBracket(retData.users, sport);
+			// } else {
+				updateBracket('nfl',0);
+			// }
 			// initBracket_old(sport);
 			let outp = '<table class="table table-consdensed">';
 			roundInfo.forEach(round => {
@@ -242,35 +244,9 @@ $('#bracketYear').on('change', function(){
 	getTourney();	
 });
 
-// initial draw: round1 2-7; round2 
-function initBracket_old(sport) {
-	let round;
-	if (sport == 'nfl'){
-		round = [[...afcSeeding], [...nfcSeeding]];
-	} else {
-		round = [[...eastSeeding], [...westSeeding]];
-	}
-	round.forEach(conference => {
-		if (sport == 'nfl') {
-			conference.shift(); // remove #1 seed leaving 6
-		}
-		const temp = conference.length;
-		for (let index = 0; index < temp; index++) {
-			if (index%2) {
-				bracket[0].push(conference.shift());
-			} else {
-				bracket[0].push(conference.pop());
-			}
-		}
-	});
-	if (sport == 'nfl') {  // buys
-		bracket[1] = ['', '', '', [...afcSeeding].shift(), '', '', '', [...nfcSeeding].shift()];
-	}
-}
-
-function initBracket(picks){
+function initBracket(picks, sport){
 	let round=0, slot=0;
-	for (let index=0; index < (sport == 'nfl'?28:30); ++index){
+	for (let index=0; index < (sport == 'nfl'?26:30); ++index){
 		bracket[round][slot] = picks[index];
 		if (round == 0 && slot == (sport == 'nfl'?11:15)){
 			++round;

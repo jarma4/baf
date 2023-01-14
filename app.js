@@ -67,7 +67,7 @@ if (process.env.ENVIRONMENT == 'production'){
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
-	const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
 	const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
