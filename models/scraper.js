@@ -10,6 +10,12 @@ const request = require('request'),
 	Util = require('./util');
 
 function getOdds(sport) {
+	
+	function changeTime(time){ // time is in ET
+		const timeSplit=time.slice(0,-2).split(':');
+		return String(Number(timeSplit[0])+((time.slice(-2)=='pm')?11:-1)+':'+timeSplit[1]);
+	}
+
 	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
 	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
