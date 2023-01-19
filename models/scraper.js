@@ -17,9 +17,10 @@ function getOdds(sport) {
 	}
 
 	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
-	// console.log(`checking odds ${sport} @ ${url}`);
+	console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
+			// get odds for teams
 			const $ = cheerio.load(body);
 			let  games = [];
 			const today = new Date();
@@ -34,45 +35,11 @@ function getOdds(sport) {
 				games.push({
 					date: new Date(tempDate[1]+' '+tempDate[2]+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempDate[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+changeTime($(times[idx]).text().split(' ')[0])),
 					team1: (sport == 'nfl')?Util.nflTeams[teamNames.first().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.first().attr('title')]:teamNames.first().attr('title'),
-					team2: (sport == 'nfl')?Util.nflTeams[teamNames.last().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.last().attr('title')]:teamNames.last().attr('title'),
+					team2: '@'+((sport == 'nfl')?Util.nflTeams[teamNames.last().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.last().attr('title')]:teamNames.last().attr('title')),
 					spread: (spread.children().attr('data-odds-spread'))?JSON.parse(spread.children().attr('data-odds-spread')).fullgame:'--',
 					over: (spread.next().next().children().attr('data-odds-total'))?JSON.parse(spread.next().next().children().attr('data-odds-total')).fullgame:'--'
 				});
 			}
-			// // get matchup w/ team names & date
-			// $('.op-block__matchup-time').each((index, element)=>{
-			// 	const tempdate = JSON.parse($(element).parent().prevAll('.op-block__separator--left').attr('data-op-date')).short_date; //prevAll gives list, closest one is always last
-			// 	const temptime = $(element).text().split(':');
-			// 	games.push({date: new Date(tempdate+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempdate.split(' ')[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+(Number(temptime[0])+Number((temptime[1].slice(-1) == 'p')?11:-1))+':'+temptime[1].slice(0,2))});
-			// });
-			// let gameIndex = 0;
-			// $('.md-hide','.op-block__matchup.'+((sport == 'nfl' || sport == 'ncaaf')?'football':(sport == 'nba' || sport == 'ncaab')?'basketball':sport)).each((index, element)=>{
-			// 	if (index % 2) {
-			// 		games[gameIndex].team2 = '@'+$(element).text();
-			// 		gameIndex++;
-			// 	} else {
-			// 		games[gameIndex].team1 = $(element).text();
-			// 	}	 
-			// });
-			// // get odds for matchups 
-			// gameIndex = 0;
-			// $('.op-block__row','.op-block.odds').each((index, element) =>{
-			// 	let tmp = $(element).children().next().children().children();
-			// 	if ($(tmp).attr('data-op-info') != undefined && JSON.parse($(tmp).attr('data-op-info')).fullgame != '') {
-			// 		if (JSON.parse($(tmp).attr('data-op-info')).fullgame != 'Ev') {
-			// 			games[index].spread = Number(JSON.parse($(tmp).attr('data-op-info')).fullgame);
-			// 		}
-			// 		else {
-			// 			games[index].spread = 0;
-			// 		}
-			// 		games[index].firsthalf = Number(JSON.parse($(tmp).attr('data-op-info')).firsthalf);
-			// 		games[index].secondhalf = Number(JSON.parse($(tmp).attr('data-op-info')).secondhalf);
-			// 		games[index].over = Number(JSON.parse($(tmp).attr('data-op-total')).fullgame);
-			// 		games[index].moneyline1 = Number(JSON.parse($(tmp).attr('data-op-moneyline')).fullgame);
-			// 		games[index].moneyline2 = Number(JSON.parse($(tmp).parent().next().children().attr('data-op-moneyline')).fullgame);
-			// 	}
-			// 	gameIndex++;
-			// });			
 
 			// go through odds Watches and act if necessary
 			// console.log('checking watches');
