@@ -259,7 +259,7 @@ module.exports = {
 					const $ = cheerio.load(body);
 					const scoresClass = $('.single-score-card.postgame');
 					for (let idx = 0; idx < scoresClass.length; idx++){
-						const matchup = $(scoresClass[idx]).find('a:nth-child(2)');
+						const matchup = $(scoresClass[idx]).find('a:nth-child(3)');
 						scores[teams[matchup.first().text()]] = Number(matchup.first().parent().parent().find('td').last().text().replace(/\s/g,''));
 						scores['@'+teams[matchup.last().text()]] = Number(matchup.last().parent().parent().find('td').last().text().replace(/\s/g,''));
 					}

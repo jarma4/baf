@@ -56,6 +56,8 @@ let sportsSchema = new mongoose.Schema({
    start : Date,
 	playoffs: Date,
    inseason : Boolean,
+	seeding1: Array,
+	seeding2: Array
 });
 
 let ouGameSchema = new mongoose.Schema({

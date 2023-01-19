@@ -546,65 +546,51 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/gettourney', function (req, res) {
-	// console.log(req.session.user._id,req.body);
-	if (new Date() < new Date("1/14/2023 15:30")){
-		console.log('before');
-		OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
-			if (err) {
-				console.log(err);
-			} else if (result) {
-				res.json({results: [], users: result});
-			} else {
-				// const newRecord = {
-				// 	user: req.session.user._id,
-				// 	season: Number(req.body.season),
-				// 	sport: req.body.sport
-				// };
-				// const nbaFirstRound = ['ATL', 'MIA', 'TOR', 'PHI', 'BKN', 'BOS', 'CHI', 'MIL', 'NOP', 'PHO', 'UTA', 'DAL', 'MIN', 'MEM', 'DEN', 'GS']; // 8, 1, 5, 4, 7, 2, 6, 3 ...
-				// for (let index=0; index < 30; ++index){
-				// 	if (index < 16) {
-				// 		newRecord[index] = nbaFirstRound[index];
-				// 	} else {
-				// 		newRecord[index] = '';
-				// 	}
-				// }
-				// new OUuser(newRecord).save(err => {
-				// 	if (err) {
-				// 		console.log('Error saving new OUuser: '+err);
-				// 	} else {
-				// 		res.json({results: [], users: newRecord});
-				// 	}
-				// });
-						res.json({results: [], users: []});
-			}
-		});
-	} else { // after selection time
-		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
-			if (err) {
-				console.log(err);
-			} else {
-				let allPicks=[];
-				users.forEach((user, userIndex)=>{
-					let game = 0,userPicks = {};
-					userPicks['user'] = user.user;
-					for(let i=0; i < (req.body.sport.substring(0,3) == 'nfl'?26:30); ++i){
-						if(user[i].endsWith('*')){
-							userPicks[game] = user[i].slice(0,-1);
-							++game;
-						}
+	Sports.findOne({season: req.body.season, sport: req.body.sport.substring(0,3)}, (err, sportInfo)=>{
+		if (err) {
+			console.log(err);
+		} else {
+			if (new Date() < sportInfo.playoffs){
+				console.log('before');
+				OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
+					if (err) {
+						console.log(err);
+					} else if (result) {
+						res.json({results: [], users: result});
+					} else {
+						res.json({results: [], users: [sportInfo.seeding1, sportInfo.seeding2]});
 					}
-					allPicks.push(userPicks);
 				});
-				OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
+			} else { // after selection time
+				console.log('after');
+				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
 					if (err) {
 						console.log(err);
 					} else {
-						res.json({results: results, users: allPicks});
+						let allPicks=[];
+						users.forEach((user, userIndex)=>{
+							let game = 0,userPicks = {};
+							userPicks['user'] = user.user;
+							for(let i=0; i < (req.body.sport.substring(0,3) == 'nfl'?26:30); ++i){
+								if(user[i].endsWith('*')){
+									userPicks[game] = user[i].slice(0,-1);
+									++game;
+								}
+							}
+							allPicks.push(userPicks);
+						});
+						OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
+							if (err) {
+								console.log(err);
+							} else {
+								res.json({results: results, users: allPicks});
+							}
+						}).sort({index: 1});
 					}
-				}).sort({index: 1});
+				});
 			}
-		});
-	}
+		}
+	});
 });   
 
 router.post('/getbtascoreboard', requireLogin, (req,res) => {
