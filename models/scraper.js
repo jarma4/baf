@@ -17,7 +17,7 @@ function getOdds(sport) {
 	}
 
 	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
-	console.log(`checking odds ${sport} @ ${url}`);
+	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
 			// get odds for teams
@@ -36,8 +36,8 @@ function getOdds(sport) {
 					date: new Date(tempDate[1]+' '+tempDate[2]+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempDate[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+changeTime($(times[idx]).text().split(' ')[0])),
 					team1: (sport == 'nfl')?Util.nflTeams[teamNames.first().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.first().attr('title')]:teamNames.first().attr('title'),
 					team2: '@'+((sport == 'nfl')?Util.nflTeams[teamNames.last().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.last().attr('title')]:teamNames.last().attr('title')),
-					spread: (spread.children().attr('data-odds-spread'))?JSON.parse(spread.children().attr('data-odds-spread')).fullgame:'--',
-					over: (spread.next().next().children().attr('data-odds-total'))?JSON.parse(spread.next().next().children().attr('data-odds-total')).fullgame:'--'
+					spread: (spread.children().attr('data-odds-spread')&&JSON.parse(spread.children().attr('data-odds-spread')).fullgame!='Ev')?JSON.parse(spread.children().attr('data-odds-spread')).fullgame:0,
+					over: (spread.next().next().children().attr('data-odds-total'))?JSON.parse(spread.next().next().children().attr('data-odds-total')).fullgame:0
 				});
 			}
 
