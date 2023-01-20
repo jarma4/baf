@@ -147,11 +147,11 @@ function getTourney() {
 				outp += '<tr height="1px"><td style="font-style:italic">'+item.team+'</td><td>'+item.status+'</td>';
 				retData.users.forEach((rec, userIndex) =>{
 					outp += '<td class="'+((rec[gameIndex]==item.status)?'heading-success':'')+'">'+rec[gameIndex]+'</td>';
-					if (gameIndex > 7 && gameIndex < 12) {
+					if ((sport == 'nfl' && gameIndex > 5 && gameIndex < 10) || (sport == 'nba' && gameIndex > 7 && gameIndex < 12)) {
 						multiplier = 2;
-					} else if (gameIndex > 11 && gameIndex < 14) {
+					} else if ((sport == 'nfl' && gameIndex > 9 && gameIndex < 12) || (sport == 'nba' && gameIndex > 11 && gameIndex < 14)) {
 						multiplier = 3;
-					} else if (gameIndex == 14) {
+					} else if ((sport == 'nfl' && gameIndex == 12) || (sport == 'nba' && gameIndex == 14)) {
 						multiplier = 4;
 					}
 					if (rec[gameIndex] == item.status){
