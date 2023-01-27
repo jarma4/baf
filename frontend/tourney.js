@@ -2,9 +2,10 @@ let seeding1 = [[], ['', '','', ''], ['',''],['']];
 let seeding2 = [[],['', '','', ''], ['',''],['']];
 let bracket =[[], [], [], []];
 
-function updateBracket(sport, startRound) {
+function updateBracket(sport, startRound, users) {
 	let teams;
 	for(let round = startRound; round < 4; round++){
+		// get seeding for round; toggleChoice modifies seeding
 		if (sport == 'nfl'){
 			let afc = [...seeding1[round]], nfc = [...seeding2[round]];
 			if (round == 0){
@@ -15,6 +16,7 @@ function updateBracket(sport, startRound) {
 		} else {
 			teams = [[...seeding1], [...seeding2]];
 		}
+		// place in bracket according to seeding
 		bracket[round] = [];
 		teams.forEach(conference => {
 			const num = conference.length;
@@ -99,11 +101,29 @@ function getTourney() {
 	.then(res => res.json())
 	.then(retData => {
 		if (!retData.results.length) {
-			if (retData.users.length == 2){
-				seeding1[0] = [...retData.users[0]];
-				seeding2[0] = [...retData.users[1]];
+			if (retData.users) {
+				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[8,12,14];
+				let round = 0, start=0;
+				seeding1 = [[],[],[],[]];
+				seeding2 = [[],[],[],[]];
+				for (let index=0; index < ((sport == 'nfl')?26:30); index++){
+					if (start == teamsPerRound[round]){
+						round++;
+						start = 0;
+					}
+					if (start < teamsPerRound[round]/2) {
+						seeding1[round].splice(Math.trunc(start/2)+round*teamsPerRound[round], 0, (retData.users[index].at(-1)=='*')?retData.users[index].slice(0,-1):retData.users[index]);
+					} else {
+						console.log(index);
+						seeding2[round].splice(Math.trunc(start/2)+round*teamsPerRound[round], 0, (retData.users[index].at(-1)=='*')?retData.users[index].slice(0,-1):retData.users[index]);
+					}
+					start++;
+				}
+			} else {
+				seeding1[0] = [...retData.seeding[0]];
+				seeding2[0] = [...retData.seeding[1]];
 			}
-			updateBracket('nfl',0);
+			updateBracket(sport, 0, retData.users);
 			let outp = '<table class="table table-consdensed">';
 			roundInfo.forEach(round => {
 				outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+round.title+'</td></tr>';

@@ -393,15 +393,16 @@ module.exports = {
 		});
 	},
 	updateStandings: function(sport){
-		const url = 'http://www.oddsshark.com/'+sport+'/ats-standings';
+		const url = 'http://cbssports.com/'+sport+'/standings';
 		request(url, function (err, response, body) {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
 				console.log('starting update '+sport);
-				Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
-               let record = $('.table a:contains('+name+')').parent().next().text().split('-');
-               // console.log(name,record);
-					let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
+				const teamInfo = $('.TableBase-bodyTr');
+				for (let index=0; index < teamInfo.length; index++){
+					const name = $(teamInfo[index]).find('span.TeamName').text();
+					const record = [Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().text()), Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text())];
+					const newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
 					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
 						if (err)
 							logger.error('OUgame find team error: '+err);
@@ -412,7 +413,7 @@ module.exports = {
 							});
 						}
 					});
-				});
+				}
 				logger.info('updated standings - '+new Date());
 			}
 		});

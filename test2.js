@@ -18,37 +18,39 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 	console.log(err);
 });
 
-function changeTime(time){ // time is in ET
-	const timeSplit=time.slice(0,-2).split(':');
-	return String(Number(timeSplit[0])+((time.slice(-2)=='pm')?11:-1)+':'+timeSplit[1]);
-}
 const sport = 'nba';
-let  games = [];
-const today = new Date();
-let teamNames, tempDate, spread;
-const url = 'https://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+
+const url = 'http://cbssports.com/'+sport+'/standings';
 request(url, function (err, response, body) {
 	if(!err && response.statusCode == 200) {
 		const $ = cheerio.load(body);
-		const matchups = $('.odds--group__event-participants');
-		const times = $('.odds--group__event-time');
-		const odds = $('.book-5580');
-		for (let idx = 0; idx < matchups.length; idx++){
-			spread = $(odds[idx]).find('.odds-spread');
-			teamNames = $(matchups[idx]).find('.participant-name');
-			tempDate = $(matchups[idx]).parent().parent().prev().find('.short-date').text().split(' ');
-			games.push({
-				date: new Date(tempDate[1]+' '+tempDate[2]+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempDate[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+changeTime($(times[idx]).text().split(' ')[0])),
-				team1: (sport == 'nfl')?Util.nflTeams[teamNames.first().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.first().attr('title')]:teamNames.first().attr('title'),
-				team2: (sport == 'nfl')?Util.nflTeams[teamNames.last().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.last().attr('title')]:teamNames.last().attr('title'),
-				spread: (spread.children().attr('data-odds-spread'))?JSON.parse(spread.children().attr('data-odds-spread')).fullgame:'--',
-				over: (spread.next().next().children().attr('data-odds-total'))?JSON.parse(spread.next().next().children().attr('data-odds-total')).fullgame:'--'
-			});
+		teamInfo = $('.TableBase-bodyTr');
+		for (let index=0; index < teamInfo.length; index++){
+			console.log(Util.nbaTeams[$(teamInfo[index]).find('span.TeamName').text()], $(teamInfo[index]).find('.TableBase-bodyTd--number').first().text(), $(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text());
 		}
-		console.log(games);
+		// const teams = $('span.TeamName');
+		// for (let index=0; index < teams.length; index++){
+		// 	console.log(Util.nbaTeams[$(teams[index]).text()]);
+
+		// }
+		// Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
+		// 	let record = $('.table a:contains('+name+')').parent().next().text().split('-');
+		// 	// console.log(name,record);
+		// 	let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
+		// 	OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
+		// 		if (err)
+		// 			logger.error('OUgame find team error: '+err);
+		// 		else if(rec) {
+		// 			OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
+		// 				if (err)
+		// 					logger.error('updateStandings error: '+err);
+		// 			});
+		// 		}
+		// 	});
+		// });
+		// logger.info('updated standings - '+new Date());
 	}
 });
-
 // let playsToday = [], playsToday2 = [], info = {back2back: []};
 // const sport = 'nba';
 // const today = new Date();

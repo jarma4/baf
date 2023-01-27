@@ -550,15 +550,14 @@ router.post('/gettourney', function (req, res) {
 		if (err) {
 			console.log(err);
 		} else {
-			if (new Date() < sportInfo.playoffs){
-				console.log('before');
-				OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
+			if (new Date() < sportInfo.playoffs){ //still time to pick
+				OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, '-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29', (err, result) => {
 					if (err) {
 						console.log(err);
-					} else if (result) {
-						res.json({results: [], users: result});
+					} else if (result) { // user picks exist
+						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2], users: result});
 					} else {
-						res.json({results: [], users: [sportInfo.seeding1, sportInfo.seeding2]});
+						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2]});
 					}
 				});
 			} else { // after selection time

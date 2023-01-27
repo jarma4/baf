@@ -68,12 +68,12 @@ if (process.env.ENVIRONMENT == 'production'){
 
 	// for the Over Under game
 	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
-	const updateStandingsCron2 = crontab.scheduleJob("0 8 * * *", scraper.updateStandings,['nba']);
+	const updateStandingsCron2 = crontab.scheduleJob("31 20 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
-	const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
-	const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
-	const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
+	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
+	// const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
+	// const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
 } else {
 	const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
 		const now = new Date();
