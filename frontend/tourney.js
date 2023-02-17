@@ -2,13 +2,13 @@ let seeding1 = [[], ['', '','', ''], ['',''],['']];
 let seeding2 = [[],['', '','', ''], ['',''],['']];
 let bracket =[[], [], [], []];
 
-function updateBracket(sport, startRound, users) {
+function updateBracket(sport, startRound, picks) {
 	let teams;
 	for(let round = startRound; round < 4; round++){
 		// get seeding for round; toggleChoice modifies seeding
 		if (sport == 'nfl'){
 			let afc = [...seeding1[round]], nfc = [...seeding2[round]];
-			if (round == 0){
+			if (round == 0 && !picks){
 				seeding1[1][0] = afc.shift();
 				seeding2[1][0] = nfc.shift();
 			}
@@ -102,22 +102,21 @@ function getTourney() {
 	.then(retData => {
 		if (!retData.results.length) {
 			if (retData.users) {
-				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[8,12,14];
-				let round = 0, start=0;
 				seeding1 = [[],[],[],[]];
 				seeding2 = [[],[],[],[]];
+				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[8,12,14];
+				let round = 0, roundCount=0;
 				for (let index=0; index < ((sport == 'nfl')?26:30); index++){
-					if (start == teamsPerRound[round]){
+					if (roundCount == teamsPerRound[round]){
 						round++;
-						start = 0;
+						roundCount = 0;
 					}
-					if (start < teamsPerRound[round]/2) {
-						seeding1[round].splice(Math.trunc(start/2)+round*teamsPerRound[round], 0, (retData.users[index].at(-1)=='*')?retData.users[index].slice(0,-1):retData.users[index]);
+					if (roundCount < teamsPerRound[round]/2) {
+						seeding1[round].splice(Math.trunc(roundCount/2), 0, retData.users[index]);
 					} else {
-						console.log(index);
-						seeding2[round].splice(Math.trunc(start/2)+round*teamsPerRound[round], 0, (retData.users[index].at(-1)=='*')?retData.users[index].slice(0,-1):retData.users[index]);
+						seeding2[round].splice(Math.trunc((roundCount-teamsPerRound[round]/2)/2), 0, retData.users[index]);
 					}
-					start++;
+					roundCount++;
 				}
 			} else {
 				seeding1[0] = [...retData.seeding[0]];
@@ -133,9 +132,14 @@ function getTourney() {
 						outp += '<tr>';
 					}
 					outp += '<td class="td-odds"><button class="btn btn-toggle ';
-					if(team.endsWith('*')){
+					if(team.endsWith('*')){ // color choice green and remove * in arrays
 						outp += 'btn-success" ';
 						bracket[roundIndex][index] = bracket[roundIndex][index].slice(0,-1);
+						if (seeding1[roundIndex].indexOf(team) != -1) {
+							seeding1[roundIndex].splice(seeding1[roundIndex].indexOf(team), 1, team.slice(0,-1));
+						} else {
+							seeding2[roundIndex].splice(seeding2[roundIndex].indexOf(team), 1, team.slice(0,-1));
+						}
 					} {
 						outp += 'btn-default" ';
 					}

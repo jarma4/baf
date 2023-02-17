@@ -18,39 +18,27 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 	console.log(err);
 });
 
-const sport = 'nba';
+let teams, url, wk, today = new Date();
+let scores = {};
 
-const url = 'http://cbssports.com/'+sport+'/standings';
+const sport = 'nba';
+url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
+teams = Util.nbaTeams2;
+console.log(url);
 request(url, function (err, response, body) {
 	if(!err && response.statusCode == 200) {
 		const $ = cheerio.load(body);
-		teamInfo = $('.TableBase-bodyTr');
-		for (let index=0; index < teamInfo.length; index++){
-			console.log(Util.nbaTeams[$(teamInfo[index]).find('span.TeamName').text()], $(teamInfo[index]).find('.TableBase-bodyTd--number').first().text(), $(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text());
+		const scoresClass = $('.single-score-card.postgame');
+		console.log(scoresClass.length);
+		for (let idx = 0; idx < scoresClass.length; idx++){
+			const matchup = $(scoresClass[idx]).find('a:nth-child(2)');
+			scores[teams[matchup.first().text()]] = Number(matchup.first().parent().parent().find('td').last().text().replace(/\s/g,''));
+			scores['@'+teams[matchup.last().text()]] = Number(matchup.last().parent().parent().find('td').last().text().replace(/\s/g,''));
 		}
-		// const teams = $('span.TeamName');
-		// for (let index=0; index < teams.length; index++){
-		// 	console.log(Util.nbaTeams[$(teams[index]).text()]);
-
-		// }
-		// Object.keys((sport=='nfl')?Util.nflTeams:Util.nbaTeams).forEach(function(name){
-		// 	let record = $('.table a:contains('+name+')').parent().next().text().split('-');
-		// 	// console.log(name,record);
-		// 	let newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
-		// 	OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
-		// 		if (err)
-		// 			logger.error('OUgame find team error: '+err);
-		// 		else if(rec) {
-		// 			OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
-		// 				if (err)
-		// 					logger.error('updateStandings error: '+err);
-		// 			});
-		// 		}
-		// 	});
-		// });
-		// logger.info('updated standings - '+new Date());
+		console.log(scores);
 	}
 });
+
 // let playsToday = [], playsToday2 = [], info = {back2back: []};
 // const sport = 'nba';
 // const today = new Date();
