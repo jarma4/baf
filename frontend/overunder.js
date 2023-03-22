@@ -6,7 +6,7 @@ function getOverunder() {
       $('.signup').removeClass('hidden');
       $('.active').addClass('hidden');
       ouSignup();
-   } else if (inSeason[sport]){
+   } else {
       $('.active').removeClass('hidden');
       $('.signup').addClass('hidden');
       postOptions.body = JSON.stringify({

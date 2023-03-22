@@ -31,7 +31,9 @@ module.exports = {
                         'text': message + ' - 2DB'
                      }).then(response => {
                         console.log('texted',message); // asynchronously handled
-                     });
+                     }).catch(err=>{
+								console.log('Error texting: ', err);
+							});
                      textList[to] = 0;
                   }
                }, 90000);

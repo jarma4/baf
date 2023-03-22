@@ -14,7 +14,7 @@ function updateBracket(sport, startRound, picks) {
 			}
 			teams = [[...afc], [...nfc]];
 		} else {
-			teams = [[...seeding1], [...seeding2]];
+			teams = [[...seeding1[round]], [...seeding2[round]]];
 		}
 		// place in bracket according to seeding
 		bracket[round] = [];
@@ -58,16 +58,14 @@ function toggleChoice(targetBtn){
 	// place team in next round 
 	if (round < 3) {
 		removeOpponent(round+1, otherBtn.dataset.name); // clear things out
-		let index, location, conference, start, end;
+		let index, location, conference;
 
-		if (sport == 'nfl') {
-			const midNext = 6 - 2 * (round+1); // find middle of next round
-			if (bracket[round].indexOf(name) < bracket[round].length/2) {
-				conference = seeding1;
-			} else {
-				conference = seeding2;
-			}
-			// newConference = bracket[round+1].slice(0, midNext).filter(element => element != ''); 
+		if (bracket[round].indexOf(name) < bracket[round].length/2) {
+			conference = seeding1;
+		} else {
+			conference = seeding2;
+		}
+		if (sport == 'nfl') { // subsequent rounds are reseeded according to start seeding
 			for (location = 0; location < conference[round+1].length; location++){
 				if (conference[round+1][location] == '' || conference[0].indexOf(name) < conference[0].indexOf(conference[round+1][location])){
 					break;
@@ -75,11 +73,11 @@ function toggleChoice(targetBtn){
 			}
 			conference[round+1].splice(conference.indexOf(''),1);
 			conference[round+1].splice(location, 0, name);
-			updateBracket('nfl', round+1);
-		} else {
-		 index = Number(targetBtn.dataset.game) % 2  + Math.trunc(Number(targetBtn.dataset.game) / 2) * 2;
-		 bracket[round+1][index] = name;
+		} else { // nba is 1-8 vs 4-5, 2-7 vs 3-6
+			index = Number(targetBtn.dataset.game) % 2  + Math.trunc(Number(targetBtn.dataset.game) / 2) * 2;
+			conference[round+1][index] = name;
 		}
+		updateBracket(sport, round+1);
 	}
 	drawSprite(sport);
 }
