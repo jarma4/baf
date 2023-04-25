@@ -12,7 +12,7 @@ require('dotenv').config();
 // http site
 const app_http = express();
 app_http.use(compression());
-app_http.use('/', express.static(__dirname + '/public'));
+// app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
    res.redirect(301, 'https://2dollarbets.com');
 });
@@ -68,7 +68,7 @@ if (process.env.ENVIRONMENT == 'production'){
 
 	// for the Over Under game
 	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
-	const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+	// const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
 	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
