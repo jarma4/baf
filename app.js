@@ -48,7 +48,7 @@ https.createServer(options, app_https).listen(443, process.env.IP, function () {
    console.log('listening at on port 443');
 });
 
-if (process.env.ENVIRONMENT == 'production'){
+if (process.env.ENVIRONMENT == 'local'){
 
 	// manage data gathering via scraper model and schedule
 	const scraper = require('./models/scraper');
@@ -74,11 +74,13 @@ if (process.env.ENVIRONMENT == 'production'){
 	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
 	// const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
 	// const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
-} else {
-	const backupsCron = crontab.scheduleJob('0 1 * * 0', function () {
+} 
+if (process.env.ENVIRONMENT == 'local') {
+	const backupsCron = crontab.scheduleJob('0 1 * * 2', function () {
 		const now = new Date();
+		console.log('Performing backup - '+now);
 		// copy mongo db's to backup area
-		var cmd = exec('mongodump --forceTableScan --uri mongodb+srv://baf:'+process.env.BAF_MONGO+'@cluster0.taks6.mongodb.net/baf -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
+		var cmd = exec('mongodump --forceTableScan --uri='+process.env.BAF_MONGO_URI+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
 			if (error || stderr) {
 				console.log(error);
 				console.log(stderr);
@@ -91,7 +93,6 @@ if (process.env.ENVIRONMENT == 'production'){
 		//       console.log(stderr);
 		//    }
 		// });
-		console.log('Backups - '+now);
 	});
 }
 

@@ -561,7 +561,6 @@ router.post('/gettourney', function (req, res) {
 					}
 				});
 			} else { // after selection time
-				console.log('after');
 				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
 					if (err) {
 						console.log(err);

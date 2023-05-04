@@ -181,7 +181,7 @@ function getTourney() {
 			outp += '</table>';
 			document.getElementById('bracketPicksArea').innerHTML = outp;
 			drawSprite(sport);
-		} else {
+		} else { // picking over, show results
 			let points=[];
 			let outp = '<table class="table table-consdensed"><tr><th>Game</th><th>Win</th>';
 			retData.users.forEach((rec, userIndex) =>{
@@ -218,6 +218,7 @@ function getTourney() {
 			});
 			outp += '</tr></table>';
 			document.getElementById('bracketResultsArea').innerHTML = outp;
+			document.getElementById('bracketActionBtn').classList.add('hidden');
 		}
 	});
 }
