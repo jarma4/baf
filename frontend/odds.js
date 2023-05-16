@@ -22,7 +22,7 @@ function getOdds (){
 
       let outp = '<table class="table">';
       $.each(retData.games, function(i,rec){
-         let checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
+         let checkDisabled = '', btnColor1, btnColor2, date = new Date(new Date(rec.date).getTime()+5*60000); //add 5min
 
          // gray out and disable if game already started
          if (date > new Date()) {

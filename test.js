@@ -11,33 +11,22 @@ const { getDefaultSettings } = require('http2');
 const { previousDay } = require('./models/util');
 const { match } = require('assert');
 
-require('dotenv').config();
-mongoose.connect(process.env.BAF_MONGO_URI)
-.then(()=>{})
-.catch(err=>{
-	console.log(err);
+// require('dotenv').config();
+// mongoose.connect(process.env.BAF_MONGO_URI)
+// .then(()=>{})
+// .catch(err=>{
+// 	console.log(err);
+// });
+let plivo = require('plivo');
+let client = new plivo.Client("MANJRMMDLJYME1MMYYOG","ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw");
+client.messages.create({
+    src: '+16282390413',
+    dst: '+15122937112',
+    text: 'From Plivo'
+}).then(function(message_created) {
+    console.log(message_created)
 });
 
-let teams, url, wk, today = new Date();
-let scores = {};
-
-const sport = 'nba';
-url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
-teams = Util.nbaTeams2;
-console.log(url);
-request(url, function (err, response, body) {
-	if(!err && response.statusCode == 200) {
-		const $ = cheerio.load(body);
-		const scoresClass = $('.single-score-card.postgame');
-		console.log(scoresClass.length);
-		for (let idx = 0; idx < scoresClass.length; idx++){
-			const matchup = $(scoresClass[idx]).find('a:nth-child(2)');
-			scores[teams[matchup.first().text()]] = Number(matchup.first().parent().parent().find('td').last().text().replace(/\s/g,''));
-			scores['@'+teams[matchup.last().text()]] = Number(matchup.last().parent().parent().find('td').last().text().replace(/\s/g,''));
-		}
-		console.log(scores);
-	}
-});
 
 // let playsToday = [], playsToday2 = [], info = {back2back: []};
 // const sport = 'nba';

@@ -13,13 +13,12 @@ const express = require('express'),
 		// Tourney = require('./tourney');
 
 require('dotenv').config();
-
+mongoose.set('strictQuery', true);
 mongoose.connect(process.env.BAF_MONGO_URI)
 .then(()=>{})
 .catch(err=>{
 	console.log(err);
 });
-// mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
 
 router = express.Router();
 
