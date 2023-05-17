@@ -18,7 +18,7 @@ const { match } = require('assert');
 // 	console.log(err);
 // });
 let plivo = require('plivo');
-let client = new plivo.Client("MANJRMMDLJYME1MMYYOG","ZjcyZmI5MGVhMGFlMWIzNWEyYzg0ZDFiOWJmMmUw");
+let client = new plivo.Client();
 client.messages.create({
     src: '+16282390413',
     dst: '+15122937112',
