@@ -72,9 +72,9 @@ module.exports = {
 		return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 	},
 	seasonStart: {
-      nfl: new Date(2022,8,8),
-      nba: new Date(2022,9,19),
-      ncaab: new Date(2022,2,16)
+      nfl: new Date(2023,8,7),
+      nba: new Date(2023,9,19),
+      ncaab: new Date(2023,2,16)
 	},
 	previousDay: date => {
 		const temp=new Date(date);

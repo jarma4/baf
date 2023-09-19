@@ -1,7 +1,7 @@
 var gulp = require('gulp'),
    nodemon = require('gulp-nodemon'),
 	terser = require('gulp-terser'),
-   sass = require('gulp-sass')(require('sass')),
+   // sass = require('gulp-sass')(require('sass')),
    cssnano = require('gulp-cssnano'),
    // rename = require('gulp-rename'),
    concat = require('gulp-concat'),
@@ -15,10 +15,10 @@ function jsTask(){
       .pipe(gulp.dest('public/js'));
 }
 
-function sassTask(){
-   return gulp.src('frontend/*.scss')
+function cssTask(){
+   return gulp.src('frontend/*.css')
       .pipe(plumber())
-      .pipe(sass())
+      // .pipe(sass())
       .pipe(cssnano())
       .pipe(gulp.dest('public/css'));
 };
@@ -28,7 +28,7 @@ function watch1Task(){
 }
 
 function watch2Task(){
-   gulp.watch('frontend/*.scss', sassTask);
+   gulp.watch('frontend/*.css', cssTask);
 }
 
 function startTask() {
@@ -36,7 +36,7 @@ function startTask() {
       script: 'app.js',
       ext: 'js',
       ignore: ['frontend/*', 'public/*', 'json/*'],
-      env: { 'NODE_ENV': 'development' }
+      env: { 'NODE_ENV': 'production' }
    });
 }
 

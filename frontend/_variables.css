@@ -1,0 +1,11 @@
+:root {
+    --theme-default : #444950;
+    --theme-primary : #7a8288;
+    --theme-success : #6DC86D;
+    --theme-info : #6BC6E1;
+    --theme-warning : #F99C17;
+    --theme-danger : #F0726E;
+    --sidebar-width: 150px;
+    --sidebar-background: #3a3f44;
+}
+

@@ -224,17 +224,19 @@ module.exports = {
 			url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
 			teams = Util.nbaTeams2;
 		}
-		//console.log(url);
+		// console.log(url);
 		// first get scores for games today
 		new Promise((resolve, reject) => {
 			request(url, function (err, response, body) {
 				if(!err && response.statusCode == 200) {
 					const $ = cheerio.load(body);
-					const scoresClass = $('.single-score-card.postgame');
+					const scoresClass = $('.game-status.postgame');
 					for (let idx = 0; idx < scoresClass.length; idx++){
-						const matchup = $(scoresClass[idx]).find('a:nth-child(2)');
-						scores[teams[matchup.first().text()]] = Number(matchup.first().parent().parent().find('td').last().text().replace(/\s/g,''));
-						scores['@'+teams[matchup.last().text()]] = Number(matchup.last().parent().parent().find('td').last().text().replace(/\s/g,''));
+						const teamNames = $(scoresClass[idx]).parent().next().find('.team-name-link');
+						const teamScores = $(scoresClass[idx]).parent().next().find('td.total');
+						console.log(teams[teamNames.first().text()],teamNames.last().text())
+						scores[teams[teamNames.first().text()]] = Number(teamScores.first().text().replace(/\s/g,''));
+						scores['@'+teams[teamNames.last().text()]] = Number(teamScores.last().text().replace(/\s/g,''));
 					}
 					resolve();
 				}

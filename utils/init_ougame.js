@@ -3,7 +3,12 @@ const	OUgame = require('../models/dbschema').OUgame,
 	Util = require('../models/util');
 
 require('dotenv').config();
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.BAF_MONGO_URI)
+.then(()=>{})
+.catch(err=>{
+	console.log(err);
+});
 
 let i = 0;
 let args = process.argv.splice(2);
@@ -31,4 +36,4 @@ for (let team in (args[0] == 'nfl')?Util.nflTeams:Util.nbaTeams) {
 		}
 	});
 }
-process.exit(1);
+// process.exit(1);
