@@ -231,6 +231,10 @@ tr .heading {
 	color: white;
 	background-color: var(--theme-warning);
 }
+.modal-primary{
+	color: white;
+	background-color: var(--theme-primary);
+}
 .white {
 	color: white;
 }

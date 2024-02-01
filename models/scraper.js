@@ -234,7 +234,6 @@ module.exports = {
 					for (let idx = 0; idx < scoresClass.length; idx++){
 						const teamNames = $(scoresClass[idx]).parent().next().find('.team-name-link');
 						const teamScores = $(scoresClass[idx]).parent().next().find('td.total');
-						console.log(teams[teamNames.first().text()],teamNames.last().text())
 						scores[teams[teamNames.first().text()]] = Number(teamScores.first().text().replace(/\s/g,''));
 						scores['@'+teams[teamNames.last().text()]] = Number(teamScores.last().text().replace(/\s/g,''));
 					}

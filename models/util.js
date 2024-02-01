@@ -73,7 +73,7 @@ module.exports = {
 	},
 	seasonStart: {
       nfl: new Date(2023,8,7),
-      nba: new Date(2023,9,19),
+      nba: new Date(2023,9,24),
       ncaab: new Date(2023,2,16)
 	},
 	previousDay: date => {

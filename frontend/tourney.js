@@ -8,7 +8,7 @@ function updateBracket(sport, startRound, picks) {
 		// get seeding for round; toggleChoice modifies seeding
 		if (sport == 'nfl'){
 			let afc = [...seeding1[round]], nfc = [...seeding2[round]];
-			if (round == 0 && !picks){
+			if (round == 0 && picks == undefined){ // prepopulate bye teams
 				seeding1[1][0] = afc.shift();
 				seeding2[1][0] = nfc.shift();
 			}
@@ -68,13 +68,19 @@ function toggleChoice(targetBtn){
 			modifier = 4;
 		}
 		if (sport == 'nfl' || (sport == 'nba' && round != 0)) { // subsequent rounds are reseeded according to start seeding
-			for (location = 0; location < conference[round+1].length; location++){
+			const numTeams = conference[round+1].length;
+			for (location = 0; location < numTeams; location++){
 				if (conference[round+1][location] == '' || conference[0].indexOf(name) < conference[0].indexOf(conference[round+1][location])){
 					break;
 				}
 			}
-			conference[round+1].splice(conference.indexOf(''),1);
-			conference[round+1].splice(location, 0, name);
+			conference[round+1].splice(conference[round+1].indexOf(''),1);
+			for (location = 0; location < numTeams; location++){
+				if (location == numTeams-1 || conference[0].indexOf(name) < conference[0].indexOf(conference[round+1][location])){
+					conference[round+1].splice(location, 0, name);
+					break;
+				}
+			}
 		} else { // nba is 1-8 vs 4-5, 2-7 vs 3-6
 			if (game - modifier == 0 || game - modifier == 3){
 				if(conference[round+1][0] == ''){
@@ -127,8 +133,21 @@ function getTourney() {
 	fetch('/api/gettourney', postOptions)
 	.then(res => res.json())
 	.then(retData => {
+		let outp;
 		if (!retData.results.length) {
-			if (retData.users) {
+			outp = '<p class="cellgutter">'; 
+			if (retData.players.length) {
+				retData.players.forEach((player, i)=>{
+					if (i%4 == 0 && i != 0) {
+						outp += '<br>';
+					}
+					outp += player+'&nbsp&nbsp';
+				});
+			} else {
+				outp += 'nobody';
+			}
+			document.getElementById("tourneyList").innerHTML = outp;
+			if (retData.picks.length) {
 				seeding1 = [[],[],[],[]];
 				seeding2 = [[],[],[],[]];
 				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[8,12,14];
@@ -139,9 +158,9 @@ function getTourney() {
 						roundCount = 0;
 					}
 					if (roundCount < teamsPerRound[round]/2) {
-						seeding1[round].splice(Math.trunc(roundCount/2), 0, retData.users[index]);
+						seeding1[round].splice(Math.trunc(roundCount/2), 0, retData.picks[0][index]);
 					} else {
-						seeding2[round].splice(Math.trunc((roundCount-teamsPerRound[round]/2)/2), 0, retData.users[index]);
+						seeding2[round].splice(Math.trunc((roundCount-teamsPerRound[round]/2)/2), 0, retData.picks[0][index]);
 					}
 					roundCount++;
 				}
@@ -149,8 +168,8 @@ function getTourney() {
 				seeding1[0] = [...retData.seeding[0]];
 				seeding2[0] = [...retData.seeding[1]];
 			}
-			updateBracket(sport, 0, retData.users);
-			let outp = '<table class="table table-consdensed">';
+			updateBracket(sport, 0, retData.picks[0]);
+			outp = '<table class="table table-consdensed">';
 			roundInfo.forEach(round => {
 				outp += '<tr class="modal-warning"><td colspan=4 class="center odds-date-row">'+round.title+'</td></tr>';
 				gameIndex = 0;
@@ -183,7 +202,7 @@ function getTourney() {
 			drawSprite(sport);
 		} else { // picking over, show results
 			let points=[];
-			let outp = '<table class="table table-consdensed"><tr><th>Game</th><th>Win</th>';
+			outp = '<table class="table table-consdensed"><tr><th>Game</th><th>Win</th>';
 			retData.users.forEach((rec, userIndex) =>{
 				outp += '<th>'+bafusers[rec.user]+'</th>';
 				points[userIndex] = 0;

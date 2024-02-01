@@ -473,7 +473,7 @@ router.post('/getstandings', requireLogin, function(req,res){
 
 router.post('/getousignup', requireLogin, function(req,res){
 	// first find list of all users
-	OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
+	OUuser.find({season: Number(req.body.season), sport: req.body.sport}, {_id:0, user: 1}, function(err, users){
 		if (err) {
 			console.log('Error getting OU users - '+err);
 		} else {
@@ -504,7 +504,7 @@ router.post('/getousignup', requireLogin, function(req,res){
 });
 
 router.post('/setouchoices', requireLogin, function(req,res){
-	console.log(req.body);
+	// console.log(req.body);
 	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true }, function(err){
 		if (err)
 			console.log("OU choice change error: "+err);
@@ -545,18 +545,28 @@ router.post('/ousignup', requireLogin, function(req,res){
 });
 
 router.post('/gettourney', function (req, res) {
-	Sports.findOne({season: req.body.season, sport: req.body.sport.substring(0,3)}, (err, sportInfo)=>{
+	Sports.findOne({sport: req.body.sport.substring(0,3)}, (err, sportInfo)=>{
 		if (err) {
 			console.log(err);
 		} else {
 			if (new Date() < sportInfo.playoffs){ //still time to pick
-				OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, '-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29', (err, result) => {
+				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id user', (err, players) => {
 					if (err) {
 						console.log(err);
-					} else if (result) { // user picks exist
-						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2], users: result});
-					} else {
-						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2]});
+					}
+				});
+				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 user', (err, allPicks) => {
+					let players = [], picks=[];
+					if (err) {
+						console.log(err);
+					} else { // user picks exist
+						allPicks.forEach(pick => {
+							if (pick.user == req.session.user._id) {
+								picks.push(pick);
+							}
+							players.push(pick.user);
+						});
+						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2], players: players, picks: picks});
 					}
 				});
 			} else { // after selection time
