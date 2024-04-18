@@ -1,12 +1,22 @@
-const  {Users, Tracker} = require('./dbschema');
-// const mongoose = require('mongoose');
+const  { Users, Tracker } = require('./dbschema');
+const { App } = require('@slack/bolt');
 	
 require('dotenv').config();
-const telnyx = require('telnyx')(process.env.BAF_TELNYX);
-
-let textList = {};
+const slack = new App({
+	signingSecret: process.env.SLACK_SECRET,
+	token: process.env.SLACK_TOKEN
+});
 
 module.exports = {
+	sendSlack: async (message) => {
+		// console.log(`Slack message test: ${message}`);
+		// return;
+		await slack.client.chat.postMessage({
+			token: process.env.SLACK_TOKEN,
+			channel: '2db',
+			text: message
+		});
+	},
 	textUser: (to, message, pref2) => {
 		// console.log(`in text ${message}`);
 		// return;

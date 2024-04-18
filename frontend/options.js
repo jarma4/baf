@@ -2,11 +2,9 @@
 $('#prefSave').on('click', function(e){
    e.preventDefault();
    postOptions.body = JSON.stringify({
-      'sms': $('#changeSMS').val(),
+      'slack': $('#slack').val(),
       'pref_nfl_everyone': $('#prefNflEveryone').is(":checked"),
       'pref_nba_everyone': $('#prefNbaEveryone').is(":checked"),
-      'pref_text_receive': $('#prefTextReceive').is(":checked"),
-      'pref_text_accept': $('#prefTextAccept').is(":checked"),
       'pref_default_page': $('#prefDefaultPage').val()
    });
    fetch('/api/setprefs', postOptions)
@@ -20,11 +18,9 @@ function getPrefs() {
    .then(res =>res.json())
    .then(retData => {
       $('#username').text('Preferences for '+retData._id);
-      $('#changeSMS').val(retData.sms);
+      $('#slack').val(retData.slack);
       $('#prefNflEveryone').prop('checked', retData.pref_nfl_everyone);
       $('#prefNbaEveryone').prop('checked', retData.pref_nba_everyone);
-      $('#prefTextReceive').prop('checked', retData.pref_text_receive);
-      $('#prefTextAccept').prop('checked', retData.pref_text_accept);
       $('#prefDefaultPage').val(retData.pref_default_page);
    })
    .catch(retData =>{

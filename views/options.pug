@@ -7,8 +7,8 @@ block content
          #username.panel-heading
          .panel-body
             form
-               label(for='changeSMS') Phone# for Notifications:
-               input#changeSMS.form-control
+               label(for='slack') Slack handle for Notifications:
+               input#slack.form-control
                .checkbox
                   label
                      input#prefNflEveryone(type='checkbox')
@@ -17,14 +17,6 @@ block content
                      label
                         input#prefNbaEveryone(type='checkbox')
                         | Include in NBA "EVERYONE" betting group
-               .checkbox
-                  label
-                     input#prefTextReceive(type='checkbox')
-                     | Text me when I receive bet
-               .checkbox
-                  label
-                     input#prefTextAccept(type='checkbox')
-                     | Text me when someone accepts my bet
                label(for='changeSlack') Default Start Page:
                // input#changeSlack.form-control
                select#prefDefaultPage.form-control

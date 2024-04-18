@@ -25,6 +25,7 @@ for (let team in (args[0] == 'nfl')?Util.nflTeams:Util.nbaTeams) {
 		index: i++,
 		win: 0,
 		loss: 0,
+		tie: 0,
 		line: 0,
 		projection: 0,
 		status: 'U'

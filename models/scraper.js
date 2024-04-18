@@ -27,7 +27,7 @@ function getOdds(sport) {
 			let teamNames, tempDate, spread;
 			const matchups = $('.odds--group__event-participants');
 			const times = $('.odds--group__event-time');
-			const odds = $('.book-5580');
+			const odds = $('.book-1815');
 			for (let idx = 0; idx < matchups.length; idx++){
 				spread = $(odds[idx]).find('.odds-spread');
 				teamNames = $(matchups[idx]).find('.participant-name');
@@ -72,7 +72,7 @@ function getOdds(sport) {
 									logger.error('trouble updating watch');
 							});
 							logger.info('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
-							Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
+							// Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
 						}
 					});
 				});
