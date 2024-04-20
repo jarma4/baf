@@ -72,7 +72,7 @@ function getOdds(sport) {
 									logger.error('trouble updating watch');
 							});
 							logger.info('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
-							// Util.textUser(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
+							Util.sendSlack(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
 						}
 					});
 				});

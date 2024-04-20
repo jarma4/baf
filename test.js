@@ -19,18 +19,7 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 	console.log(err);
 });
 
-const app = new App({
-	signingSecret: process.env.SLACK_SECRET,
-	token: process.env.SLACK_TOKEN
-});
-
-(async ()=>{
-	await app.client.chat.postMessage({
-		token: process.env.SLACK_TOKEN,
-		channel: '2db',
-		text: 'Test message from 2db'
-	});
-})();
+Util.sendSlack('jarma4', 'latest timeStamp');
 
 const message = {
 	"blocks": [

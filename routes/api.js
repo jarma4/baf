@@ -140,7 +140,7 @@ function makeBet (req) {
 			} else {
 				message = ((req.body.sport=='nba')?'NBA':'NFL')+' bet: '+req.body.team1+'/'+req.body.team2+' Anyone='+((req.body.type=='over')?'Under ':'Over ')+req.body.odds+', '+req.session.user._id+'='+((req.body.type=='over')?'Over ':'Under ')+req.body.odds;
 			}
-			Util.sendSlack(message);
+			Util.sendSlack('ALL', message);
 		}
 	
 	} else {
@@ -687,7 +687,7 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 				console.log('Challenge started, copied odds to db',new Date());
 				res.send({'type':'success', 'message':'Odds published for today'});
 				// send out texts
-				Util.sendSlack('Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
+				Util.sendSlack('ALL', 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
 				// let pref_sport = {};
 				// pref_sport['pref_'+req.body.sport+'_everyone'] = true;
 				// Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, pref_sport]}, {_id: 1}, function(err, users){
@@ -798,7 +798,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 });
 
 router.get('/getprefs',function(req,res){
-	Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, slack: 1, pref_default_page: 1}, function(err,user){
+	Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_accept:1, slack: 1, pref_default_page: 1}, function(err,user){
 		res.json(user);
 	});
 });
@@ -880,13 +880,13 @@ router.post('/resolvefinish', requireLogin, function(req,res){
 		findAndMark(req.body.name.split('/')[0], req.body.name.split('/')[1]);
 		findAndMark(req.body.name.split('/')[1], req.session.user._id);
 		logger.info(`${req.session.user._id} auto resolved 3-way offsetting bet between ${req.body.name.split('/')[0]} and ${req.body.name.split('/')[1]}`);
-		// Util.textUser(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[1]+' - no further action required');
-		// Util.textUser(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[0]+' - no further action required');
+		Util.sendSlack(req.body.name.split('/')[0], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[1]+' - no further action required');
+		Util.sendSlack(req.body.name.split('/')[1], 'Notice: '+req.session.user._id+' auto resolved '+req.body.num+' 3-way offsetting bets between you & '+req.body.name.split('/')[0]+' - no further action required');
 	} else {
 		findAndMark(req.session.user._id, req.body.name);
 		findAndMark(req.body.name, req.session.user._id);
 		logger.info(`${req.session.user._id} auto resolved bet with ${req.body.name}`);
-		// Util.textUser(req.body.name, 'Notice: '+req.session.user._id+' marked paid '+req.body.num+' pair offsetting bets between you - no further action required');
+		Util.sendSlack(req.body.name, 'Notice: '+req.session.user._id+' marked paid '+req.body.num+' pair offsetting bets between you - no further action required');
 	}
 	res.send({'type':'success', 'message':'Offset debts recorded'});
 });

@@ -8,12 +8,12 @@ const slack = new App({
 });
 
 module.exports = {
-	sendSlack: async (message) => {
+	sendSlack: async (recipient, message) => {
 		// console.log(`Slack message test: ${message}`);
 		// return;
 		await slack.client.chat.postMessage({
 			token: process.env.SLACK_TOKEN,
-			channel: '2db',
+			channel: (recipient == 'ALL'?'2db':'@'+recipient),
 			text: message
 		});
 	},

@@ -150,7 +150,7 @@ function getTourney() {
 			if (retData.picks.length) {
 				seeding1 = [[],[],[],[]];
 				seeding2 = [[],[],[],[]];
-				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[8,12,14];
+				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[16,8,4,2];
 				let round = 0, roundCount=0;
 				for (let index=0; index < ((sport == 'nfl')?26:30); index++){
 					if (roundCount == teamsPerRound[round]){

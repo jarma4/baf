@@ -5,6 +5,7 @@ $('#prefSave').on('click', function(e){
       'slack': $('#slack').val(),
       'pref_nfl_everyone': $('#prefNflEveryone').is(":checked"),
       'pref_nba_everyone': $('#prefNbaEveryone').is(":checked"),
+      'pref_text_accept': $('#prefTextAccept').is(":checked"),
       'pref_default_page': $('#prefDefaultPage').val()
    });
    fetch('/api/setprefs', postOptions)
@@ -21,6 +22,7 @@ function getPrefs() {
       $('#slack').val(retData.slack);
       $('#prefNflEveryone').prop('checked', retData.pref_nfl_everyone);
       $('#prefNbaEveryone').prop('checked', retData.pref_nba_everyone);
+      $('#prefTextAccept').prop('checked', retData.pref_text_accept);
       $('#prefDefaultPage').val(retData.pref_default_page);
    })
    .catch(retData =>{
