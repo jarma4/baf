@@ -10,42 +10,31 @@ const Util = require('./models/util');
 const { getDefaultSettings } = require('http2');
 const { previousDay } = require('./models/util');
 const { match } = require('assert');
-const {App} = require('@slack/bolt');
+// const {App} = require('@slack/bolt');
+const {MongoClient} = require('mongodb');
 
-require('dotenv').config();
+process.loadEnvFile();
+
+mongoose.set('strictQuery', true);
 mongoose.connect(process.env.BAF_MONGO_URI)
 .then(()=>{})
 .catch(err=>{
 	console.log(err);
 });
 
-Util.sendSlack('jarma4', 'latest timeStamp');
+Util.sendSlack('@jarma4', 'sdflkl');
 
-const message = {
-	"blocks": [
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "Test message"
-			}
-		}
-	]
-}
-
-
-
+// Mongo example
 // Bets.updateMany({week:53}, {$set:{week: 1}}, (err, bets) => {
 // 	if (err) {
 // 		console.log('Error finding teams tha played yesterday: ', err);
 // 	} else {
 // 		console.log(bets.length);
 // 	}
-
 // });
 
-// let scores = [];
-// request('https://www.cbssports.com/nfl/scoreboard/all/2023/regular/2/', function (err, response, body) {
+// Cheerio example
+// request('https://www.cbssports.com/nba/odds', function (err, response, body) {
 // 	if(!err && response.statusCode == 200) {
 // 		const $ = cheerio.load(body);
 // 		const scoresClass = $('.game-status.postgame');
@@ -58,5 +47,6 @@ const message = {
 // 		}
 // 	}
 // });
-	
+
+
 // process.exit(1);

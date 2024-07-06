@@ -36,7 +36,7 @@ function startTask() {
       script: 'app.js',
       ext: 'js',
       ignore: ['frontend/*', 'public/*', 'json/*'],
-      env: { 'NODE_ENV': 'development' }
+      env: { 'NODE_ENV': 'production' }
    });
 }
 

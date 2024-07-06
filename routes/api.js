@@ -12,7 +12,6 @@ const express = require('express'),
 		webpush = require('web-push');
 		// Tourney = require('./tourney');
 
-require('dotenv').config();
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.BAF_MONGO_URI)
 .then(()=>{})
@@ -33,9 +32,9 @@ router.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
-router.use(function (req, res, next) {
+router.use((req, res, next)=>{
   if (req.session && req.session.user) {
-	 Users.findOne({ _id: req.session.user._id }, function (err, user) {
+	 Users.findOne({ _id: req.session.user._id }, (err, user)=> {
 		if (user) {
 		  req.user = user;
 		  delete req.user.password;
@@ -92,7 +91,7 @@ function saveBet (req){
 		status: (req.body.watch === true)?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
 		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:'',
 		limit: req.body.limit
-	}).save(function(err){
+	}).save((err)=>{
 	 if(err) {
 			logger.error('Trouble adding bet: '+err);
 			return ({'type':'danger', 'message':'Trouble adding bet'});
@@ -153,7 +152,7 @@ router.post('/makebet', requireLogin, function (req, res) {
 	res.send({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Sent'});
 });
 
-router.post('/getbets', requireLogin, function(req,res){
+router.post('/getbets', requireLogin, (req, res)=>{
 	let sortedBets = [];
 	Bets.find({$and:[
 		{status:(req.body.status==1)?0:req.body.status},
@@ -167,7 +166,7 @@ router.post('/getbets', requireLogin, function(req,res){
 																								  :{$or:[
 																										{user1: req.session.user._id},
 																										{user2: req.session.user._id}]}]
-		}, function(err, bets){
+		}, (err, bets)=>{
 		if(err){
 			console.log(err);
 		} else {
@@ -198,7 +197,7 @@ router.post('/getbets', requireLogin, function(req,res){
 	}).sort({date:-1});
 });
 
-router.post('/changebet', requireLogin, function(req,res){
+router.post('/changebet', requireLogin, (req, res)=>{
 	// console.log(req.body);
 	switch (req.body.action) {
 		case 'delete':  // delete bet
@@ -216,7 +215,7 @@ router.post('/changebet', requireLogin, function(req,res){
 					}
 				});
 			}).then(function() {
-				Bets.deleteOne({_id:req.body.id}, function(err){
+				Bets.deleteOne({_id:req.body.id}, (err)=>{
 					if(err)
 						console.log(err);
 					else {
@@ -238,9 +237,9 @@ router.post('/changebet', requireLogin, function(req,res){
 				if(acceptedBet){
 					logger.info('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
 					changeUser(req.session.user._id, 'bets', -1);
-					// Util.textUser(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
+					Util.sendSlack(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
 					if (acceptedBet.limit > 1) {	// number of bets to give is limited but this not the last; update others
-						Bets.updateMany({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, function(err) {
+						Bets.updateMany({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, (err)=> {
 								if (err)
 									console.log(err);
 							});
@@ -250,7 +249,7 @@ router.post('/changebet', requireLogin, function(req,res){
 								changeUser(otherBet.user2, 'bets', -1);
 							});
 						}).then(function(){
-							Bets.updateMany({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, function(err) {
+							Bets.updateMany({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, (err)=> {
 								if (err)
 									console.log(err);
 							});
@@ -263,7 +262,7 @@ router.post('/changebet', requireLogin, function(req,res){
 			});
 			break;
 		case 'refused':   // bet refused
-			Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment}, function(err){
+			Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment}, (err)=>{
 				if(err){
 					console.log(err);
 				} else {
@@ -274,7 +273,7 @@ router.post('/changebet', requireLogin, function(req,res){
 			});
 			break;
 		case 'change':
-			Bets.updateOne({_id: req.body.id}, req.body, function(err) {
+			Bets.updateOne({_id: req.body.id}, req.body, (err)=> {
 				if(err)
 					console.log(err);
 				else {
@@ -287,7 +286,7 @@ router.post('/changebet', requireLogin, function(req,res){
 	}
 });
 
-router.post('/weeklystats', requireLogin, function(req,res){
+router.post('/weeklystats', requireLogin, (req, res)=>{
 	let sortedBets = [];
 	Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
 		if(err){
@@ -318,7 +317,7 @@ router.post('/weeklystats', requireLogin, function(req,res){
 	}).sort({date: -1, user1: 1, });
 });
 
-router.post('/overallstats', requireLogin, function(req,res){
+router.post('/overallstats', requireLogin, (req, res)=>{
 	let stats = [];
 	if (req.body.season != 'All') {
 		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season, pct: {$exists: true}}, function(err,records){
@@ -339,7 +338,7 @@ router.post('/overallstats', requireLogin, function(req,res){
 	}
 });
 
-router.post('/graphstats', requireLogin, function(req,res){
+router.post('/graphstats', requireLogin, (req, res)=>{
 	let dates = [],
 		results = {},
 		currentWeek = 1;
@@ -405,7 +404,7 @@ router.post('/graphstats', requireLogin, function(req,res){
 	}).sort({week: 1});
 });
 
-router.post('/userstats', requireLogin, function(req,res){
+router.post('/userstats', requireLogin, (req, res)=>{
 	Bets.find({$and:[{$or:[{user1: req.body.user},
 								  {user2: req.body.user}],
 						  sport: req.body.sport,
@@ -451,14 +450,14 @@ router.post('/userstats', requireLogin, function(req,res){
 	}).sort({date:-1});
 });
 
-router.get('/getprops', requireLogin, function(req,res){
+router.get('/getprops', requireLogin, (req, res)=>{
 	Bets.find({type: 'prop'}, function(err, props){
 		res.json(props);
 	}).sort({date: -1}).limit(50);
 });
 
-router.post('/acceptprop', requireLogin, function(req,res){
-	Bets.updateOne({_id: req.body.id}, {user2: req.session.user._id}, function(err){
+router.post('/acceptprop', requireLogin, (req, res)=>{
+	Bets.updateOne({_id: req.body.id}, {user2: req.session.user._id}, (err)=>{
 		if (err) {
 			console.log("Prop accept error: "+err);
 		} else {
@@ -468,7 +467,7 @@ router.post('/acceptprop', requireLogin, function(req,res){
 	});
 });
 
-router.post('/getstandings', requireLogin, function(req,res){
+router.post('/getstandings', requireLogin, (req, res)=>{
 	OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, standings){
 		if (err)
 			console.log(err);
@@ -482,7 +481,7 @@ router.post('/getstandings', requireLogin, function(req,res){
 	}).sort({team:1});
 });
 
-router.post('/getousignup', requireLogin, function(req,res){
+router.post('/getousignup', requireLogin, (req, res)=>{
 	// first find list of all users
 	OUuser.find({season: Number(req.body.season), sport: req.body.sport}, {_id:0, user: 1}, function(err, users){
 		if (err) {
@@ -514,9 +513,9 @@ router.post('/getousignup', requireLogin, function(req,res){
 	}).sort({user:1});
 });
 
-router.post('/setouchoices', requireLogin, function(req,res){
+router.post('/setouchoices', requireLogin, (req, res)=>{
 	// console.log(req.body);
-	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true }, function(err){
+	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true }, (err)=>{
 		if (err)
 			console.log("OU choice change error: "+err);
 		else {
@@ -525,7 +524,7 @@ router.post('/setouchoices', requireLogin, function(req,res){
 	});
 });
 
-router.post('/getouusers', requireLogin, function(req,res){
+router.post('/getouusers', requireLogin, (req, res)=>{
 	OUuser.find({}, function(err,users){
 		if (err)
 			console.log('Error getting OU users - '+err);
@@ -534,7 +533,7 @@ router.post('/getouusers', requireLogin, function(req,res){
 	}).sort({user:1});
 });
 
-router.post('/ousignup', requireLogin, function(req,res){
+router.post('/ousignup', requireLogin, (req, res)=>{
 	OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
 		if (err)
 			console.log(err);
@@ -545,7 +544,7 @@ router.post('/ousignup', requireLogin, function(req,res){
 				user: req.session.user._id,
 				season: Number(req.body.season),
 				sport: req.body.sport
-			}).save(function(err){
+			}).save((err)=>{
 				if (err)
 					console.log('Error saving new OUuser: '+err);
 				else
@@ -621,7 +620,7 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 	});
 });
 
-router.post('/getbtapicks', requireLogin, function(req,res){
+router.post('/getbtapicks', requireLogin, (req, res)=>{
 	let today = new Date(), targetDate = new Date(req.body.date);
 	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))}; //(today.getHours() < 11 || (today.getHours() == 11 && today.getMinutes() < 30))
 	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}, (err, odds) =>{
@@ -651,7 +650,7 @@ router.post('/getbtapicks', requireLogin, function(req,res){
    }).sort({index:1});
 });
 
-router.post('/createbtaodds', requireLogin, function(req,res){
+router.post('/createbtaodds', requireLogin, (req, res)=>{
 	let today = new Date();
 	// console.log(req.body);
 	const targetDate = new Date(req.body.date);
@@ -688,13 +687,6 @@ router.post('/createbtaodds', requireLogin, function(req,res){
 				res.send({'type':'success', 'message':'Odds published for today'});
 				// send out texts
 				Util.sendSlack('ALL', 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
-				// let pref_sport = {};
-				// pref_sport['pref_'+req.body.sport+'_everyone'] = true;
-				// Users.find({$and: [{_id: {$nin:[req.session.user._id,'testuser']}}, pref_sport]}, {_id: 1}, function(err, users){
-				// 	users.forEach(user => {
-				// 		Util.textUser(user._id, 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
-				// 	});
-				// });
 			} else {
 				console.log('Odds for today already exist');
 				res.send({'type':'danger', 'message':'Odds for today already exist'});
@@ -741,7 +733,7 @@ router.post('/getTrackerPicks', requireLogin, (req,res) => {
 	});
 });
 
-router.post('/trackerTeam', requireLogin, function(req,res){
+router.post('/trackerTeam', requireLogin, (req, res)=>{
 	let promises = [];
 	promises.push(Odds.find({$or:[{team1: req.body.team},{team2: '@'+req.body.team}], sport: req.body.sport, season: req.body.season, ats: {$ne:0}, bta: {$exists: false}}).sort({date:1}));
 	promises.push(Ats.find({sport: 'tracker'+req.body.sport, season: req.body.season, user: req.session.user._id},'-_id date 0 1 2 3 4 5 6 7 8 9 10 11 1	2 13 14 15').sort({date:1}));
@@ -783,11 +775,11 @@ router.post('/trackerPicks', requireLogin, (req,res) => {
 	}
 });
 
-router.post('/setprefs', requireLogin, function(req,res){
+router.post('/setprefs', requireLogin, (req, res)=>{
 	if (req.body.password) {
 		req.body.password = bcrypt.hashSync(req.body.password, 10);
 	}
-	Users.updateOne({_id:req.session.user},req.body, function(err){
+	Users.updateOne({_id:req.session.user},req.body, (err)=>{
 		if(err){
 			console.log(err);
 		} else {
@@ -797,7 +789,7 @@ router.post('/setprefs', requireLogin, function(req,res){
 	});
 });
 
-router.get('/getprefs',function(req,res){
+router.get('/getprefs',(req, res)=>{
 	Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_accept:1, slack: 1, pref_default_page: 1}, function(err,user){
 		res.json(user);
 	});
@@ -832,7 +824,7 @@ function markPaid(betid, user) {
 }
 
 // assumed only called by winner of bet
-router.post('/debtpaid', requireLogin, function(req,res){
+router.post('/debtpaid', requireLogin, (req, res)=>{
 	if(markPaid(req.body.id, req.session.user._id))
 		res.send({'type':'success', 'message':'Bet marked paid'});
 	else {
@@ -842,7 +834,7 @@ router.post('/debtpaid', requireLogin, function(req,res){
 });
 
 //retrieves both bets owed to someone else and someone else owing user
-router.get('/getdebts', requireLogin, function(req,res){
+router.get('/getdebts', requireLogin, (req, res)=>{
 	let sortedBets = [];
 	Bets.find({$and:[{$or:[{user1: req.session.user},{user2: req.session.user}]},{status:{$in:[4,5]}}, {paid:false}]}, function(err,bets){
 		bets.forEach(function(single){
@@ -865,7 +857,7 @@ router.get('/getdebts', requireLogin, function(req,res){
 	}).sort({date: -1});
 });
 
-router.post('/resolvefinish', requireLogin, function(req,res){
+router.post('/resolvefinish', requireLogin, (req, res)=>{
 
 	function findAndMark(winner, loser){
 		Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}, function(err, bets){
@@ -922,7 +914,7 @@ function getDebtList (person){
 	});
 }
 
-router.get('/resolvedebts', requireLogin, function(req,res){
+router.get('/resolvedebts', requireLogin, (req, res)=>{
 	let results = [],
 		promises = [];
 
@@ -957,7 +949,7 @@ router.get('/resolvedebts', requireLogin, function(req,res){
 	});
 });
 
-router.post('/getfutureoffers', requireLogin, function(req,res){
+router.post('/getfutureoffers', requireLogin, (req, res)=>{
 	Bets.find({$and:[{status: req.body.status}, {$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, offers){
 		res.json({
 			sessionId: req.session.user._id,
@@ -990,7 +982,7 @@ router.get('/getlogs', function (req, res) {
 
 router.post("/pushsubscribe", (req, res) => {
 	console.log('pushsubscribe');
-	Users.updateOne({_id:req.session.user}, {push: JSON.stringify(req.body)}, function(err){
+	Users.updateOne({_id:req.session.user}, {push: JSON.stringify(req.body)}, (err)=>{
 		if(err){
 			console.log(err);
 		} else {
@@ -1006,14 +998,14 @@ router.post('/getodds', function (req, res) {
 }); 
 
 // gets userlist for bet select list
-router.get('/users', requireLogin, function(req,res){
+router.get('/users', requireLogin, (req, res)=>{
 	Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}, function(err,user){
 		res.json(user);
 	}).sort({_id:1});
 });
 
 // called when new page is loaded
-router.get('/doorbell', requireLogin, function(req,res){
+router.get('/doorbell', requireLogin, (req, res)=>{
 	let promises = [];
 	let answer = {
 		type: 'message',
@@ -1041,7 +1033,7 @@ router.get('/doorbell', requireLogin, function(req,res){
 function changeUser(user, key, inc) {
 	let tmp = {};
 	tmp[key] = inc;
-	Users.updateOne({_id: user}, {$inc: tmp}, function(err){
+	Users.updateOne({_id: user}, {$inc: tmp}, (err)=>{
 		if(err)
 			console.log('Trouble with changing user '+key);
 	});

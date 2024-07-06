@@ -1,7 +1,8 @@
 const  { Users, Tracker } = require('./dbschema');
 const { App } = require('@slack/bolt');
-	
-require('dotenv').config();
+
+process.loadEnvFile();
+
 const slack = new App({
 	signingSecret: process.env.SLACK_SECRET,
 	token: process.env.SLACK_TOKEN
@@ -11,9 +12,20 @@ module.exports = {
 	sendSlack: async (recipient, message) => {
 		// console.log(`Slack message test: ${message}`);
 		// return;
+		// const richMessage = {
+		// 	"blocks": [
+		// 		{
+		// 			"type": "section",
+		// 			"text": {
+		// 				"type": "mrkdwn",
+		// 				"text": "**Test message**"
+		// 			}
+		// 		}
+		// 	]
+		// }
 		await slack.client.chat.postMessage({
 			token: process.env.SLACK_TOKEN,
-			channel: (recipient == 'ALL'?'2db':'@'+recipient),
+			channel: (recipient == 'ALL'?'2db':`@${recipient}`),
 			text: message
 		});
 	},

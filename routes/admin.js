@@ -8,7 +8,7 @@ var express = require('express'),
    Records = require('../models/dbschema').Records,
    Users = require('../models/dbschema').Users;
 
-require('dotenv').config()
+// require('dotenv').config()
 
 router.use(session({
      cookieName: 'session',

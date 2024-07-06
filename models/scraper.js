@@ -31,7 +31,11 @@ function getOdds(sport) {
 			for (let idx = 0; idx < matchups.length; idx++){
 				spread = $(odds[idx]).find('.odds-spread');
 				teamNames = $(matchups[idx]).find('.participant-name');
-				tempDate = $(matchups[idx]).parent().parent().prev().find('.short-date').text().split(' ');
+				tempDate = $(matchups[idx]).parent().parent().prev();
+				if(tempDate.attr('class') == 'odds--group__details-container'){
+					tempDate = tempDate.prev();// first day in list has an extra row/div so need to go back more
+				}
+				tempDate = tempDate.find('.short-date').text().split(' ');
 				games.push({
 					date: new Date(tempDate[1]+' '+tempDate[2]+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempDate[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+changeTime($(times[idx]).text().split(' ')[0])),
 					team1: (sport == 'nfl')?Util.nflTeams[teamNames.first().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.first().attr('title')]:teamNames.first().attr('title'),
@@ -496,7 +500,7 @@ module.exports = {
 		// 				info.back2back.push(game.team2.slice(1));
 		// 			}
 		// 		});
-		// 		Util.textUser('jarma4', JSON.stringify(info));
+		// 		Util.sendSlack('jarma4', JSON.stringify(info));
 		// 	}
 		// });
 		console.log(` - ${index} games today`);

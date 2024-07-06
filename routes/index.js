@@ -5,8 +5,6 @@ session = require('client-sessions'),
 Users = require('../models/dbschema').Users,
 mongoose = require('mongoose');
 
-require('dotenv').config();
-
 router.use(session({
     cookieName: 'session',
     secret: process.env.BAF_SESSION,

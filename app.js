@@ -7,12 +7,12 @@ const https = require('https'),
 
 // process.traceDeprecation = true;
 
-require('dotenv').config();
+process.loadEnvFile();
 
 // http site
 const app_http = express();
 app_http.use(compression());
-// app_http.use('/', express.static(__dirname + '/public'));
+//app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', function(req, res){
    res.redirect(301, 'https://2dollarbets.com');
 });
@@ -63,7 +63,7 @@ if (process.env.ENVIRONMENT == 'local'){
 	// const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1", scraper.tallyBets2,['nfl']);
 
 	// for NBA
-	const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
+	// const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
