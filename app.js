@@ -3,7 +3,7 @@ const https = require('https'),
       fs = require('fs'),
       crontab = require('node-crontab'),
       exec = require('child_process').exec,
-		compression = require('compression');
+      compression = require('compression');
 
 // process.traceDeprecation = true;
 
@@ -54,20 +54,19 @@ if (process.env.ENVIRONMENT == 'local'){
 	const scraper = require('./models/scraper');
 
 	// schedule worker jobs
-	const oddsCron = crontab.scheduleJob("*/5 5-23 * * *", scraper.refreshOddsInfo);
-	// const oddsCron2 = crontab.scheduleJob("* 19-22 * * *", scraper.refreshOddsInfo);
+	const oddsCron2 = crontab.scheduleJob("*/5 6-23 * * *", scraper.refreshOddsInfo);
 	const clearUnactedCron = crontab.scheduleJob("*/5 12-22 * * *", scraper.clearUnactedBets);
 	const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
 
 	// for NFL
-	// const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1", scraper.tallyBets2,['nfl']);
+	const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1", scraper.tallyBets2,['nfl']);
 
 	// for NBA
 	// const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
-	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+	const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
 	// const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker

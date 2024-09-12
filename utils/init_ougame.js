@@ -2,7 +2,7 @@ const	OUgame = require('../models/dbschema').OUgame,
 	mongoose = require('mongoose'),
 	Util = require('../models/util');
 
-require('dotenv').config();
+process.loadEnvFile();
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.BAF_MONGO_URI)
 .then(()=>{})

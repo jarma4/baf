@@ -8,8 +8,6 @@ var express = require('express'),
    Records = require('../models/dbschema').Records,
    Users = require('../models/dbschema').Users;
 
-// require('dotenv').config()
-
 router.use(session({
      cookieName: 'session',
      secret: process.env.BAF_SESSION,

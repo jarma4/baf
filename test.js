@@ -22,8 +22,24 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 	console.log(err);
 });
 
-Util.sendSlack('@jarma4', 'sdflkl');
 
+//cheerio
+const url = 'https://www.mybookie.ag/sportsbook/nfl/';
+request(url, function (err, response, body) {
+	console.log('response code=',response.statusCode)
+	if(!err && response.statusCode == 200) {
+		// get odds for teams
+		const $ = cheerio.load(body);
+		const games = $('.game-line__home-line');
+		for (idx=0; idx< games.length; idx++){
+			const info = $(games[idx]).find('.lines-odds').first();
+			// console.log($(games[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time'));
+			console.log(info.attr('data-team'), info.attr('data-team-vs'), info.attr('data-points'));
+			console.log($(info).next().next().attr('data-points'));
+
+		};
+	}
+});
 // Mongo example
 // Bets.updateMany({week:53}, {$set:{week: 1}}, (err, bets) => {
 // 	if (err) {

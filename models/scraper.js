@@ -16,7 +16,7 @@ function getOdds(sport) {
 		return String(Number(timeSplit[0])+((time.slice(-2)=='pm')?11:-1)+':'+timeSplit[1]);
 	}
 
-	const url = 'http://www.oddsshark.com/'+((sport=='soccer')?'soccer/world-cup':sport)+'/odds';
+	const url = 'https://www.mybookie.ag/sportsbook/'+((sport=='soccer')?'soccer/world-cup':sport)+'/';
 	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
@@ -24,24 +24,16 @@ function getOdds(sport) {
 			const $ = cheerio.load(body);
 			let  games = [];
 			const today = new Date();
-			let teamNames, tempDate, spread;
-			const matchups = $('.odds--group__event-participants');
-			const times = $('.odds--group__event-time');
-			const odds = $('.book-1815');
+			// let teamNames, tempDate, spread;
+			const matchups = $('.game-line__home-line');
 			for (let idx = 0; idx < matchups.length; idx++){
-				spread = $(odds[idx]).find('.odds-spread');
-				teamNames = $(matchups[idx]).find('.participant-name');
-				tempDate = $(matchups[idx]).parent().parent().prev();
-				if(tempDate.attr('class') == 'odds--group__details-container'){
-					tempDate = tempDate.prev();// first day in list has an extra row/div so need to go back more
-				}
-				tempDate = tempDate.find('.short-date').text().split(' ');
+				const gameInfo = $(matchups[idx]).find('.lines-odds').first();
 				games.push({
-					date: new Date(tempDate[1]+' '+tempDate[2]+' '+((today.getMonth() == 11 && Util.monthName.indexOf(tempDate[1]) == 0)?today.getFullYear()+1:today.getFullYear())+' '+changeTime($(times[idx]).text().split(' ')[0])),
-					team1: (sport == 'nfl')?Util.nflTeams[teamNames.first().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.first().attr('title')]:teamNames.first().attr('title'),
-					team2: '@'+((sport == 'nfl')?Util.nflTeams[teamNames.last().attr('title')]:(sport == 'nba')?Util.nbaTeams[teamNames.last().attr('title')]:teamNames.last().attr('title')),
-					spread: (spread.children().attr('data-odds-spread')&&JSON.parse(spread.children().attr('data-odds-spread')).fullgame!='Ev')?JSON.parse(spread.children().attr('data-odds-spread')).fullgame:0,
-					over: (spread.next().next().children().attr('data-odds-total'))?JSON.parse(spread.next().next().children().attr('data-odds-total')).fullgame:0
+					date: new Date($(matchups[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time')),
+					team1: Util.nflTeams3[gameInfo.attr('data-team')],
+					team2: '@'+Util.nflTeams3[gameInfo.attr('data-team-vs')],
+					spread: gameInfo.attr('data-points'),
+					over: $(gameInfo).next().next().attr('data-points')
 				});
 			}
 
