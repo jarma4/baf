@@ -30,8 +30,8 @@ function getOdds(sport) {
 				const gameInfo = $(matchups[idx]).find('.lines-odds').first();
 				games.push({
 					date: new Date($(matchups[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time')),
-					team1: Util.nflTeams3[gameInfo.attr('data-team')],
-					team2: '@'+Util.nflTeams3[gameInfo.attr('data-team-vs')],
+					team1: (sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team-vs')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team-vs')]: gameInfo.attr('data-team-vs'),
+					team2: '@'+((sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team')]: gameInfo.attr('data-team')),
 					spread: gameInfo.attr('data-points'),
 					over: $(gameInfo).next().next().attr('data-points')
 				});
