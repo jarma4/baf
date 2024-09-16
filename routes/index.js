@@ -12,25 +12,28 @@ router.use(session({
     activeDuration: 5 * 60 * 1000,
 }));
 
-router.use(function (req, res, next) {
+router.use(async (req, res, next) => {
 	if (req.session && req.session.user) {
-		Users.findOne({ _id: req.session.user._id }, function (err, user) {
-			if (user) {
-				req.user = user;
-				if (user.secure != undefined) {
-					JSON.parse(user.secure).pages.forEach(page => {
-						req[page] = true;
-					});
-				}
-				delete req.user.password;
-				req.session.user = user;
-				res.locals.user = user;
-			}
-			next();
-		});
-	} else {
-		next();
-	}
+      try{
+         const user = await Users.findOne({ _id: req.session.user._id });
+         if (user) {
+            req.user = user;
+            if (user.secure != undefined) {
+               JSON.parse(user.secure).pages.forEach(page => {
+                  req[page] = true;
+               });
+            }
+            delete req.user.password;
+            req.session.user = user;
+            res.locals.user = user;
+         }
+         next();
+      } catch {
+         console.log(err);
+      }
+   } else {
+      next();
+   }
 });
 
 function checkAccess (req, res, next) {
@@ -44,11 +47,14 @@ function checkAccess (req, res, next) {
 module.exports = router;
 
 // Main page renderings
-router.get('/', function(req, res) {
+router.get('/', async (req, res) => {
     if(req.user) {
-        Users.findOne({_id: req.session.user._id}, {pref_default_page: 1}, function(err,user){
-            res.render(user.pref_default_page);
-        }).sort({_id:1});
+      try {
+         const user = await Users.findOne({_id: req.session.user._id}, {pref_default_page: 1}).sort({_id:1});
+         res.render(user.pref_default_page);
+      } catch {
+         console.log(err);
+      }
     } else {
         res.render('odds');
     }

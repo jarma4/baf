@@ -238,7 +238,7 @@ module.exports = {
 			});
 		})
 		.then(()=>{
-			// console.log(scores);
+			console.log(scores);
 			// next go through accepted bets for the day
 			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}, {score1: 0}, {score2: 0}]}, (err, acceptedBets) => { //get all accepted bets
 				acceptedBets.forEach(singleBet => {

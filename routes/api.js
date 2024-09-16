@@ -32,21 +32,28 @@ router.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
-router.use((req, res, next)=>{
-  if (req.session && req.session.user) {
-	 Users.findOne({ _id: req.session.user._id }, (err, user)=> {
-		if (user) {
-		  req.user = user;
-		  delete req.user.password;
-		  req.session.user = user;
-		  res.locals.user = user;
-		}
-
-		next();
-	 });
-  } else {
-	 next();
-  }
+router.use(async (req, res, next) => {
+	if (req.session && req.session.user) {
+      try{
+         const user = await Users.findOne({ _id: req.session.user._id });
+         if (user) {
+            req.user = user;
+            if (user.secure != undefined) {
+               JSON.parse(user.secure).pages.forEach(page => {
+                  req[page] = true;
+               });
+            }
+            delete req.user.password;
+            req.session.user = user;
+            res.locals.user = user;
+         }
+         next();
+      } catch {
+         console.log(err);
+      }
+   } else {
+      next();
+   }
 });
 
 webpush.setVapidDetails("mailto:admin@2dollarbets.com", process.env.BAF_VAPPUB, process.env.BAF_VAPPRI);
@@ -152,49 +159,48 @@ router.post('/makebet', requireLogin, function (req, res) {
 	res.send({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Sent'});
 });
 
-router.post('/getbets', requireLogin, (req, res)=>{
-	let sortedBets = [];
-	Bets.find({$and:[
-		{status:(req.body.status==1)?0:req.body.status},
-		{type: {$in: ['spread', 'over', 'under']}},
-		(Number(req.body.all))?{$and:[
-											{user1: {$ne: req.session.user._id}},
-											{user2: {$ne: req.session.user._id}}]}
-									:(req.body.status=='0')?{user2: req.session.user._id}
-									//  :(req.body.status=='0')?{$or:[{$and: [{user1: {$ne: req.session.user._id}}, {user2: 'EVERYONE'}]}, {user2: req.session.user._id}]}
-																	:(req.body.status=='1')?{user1: req.session.user._id}
-																								  :{$or:[
-																										{user1: req.session.user._id},
-																										{user2: req.session.user._id}]}]
-		}, (err, bets)=>{
-		if(err){
-			console.log(err);
-		} else {
-			bets.forEach(function(single){
-				// flip response data if someone else instigated bet
-				if (single.user2 == req.session.user._id){
-					// console.log(single.status+' '+single.user1+' '+single.user2);
-					tmp = single.user1;
-					tmp2 = single.team1;
-					single.user1 = single.user2;
-					single.team1 = single.team2;
-					single.user2 = tmp;
-					single.team2 = tmp2;
-					single.status = 1;  // 1 means the other guy needs to act; 0 means req.session.user
-					if (single.type == 'spread' && single.odds < 0)
-						single.odds = Math.abs(single.odds);
-					else if (single.type == 'spread')
-						single.odds = -Math.abs(single.odds);
-					if (single.type == 'over')
-						single.type = 'under';
-					else if (single.type == 'under')
-						single.type = 'over';
-				}
-				sortedBets.push(single);
-			});
-			res.json(sortedBets);
-		}
-	}).sort({date:-1});
+router.post('/getbets', requireLogin, async (req, res)=>{
+	try {
+		let sortedBets = [];
+		const bets = await Bets.find({$and:[
+			{status:(req.body.status==1)?0:req.body.status},
+			{type: {$in: ['spread', 'over', 'under']}},
+			(Number(req.body.all))?{$and:[
+				{user1: {$ne: req.session.user._id}},
+				{user2: {$ne: req.session.user._id}}]}
+			:(req.body.status=='0')?{user2: req.session.user._id}
+			//  :(req.body.status=='0')?{$or:[{$and: [{user1: {$ne: req.session.user._id}}, {user2: 'EVERYONE'}]}, {user2: req.session.user._id}]}
+			:(req.body.status=='1')?{user1: req.session.user._id}
+			:{$or:[
+				{user1: req.session.user._id},
+				{user2: req.session.user._id}]}]
+		}).sort({date:-1});
+		bets.forEach(function(single){
+			// flip response data if someone else instigated bet
+			if (single.user2 == req.session.user._id){
+				// console.log(single.status+' '+single.user1+' '+single.user2);
+				tmp = single.user1;
+				tmp2 = single.team1;
+				single.user1 = single.user2;
+				single.team1 = single.team2;
+				single.user2 = tmp;
+				single.team2 = tmp2;
+				single.status = 1;  // 1 means the other guy needs to act; 0 means req.session.user
+				if (single.type == 'spread' && single.odds < 0)
+					single.odds = Math.abs(single.odds);
+				else if (single.type == 'spread')
+					single.odds = -Math.abs(single.odds);
+				if (single.type == 'over')
+					single.type = 'under';
+				else if (single.type == 'under')
+					single.type = 'over';
+			}
+			sortedBets.push(single);
+		});
+		res.json(sortedBets);
+	} catch {
+		console.log(err);
+	}
 });
 
 router.post('/changebet', requireLogin, (req, res)=>{
@@ -998,10 +1004,13 @@ router.post('/getodds', function (req, res) {
 }); 
 
 // gets userlist for bet select list
-router.get('/users', requireLogin, (req, res)=>{
-	Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}, function(err,user){
+router.get('/users', requireLogin, async (req, res)=>{
+	try {
+		const user = await Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}).sort({_id:1});
 		res.json(user);
-	}).sort({_id:1});
+	} catch {
+		console.log(err);
+	}
 });
 
 // called when new page is loaded
