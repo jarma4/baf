@@ -24,15 +24,15 @@ function getOdds(sport) {
 			const $ = cheerio.load(body);
 			let  games = [];
 			const today = new Date();
-			// let teamNames, tempDate, spread;
 			const matchups = $('.game-line__home-line');
 			for (let idx = 0; idx < matchups.length; idx++){
 				const gameInfo = $(matchups[idx]).find('.lines-odds').first();
+				let tempTime = new Date($(matchups[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time'));
 				games.push({
-					date: new Date($(matchups[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time')),
+					date: tempTime.setHours(tempTime.getHours() + 1), // mybookie in another timezone
 					team1: (sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team-vs')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team-vs')]: gameInfo.attr('data-team-vs'),
 					team2: '@'+((sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team')]: gameInfo.attr('data-team')),
-					spread: gameInfo.attr('data-points'),
+					spread: Number(gameInfo.attr('data-points'))*-1,
 					over: $(gameInfo).next().next().attr('data-points')
 				});
 			}
