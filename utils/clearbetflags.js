@@ -2,7 +2,8 @@ var mongoose = require('mongoose'),
    Users = require('../models/dbschema').Users;
 
 
-require('dotenv').config();
+process.loadEnvFile();
+
 mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
 
 Users.update({}, {bets: 0}, {multi: true}, function (err) {

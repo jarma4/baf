@@ -69,7 +69,6 @@ let betStack = [];
 
 // pulled out so EVERYONE bets can call multiple times along with single bets
 function saveBet (req){
-	// console.log(req.body);
 	let today = new Date();
 	new Bets({
 		week: (req.body.type != 'prop')?Util.getWeek(new Date(req.body.gametime), req.body.sport):0,
@@ -92,13 +91,13 @@ function saveBet (req){
 		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:'',
 		limit: req.body.limit
 	}).save((err)=>{
-	 if(err) {
-			logger.error('Trouble adding bet: '+err);
-			return ({'type':'danger', 'message':'Trouble adding bet'});
-		} else {
-			logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
-			return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
-		}
+	if(err) {
+		logger.error('Trouble adding bet: '+err);
+		return ({'type':'danger', 'message':'Trouble adding bet'});
+	} else {
+		logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
+		return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
+	}
 	});
 	if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
 		changeUser (req.body.user2, 'bets', 1);
@@ -130,20 +129,19 @@ function makeBet (req) {
 				req.body.user2 = single._id;
 				saveBet(req);
 			});
-		});
-		if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
-			let message;
-			if (req.body.type == 'spread') {
-				const reverseOdds = (req.body.odds>=0)?0-req.body.odds:-1*req.body.odds;
-				message = ((req.body.sport=='nba')?'NBA':'NFL')+' bet: Anyone='+req.body.team2+((reverseOdds>=0)?'+':'')+reverseOdds+', '+req.session.user._id+'='+req.body.team1+((req.body.odds>=0)?'+':'')+req.body.odds;
-			} else {
-				message = ((req.body.sport=='nba')?'NBA':'NFL')+' bet: '+req.body.team1+'/'+req.body.team2+' Anyone='+((req.body.type=='over')?'Under ':'Over ')+req.body.odds+', '+req.session.user._id+'='+((req.body.type=='over')?'Over ':'Under ')+req.body.odds;
-			}
-			Util.sendSlack('ALL', message);
-		}
-	
+		});	
 	} else {
 		saveBet(req);
+	}
+	if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
+		let message;
+		if (req.body.type == 'spread') {
+			const reverseOdds = (req.body.odds>=0)?0-req.body.odds:-1*req.body.odds;
+			message = ((req.body.sport=='nba')?'NBA':'NFL')+' bet: '+req.body.user2+'='+req.body.team2+((reverseOdds>=0)?'+':'')+reverseOdds+', '+req.session.user._id+'='+req.body.team1+((req.body.odds>=0)?'+':'')+req.body.odds;
+		} else {
+			message = ((req.body.sport=='nba')?'NBA':'NFL')+' bet: '+req.body.team1+'/'+req.body.team2+' '+req.body.user2+'='+((req.body.type=='over')?'Under ':'Over ')+req.body.odds+', '+req.session.user._id+'='+((req.body.type=='over')?'Over ':'Under ')+req.body.odds;
+		}
+		Util.sendSlack(req.body.user2, message);
 	}
 }
 

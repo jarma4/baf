@@ -29,7 +29,7 @@ module.exports = {
 		// }
 		await slack.client.chat.postMessage({
 			token: process.env.SLACK_TOKEN,
-			channel: (recipient == 'ALL'?'2db':`@${recipient}`),
+			channel: (recipient == 'EVERYONE'?'2db':`@${recipient}`),
 			text: message
 		});
 	},
