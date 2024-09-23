@@ -16,7 +16,7 @@ function getOdds(sport) {
 		return String(Number(timeSplit[0])+((time.slice(-2)=='pm')?11:-1)+':'+timeSplit[1]);
 	}
 
-	const url = 'https://www.mybookie.ag/sportsbook/'+((sport=='soccer')?'soccer/world-cup':sport)+'/';
+	const url = 'https://www.mybookie.ag/sportsbook/'+((sport=='soccer')?'soccer/world-cup':sport)+'-usa/';
 	// console.log(`checking odds ${sport} @ ${url}`);
 	request(url, function (err, response, body) {
 		if(!err && response.statusCode == 200) {
@@ -29,7 +29,7 @@ function getOdds(sport) {
 				const gameInfo = $(matchups[idx]).find('.lines-odds').first();
 				let tempTime = new Date($(matchups[idx]).parent().parent().prev().find('span.game-line__time__date__hour').attr('data-time'));
 				games.push({
-					date: tempTime.setHours(tempTime.getHours() + 1), // mybookie in another timezone
+					date: new Date(tempTime.setHours(tempTime.getHours() + 1)), // mybookie in another timezone
 					team1: (sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team-vs')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team-vs')]: gameInfo.attr('data-team-vs'),
 					team2: '@'+((sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team')]: gameInfo.attr('data-team')),
 					spread: Number(gameInfo.attr('data-points'))*-1,
