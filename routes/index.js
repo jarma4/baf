@@ -28,7 +28,7 @@ router.use(async (req, res, next) => {
             res.locals.user = user;
          }
          next();
-      } catch {
+      } catch (err){
          console.log(err);
       }
    } else {
@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
       try {
          const user = await Users.findOne({_id: req.session.user._id}, {pref_default_page: 1}).sort({_id:1});
          res.render(user.pref_default_page);
-      } catch {
+      } catch (err){
          console.log(err);
       }
     } else {

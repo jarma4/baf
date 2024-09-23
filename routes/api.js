@@ -48,7 +48,7 @@ router.use(async (req, res, next) => {
             res.locals.user = user;
          }
          next();
-      } catch {
+      } catch (err){
          console.log(err);
       }
    } else {
@@ -113,7 +113,7 @@ function saveBet (req){
 }
 
 // pulled out as function so can be called internally by watch bets being auto sent
-function makeBet (req) {
+async function makeBet (req) {
 	// check stack if bet has already come through, exit if so
 	if (betStack.indexOf(req.body.serial) != -1) {
 		console.log('previous bet found with serial#'+req.body.serial);
@@ -129,14 +129,17 @@ function makeBet (req) {
 
 	// if EVERYONE bet, need to go through user db and send to each
 	if ((req.body.user2 == 'EVERYONE') && req.body.watch == false) {
-		Users.find({$and: [
-							{_id: {$nin:[req.session.user._id,'testuser']}},
-							(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1}, function(err, users){
+		try {
+			const users = await Users.find({$and: [
+				{_id: {$nin:[req.session.user._id,'testuser']}},
+				(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1});
 			users.forEach(function(single) {
 				req.body.user2 = single._id;
 				saveBet(req);
-			});
-		});	
+			});	
+		} catch (err) {
+			console.log(err)
+		}	
 	} else {
 		saveBet(req);
 	}
@@ -160,18 +163,12 @@ router.post('/makebet', requireLogin, function (req, res) {
 router.post('/getbets', requireLogin, async (req, res)=>{
 	try {
 		let sortedBets = [];
-		const bets = await Bets.find({$and:[
-			{status:(req.body.status==1)?0:req.body.status},
-			{type: {$in: ['spread', 'over', 'under']}},
-			(Number(req.body.all))?{$and:[
-				{user1: {$ne: req.session.user._id}},
-				{user2: {$ne: req.session.user._id}}]}
-			:(req.body.status=='0')?{user2: req.session.user._id}
-			//  :(req.body.status=='0')?{$or:[{$and: [{user1: {$ne: req.session.user._id}}, {user2: 'EVERYONE'}]}, {user2: req.session.user._id}]}
-			:(req.body.status=='1')?{user1: req.session.user._id}
-			:{$or:[
-				{user1: req.session.user._id},
-				{user2: req.session.user._id}]}]
+		const bets = await Bets.find({$and:[{status:(req.body.status==1)?0:req.body.status}, {type: {$in: ['spread', 'over', 'under']}}, (Number(req.body.all))?{$and:[{user1: {$ne: req.session.user._id}}, {user2: {$ne: req.session.user._id}}]}
+				:(req.body.status=='0')?{user2: req.session.user._id}
+					:(req.body.status=='1')?{user1: req.session.user._id}
+					:{$or:[
+						{user1: req.session.user._id},
+						{user2: req.session.user._id}]}]
 		}).sort({date:-1});
 		bets.forEach(function(single){
 			// flip response data if someone else instigated bet
@@ -196,37 +193,37 @@ router.post('/getbets', requireLogin, async (req, res)=>{
 			sortedBets.push(single);
 		});
 		res.json(sortedBets);
-	} catch {
+	} catch (err){
 		console.log(err);
 	}
 });
 
-router.post('/changebet', requireLogin, (req, res)=>{
+router.post('/changebet', requireLogin, async (req, res)=>{
 	// console.log(req.body);
 	switch (req.body.action) {
 		case 'delete':  // delete bet
 			// if not save later bet or future, decrement bet flag notice
-			let  tmp = new Promise((resolve, reject) => {
-				Bets.findOne({_id:req.body.id}, function(err, singleBet){
-					if(err) {
-						console.log(err);
-						reject();
-					} else if (singleBet){
+			let  tmp = new Promise(async (resolve, reject) => {
+				try{
+					const singleBet = await Bets.findOne({_id:req.body.id});
+					if (singleBet){
 						if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
 							changeUser(singleBet.user2, 'bets', -1);
 						}
 						resolve();
 					}
-				});
-			}).then(function() {
-				Bets.deleteOne({_id:req.body.id}, (err)=>{
-					if(err)
-						console.log(err);
-					else {
-						logger.info('Bet _id='+req.body.id+' deleted');
-						res.send({'type':'success', 'message':'Bet deleted'});
-					}
-				});
+				} catch (err){
+					console.log(err);
+					reject();
+				}
+			}).then(async () => {
+				try {
+					await Bets.deleteOne({_id:req.body.id});
+					logger.info('Bet _id='+req.body.id+' deleted');
+					res.send({'type':'success', 'message':'Bet deleted'});
+				} catch (err){
+					console.log(err);
+				}
 			});
 			break;
 		case 'accepted':   // bet accepted
@@ -234,10 +231,12 @@ router.post('/changebet', requireLogin, (req, res)=>{
 				status: req.body.status,
 				comment:req.body.comment
 			};
-			if (req.body.future)
+			if (req.body.future) {
 				updateFields.user2 = req.session.user._id;
+			}
 			// below query has id AND status in case first to act bet was already acted on but other people have been haven't updated locally
-			Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields, function(err, acceptedBet){
+			try {
+				const acceptedBet = await Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields);
 				if(acceptedBet){
 					logger.info('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
 					changeUser(req.session.user._id, 'bets', -1);
@@ -262,87 +261,85 @@ router.post('/changebet', requireLogin, (req, res)=>{
 					res.send({'type':'success', 'message':'Bet accepted'});
 				} else {
 					res.send({'type':'danger', 'message':'Bet not accepted, please refresh'});
-				}
-			});
+				}	
+			} catch (err) {
+				console.log(err);
+			}
+			
 			break;
 		case 'refused':   // bet refused
-			Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment}, (err)=>{
-				if(err){
-					console.log(err);
-				} else {
-					logger.info('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
-					res.send({'type':'success', 'message':'Reply Sent'});
-					changeUser(req.session.user._id, 'bets', -1);
-				}
-			});
+			try {
+				await Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment});
+				logger.info('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
+				res.send({'type':'success', 'message':'Reply Sent'});
+				changeUser(req.session.user._id, 'bets', -1);
+			} catch (err) {
+				console.log(err);
+			}
 			break;
 		case 'change':
-			Bets.updateOne({_id: req.body.id}, req.body, (err)=> {
-				if(err)
-					console.log(err);
-				else {
-					logger.info('Bet _id='+req.body.id+' changed - '+new Date());
-					res.send({'type':'success', 'message':'Change made'});
-				}
-			});
+			try {
+				await Bets.updateOne({_id: req.body.id}, req.body);
+				logger.info('Bet _id='+req.body.id+' changed - '+new Date());
+				res.send({'type':'success', 'message':'Change made'});
+			} catch (err){
+				console.log(err);
+			}
 			break;
-
 	}
 });
 
-router.post('/weeklystats', requireLogin, (req, res)=>{
+router.post('/weeklystats', requireLogin, async (req, res)=>{
 	let sortedBets = [];
-	Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}, function(err,complete){
-		if(err){
-			console.log(err);
-		} else {
-			complete.forEach(function(single){
-				// flip response data if someone else instigated bet
-				if (single.user1 != req.session.user._id){
-					tmp = single.user1;
-					tmp2 = single.team1;
-					single.user1 = single.user2;
-					single.team1 = single.team2;
-					single.user2 = tmp;
-					single.team2 = tmp2;
-					if (single.odds < 0)
-						single.odds = Math.abs(single.odds);
-					else
-						single.odds = -Math.abs(single.odds);
-					if (single.status == 4)
-						single.status = 5;
-					else if (single.status == 5)
-						single.status = 4;
-				}
-				sortedBets.push(single);
-			});
-			res.json(sortedBets);
-		}
-	}).sort({date: -1, user1: 1, });
+	try {
+		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
+		complete.forEach(function(single){
+			// flip response data if someone else instigated bet
+			if (single.user1 != req.session.user._id){
+				tmp = single.user1;
+				tmp2 = single.team1;
+				single.user1 = single.user2;
+				single.team1 = single.team2;
+				single.user2 = tmp;
+				single.team2 = tmp2;
+				if (single.odds < 0)
+					single.odds = Math.abs(single.odds);
+				else
+					single.odds = -Math.abs(single.odds);
+				if (single.status == 4)
+					single.status = 5;
+				else if (single.status == 5)
+					single.status = 4;
+			}
+			sortedBets.push(single);
+		});
+		res.json(sortedBets);
+	} catch(err){
+		console.log(err);
+	}
 });
 
-router.post('/overallstats', requireLogin, (req, res)=>{
+router.post('/overallstats', requireLogin, async (req, res)=>{
 	let stats = [];
 	if (req.body.season != 'All') {
-		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season, pct: {$exists: true}}, function(err,records){
-			if (err) {
-				console.log(err);
-			} else {
-				res.json(records);
-			}
-		}).sort({pct:-1});
+		try {
+			const records = await Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, season: req.body.season, pct: {$exists: true}}).sort({pct:-1});
+			res.json(records);
+		} catch (err) {
+			console.log(err);
+		}
 	} else {
-		Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, pct: {$exist: true}}, function(err,records){
-			if (err) {
-				console.log(err);
-			} else {
-				res.json(records);
-			}
-		}).sort({pct:-1});
+		try {
+			const records = await Records.find({user:{$ne: 'testuser'}, sport: req.body.sport, pct: {$exist: true}}).sort({pct:-1});
+			res.json(records);
+		} catch (err) {
+			console.log(err);
+		}
+
 	}
 });
 
-router.post('/graphstats', requireLogin, (req, res)=>{
+router.post('/graphstats', requireLogin, async (req, res)=>{
 	let dates = [],
 		results = {},
 		currentWeek = 1;
@@ -352,112 +349,114 @@ router.post('/graphstats', requireLogin, (req, res)=>{
 	// }
 	// console.log(req.body.period);
 	// find all valid bets during period, keep numBets and process
-	Bets.find({$and:[ (req.body.user == 'ALL')?{}:{$or:[{user1: req.body.user},
-																		{user2: req.body.user}]},
-							{status:{$in: [4,5,6]}},
-							{sport: req.body.sport},
-							{season: req.body.season},
-							{week: {$gte: currentWeek}}]}, function(err, bets){
-		if (err) {
-			console.log(err);
-		} else {
-			bets.forEach(function(bet, index){
-				// console.log(`${index} ${currentWeek} ${bet.week} ${bet.user1} ${bet.user2} ${bet.team1} ${bet.team2}`);
-				// check if stop date to store data
-				if (bet.week > currentWeek) {
-					// store date for xaxis labels
-					dates.push(currentWeek);
-					// on date, save win % per user
-					for (let username in results) {
-						results[username].data.push(results[username].total/results[username].numBets);
-					}
-					// advance next date to stop on
-					currentWeek = bet.week;
+	try {
+		const bets = await Bets.find({$and:[ 
+			(req.body.user == 'ALL')?
+				{}:
+				{$or:[
+					{user1: req.body.user},
+					{user2: req.body.user}]},
+			{status:{$in: [4,5,6]}},
+			{sport: req.body.sport},
+			{season: req.body.season},
+			{week: {$gte: currentWeek}}]}).sort({week: 1});
+		bets.forEach((bet, index) => {
+			// console.log(`${index} ${currentWeek} ${bet.week} ${bet.user1} ${bet.user2} ${bet.team1} ${bet.team2}`);
+			// check if stop date to store data
+			if (bet.week > currentWeek) {
+				// store date for xaxis labels
+				dates.push(currentWeek);
+				// on date, save win % per user
+				for (let username in results) {
+					results[username].data.push(results[username].total/results[username].numBets);
 				}
-				// if new user, create new record
-				if (!results[bet.user1]) {
-					results[bet.user1]={total: 0, numBets: 0};
-					results[bet.user1].data = Array(dates.length).fill(NaN);
-				}
-				if (!results[bet.user2]) {
-					results[bet.user2]={total: 0, numBets: 0};
-					results[bet.user2].data = Array(dates.length).fill(NaN);
-				}
-				// increment counters
-				if (bet.status == 4) {
-					results[bet.user1].total++;
-				} else if (bet.status == 5) {
-					results[bet.user2].total++;
-				} else {
-					results[bet.user1].total+=0.5;
-					results[bet.user2].total+=0.5;
-				}
-				results[bet.user1].numBets++;
-				results[bet.user2].numBets++;
-			});
-			// push remaining info once done
-			dates.push(currentWeek);
-			for (let username in results) {
-				results[username].data.push(results[username].total/results[username].numBets);
+				// advance next date to stop on
+				currentWeek = bet.week;
 			}
-		}
-		res.send({
-		  xaxis : dates,
-		  datasets: results
+			// if new user, create new record
+			if (!results[bet.user1]) {
+				results[bet.user1]={total: 0, numBets: 0};
+				results[bet.user1].data = Array(dates.length).fill(NaN);
+			}
+			if (!results[bet.user2]) {
+				results[bet.user2]={total: 0, numBets: 0};
+				results[bet.user2].data = Array(dates.length).fill(NaN);
+			}
+			// increment counters
+			if (bet.status == 4) {
+				results[bet.user1].total++;
+			} else if (bet.status == 5) {
+				results[bet.user2].total++;
+			} else {
+				results[bet.user1].total+=0.5;
+				results[bet.user2].total+=0.5;
+			}
+			results[bet.user1].numBets++;
+			results[bet.user2].numBets++;
 		});
-	}).sort({week: 1});
-});
-
-router.post('/userstats', requireLogin, (req, res)=>{
-	Bets.find({$and:[{$or:[{user1: req.body.user},
-								  {user2: req.body.user}],
-						  sport: req.body.sport,
-						  season: req.body.season},
-						  {status:{$in:[4,5,6]}},
-						  (req.body.week)?{week:req.body.week}:{}]}, function(err, bets){
-		if (err) {
-			console.log(err);
-		} else {
-			let winList = {};
-			bets.forEach(function(bet){
-				let target, status=bet.status;
-				if (bet.user1 == req.body.user) {
-					target = bet.user2;
-				} else {
-					// flip things
-					target = bet.user1;
-					if (bet.status == 5) {
-						status = 4;
-					} else if (bet.status == 4) {
-						status = 5;
-					}
-				}
-				// check if record exists
-				if (!winList[target]) {
-					winList[target] = {win:0, loss:0, push:0};
-				}
-				// record win loss push
-				if (status == 4) {
-					winList[target].win += 1;
-				} else if (status == 5) {
-					winList[target].loss += 1;
-				} else {
-					if (bet.user1 == req.body.user) {
-						winList[bet.user2].push += 1;
-					} else {
-						winList[bet.user1].push += 1;
-					}
-				}
-			});
-			res.json({bets, winList});
+		// push remaining info once done
+		dates.push(currentWeek);
+		for (let username in results) {
+			results[username].data.push(results[username].total/results[username].numBets);
 		}
-	}).sort({date:-1});
+		res.send({xaxis : dates, datasets: results});
+	} catch(err) {
+		console.log(err);
+	}
 });
 
-router.get('/getprops', requireLogin, (req, res)=>{
-	Bets.find({type: 'prop'}, function(err, props){
-		res.json(props);
-	}).sort({date: -1}).limit(50);
+router.post('/userstats', requireLogin, async (req, res)=>{
+	try {
+		const bets = await Bets.find({$and:[{$or:[{user1: req.body.user},
+									{user2: req.body.user}],
+							sport: req.body.sport,
+							season: req.body.season},
+							{status:{$in:[4,5,6]}},
+							(req.body.week)?{week:req.body.week}:{}]}).sort({date:-1});
+		let winList = {};
+		bets.forEach(function(bet){
+			let target, status=bet.status;
+			if (bet.user1 == req.body.user) {
+				target = bet.user2;
+			} else {
+				// flip things
+				target = bet.user1;
+				if (bet.status == 5) {
+					status = 4;
+				} else if (bet.status == 4) {
+					status = 5;
+				}
+			}
+			// check if record exists
+			if (!winList[target]) {
+				winList[target] = {win:0, loss:0, push:0};
+			}
+			// record win loss push
+			if (status == 4) {
+				winList[target].win += 1;
+			} else if (status == 5) {
+				winList[target].loss += 1;
+			} else {
+				if (bet.user1 == req.body.user) {
+					winList[bet.user2].push += 1;
+				} else {
+					winList[bet.user1].push += 1;
+				}
+			}
+		});
+		res.json({bets, winList});
+	} catch (err) {
+		console.log(err);
+	}
+});
+
+router.get('/getprops', requireLogin, async (req, res)=>{
+	try {
+		const props = await Bets.find({type: 'prop'}).sort({date: -1}).limit(50);
+		res.json(props);		
+	} catch (err) {
+		console.log(err);
+	}
 });
 
 router.post('/acceptprop', requireLogin, (req, res)=>{
@@ -471,18 +470,18 @@ router.post('/acceptprop', requireLogin, (req, res)=>{
 	});
 });
 
-router.post('/getstandings', requireLogin, (req, res)=>{
-	OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, standings){
-		if (err)
+router.post('/getstandings', requireLogin, async (req, res)=>{
+	try {
+		const standings = await OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({team:1});
+		try {
+			const users = await OUuser.find({season: Number(req.body.season), sport: req.body.sport}).sort({user:1});
+			res.json({standings, users});			
+		} catch (error) {
 			console.log(err);
-		else
-		OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
-			if (err)
-				console.log(err);
-			else
-				res.json({standings, users});
-		}).sort({user:1});
-	}).sort({team:1});
+		}		
+	} catch (err) {
+		console.log(err);
+	}
 });
 
 router.post('/getousignup', requireLogin, (req, res)=>{
@@ -559,99 +558,89 @@ router.post('/ousignup', requireLogin, (req, res)=>{
 });
 
 router.post('/gettourney', function (req, res) {
-	Sports.findOne({sport: req.body.sport.substring(0,3)}, (err, sportInfo)=>{
-		if (err) {
-			console.log(err);
-		} else {
-			if (new Date() < sportInfo.playoffs){ //still time to pick
-				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id user', (err, players) => {
-					if (err) {
-						console.log(err);
+	Sports.findOne({sport: req.body.sport.substring(0,3)})
+	.then ((sportInfo)=>{
+		if (new Date() < sportInfo.playoffs){ //still time to pick
+			// OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id user', (err, players) => {
+			// 	if (err) {
+			// 		console.log(err);
+			// 	}
+			// });
+			OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 user')
+			.then((allPicks) => {
+				let players = [], picks=[];
+				allPicks.forEach(pick => {
+					if (pick.user == req.session.user._id) {
+						picks.push(pick);
 					}
+					players.push(pick.user);
 				});
-				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 user', (err, allPicks) => {
-					let players = [], picks=[];
-					if (err) {
-						console.log(err);
-					} else { // user picks exist
-						allPicks.forEach(pick => {
-							if (pick.user == req.session.user._id) {
-								picks.push(pick);
-							}
-							players.push(pick.user);
-						});
-						res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2], players: players, picks: picks});
+				res.json({results: [], seeding: [sportInfo.seeding1, sportInfo.seeding2], players: players, picks: picks});
+			})
+			.catch((err)=> console.log(err));			
+		} else { // after selection time
+			OUuser.find({season: Number(req.body.season), sport: req.body.sport})
+			.then((users)=>{
+				let allPicks=[];
+				users.forEach((user, userIndex)=>{
+					let game = 0,userPicks = {};
+					userPicks['user'] = user.user;
+					for(let i=0; i < (req.body.sport.substring(0,3) == 'nfl'?26:30); ++i){
+						if(user[i].endsWith('*')){
+							userPicks[game] = user[i].slice(0,-1);
+							++game;
+						}
 					}
+					allPicks.push(userPicks);
 				});
-			} else { // after selection time
-				OUuser.find({season: Number(req.body.season), sport: req.body.sport}, function(err, users){
-					if (err) {
-						console.log(err);
-					} else {
-						let allPicks=[];
-						users.forEach((user, userIndex)=>{
-							let game = 0,userPicks = {};
-							userPicks['user'] = user.user;
-							for(let i=0; i < (req.body.sport.substring(0,3) == 'nfl'?26:30); ++i){
-								if(user[i].endsWith('*')){
-									userPicks[game] = user[i].slice(0,-1);
-									++game;
-								}
-							}
-							allPicks.push(userPicks);
-						});
-						OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, results){
-							if (err) {
-								console.log(err);
-							} else {
-								res.json({results: results, users: allPicks});
-							}
-						}).sort({index: 1});
-					}
-				});
-			}
+				OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({index: 1})
+				.then((results)=>{
+					res.json({results: results, users: allPicks});
+				})
+				.catch((err)=> console.log(err));
+			})
+			.catch((err)=> console.log(err));
 		}
-	});
+	})
+	.catch((err) => console.log(err));
 });   
 
 router.post('/getbtascoreboard', requireLogin, (req,res) => {
 	Records.find({season: Number(req.body.season), sport: 'bta'+req.body.sport}).sort({user:1})
 	.then(totals => {
-		Odds.count({sport:req.body.sport, season: Number(req.body.season)})
+		Odds.countDocuments({sport:req.body.sport, season: Number(req.body.season)})
 		.then (count => {
 			res.send({totals, count});
 		});
 	});
 });
 
-router.post('/getbtapicks', requireLogin, (req, res)=>{
+router.post('/getbtapicks', requireLogin, async (req, res)=>{
 	let today = new Date(), targetDate = new Date(req.body.date);
 	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))}; //(today.getHours() < 11 || (today.getHours() == 11 && today.getMinutes() < 30))
-	Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}, (err, odds) =>{
-		if (err) {
-			console.log('Error getting weeks ATS odds: '+err);
-		} else {
-			results.odds = odds;
-			// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
-			Ats.find({date: targetDate, season: Number(req.body.season), sport: req.body.sport}, (err, allPicks) =>{
-				if (err) {
-					console.log(err);
-				} else {
-					if (results.timeToPick){ // before end of picking period, only send 1 person
-						allPicks.forEach(pick => {
-							if (pick.user == req.session.user._id) {
-								results.picks = [pick];
-							}
-							results.players.push(pick.user);
-						});
-					} else {
-						results.picks = allPicks;
+	try {
+		const odds = await Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}).sort({index:1});
+		results.odds = odds;
+		// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
+		try {
+			const allPicks = await Ats.find({date: targetDate, season: Number(req.body.season), sport: req.body.sport}).sort({user:1});
+			if (results.timeToPick){ // before end of picking period, only send 1 person
+				allPicks.forEach(pick => {
+					if (pick.user == req.session.user._id) {
+						results.picks = [pick];
 					}
-					res.send(results);
-				}
-			}).sort({user:1});
+					results.players.push(pick.user);
+				});
+			} else {
+				results.picks = allPicks;
+			}
+			res.send(results);
+		} catch (err) {
+			console.log(err);
 		}
-   }).sort({index:1});
+	} catch(err){
+		console.log(err);
+	}
 });
 
 router.post('/createbtaodds', requireLogin, (req, res)=>{
@@ -953,13 +942,16 @@ router.get('/resolvedebts', requireLogin, (req, res)=>{
 	});
 });
 
-router.post('/getfutureoffers', requireLogin, (req, res)=>{
-	Bets.find({$and:[{status: req.body.status}, {$or: [{type: 'give'}, {type: 'take'}]}]}, function(err, offers){
+router.post('/getfutureoffers', requireLogin, async (req, res)=>{
+	try {
+		const offers = await Bets.find({$and:[{status: req.body.status}, {$or: [{type: 'give'}, {type: 'take'}]}]});
 		res.json({
 			sessionId: req.session.user._id,
 			offers: offers
-		});
-	});
+		});		
+	} catch (err) {
+		console.log(err);
+	}
 });
 
 router.get('/getfutures', function (req, res) {
@@ -1006,7 +998,7 @@ router.get('/users', requireLogin, async (req, res)=>{
 	try {
 		const user = await Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}).sort({_id:1});
 		res.json(user);
-	} catch {
+	} catch (err){
 		console.log(err);
 	}
 });
@@ -1037,11 +1029,12 @@ router.get('/doorbell', requireLogin, (req, res)=>{
 	});
 });
 
-function changeUser(user, key, inc) {
+async function changeUser(user, key, inc) {
 	let tmp = {};
 	tmp[key] = inc;
-	Users.updateOne({_id: user}, {$inc: tmp}, (err)=>{
-		if(err)
-			console.log('Trouble with changing user '+key);
-	});
+	try {
+		await Users.updateOne({_id: user}, {$inc: tmp});
+	} catch (err){
+		console.log('Trouble with changing user '+key);
+	}
 }
