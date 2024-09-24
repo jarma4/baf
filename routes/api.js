@@ -14,10 +14,7 @@ const express = require('express'),
 
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.BAF_MONGO_URI)
-.then(()=>{})
-.catch(err=>{
-	console.log(err);
-});
+.catch(err => console.log(err));
 
 router = express.Router();
 
@@ -98,13 +95,13 @@ function saveBet (req){
 		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:'',
 		limit: req.body.limit
 	}).save((err)=>{
-	if(err) {
-		logger.error('Trouble adding bet: '+err);
-		return ({'type':'danger', 'message':'Trouble adding bet'});
-	} else {
-		logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
-		return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
-	}
+		if(err) {
+			logger.error('Trouble adding bet: '+err);
+			return ({'type':'danger', 'message':'Trouble adding bet'});
+		} else {
+			logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
+			return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
+		}
 	});
 	if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
 		changeUser (req.body.user2, 'bets', 1);
@@ -129,17 +126,16 @@ async function makeBet (req) {
 
 	// if EVERYONE bet, need to go through user db and send to each
 	if ((req.body.user2 == 'EVERYONE') && req.body.watch == false) {
-		try {
-			const users = await Users.find({$and: [
+		Users.find({$and: [
 				{_id: {$nin:[req.session.user._id,'testuser']}},
-				(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1});
+				(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1})
+		.then(users => {
 			users.forEach(function(single) {
 				req.body.user2 = single._id;
 				saveBet(req);
-			});	
-		} catch (err) {
-			console.log(err)
-		}	
+			})
+		})
+		.catch (err => console.log(err));
 	} else {
 		saveBet(req);
 	}
@@ -161,16 +157,16 @@ router.post('/makebet', requireLogin, function (req, res) {
 });
 
 router.post('/getbets', requireLogin, async (req, res)=>{
-	try {
-		let sortedBets = [];
-		const bets = await Bets.find({$and:[{status:(req.body.status==1)?0:req.body.status}, {type: {$in: ['spread', 'over', 'under']}}, (Number(req.body.all))?{$and:[{user1: {$ne: req.session.user._id}}, {user2: {$ne: req.session.user._id}}]}
-				:(req.body.status=='0')?{user2: req.session.user._id}
-					:(req.body.status=='1')?{user1: req.session.user._id}
-					:{$or:[
-						{user1: req.session.user._id},
-						{user2: req.session.user._id}]}]
-		}).sort({date:-1});
-		bets.forEach(function(single){
+	let sortedBets = [];
+	Bets.find({$and:[{status:(req.body.status==1)?0:req.body.status}, {type: {$in: ['spread', 'over', 'under']}}, (Number(req.body.all))?{$and:[{user1: {$ne: req.session.user._id}}, {user2: {$ne: req.session.user._id}}]}
+			:(req.body.status=='0')?{user2: req.session.user._id}
+				:(req.body.status=='1')?{user1: req.session.user._id}
+				:{$or:[
+					{user1: req.session.user._id},
+					{user2: req.session.user._id}]}]
+	}).sort({date:-1})
+	.then(bets => {
+		bets.forEach(single => {
 			// flip response data if someone else instigated bet
 			if (single.user2 == req.session.user._id){
 				// console.log(single.status+' '+single.user1+' '+single.user2);
@@ -193,9 +189,8 @@ router.post('/getbets', requireLogin, async (req, res)=>{
 			sortedBets.push(single);
 		});
 		res.json(sortedBets);
-	} catch (err){
-		console.log(err);
-	}
+	})
+	.catch (err => console.log(err));
 });
 
 router.post('/changebet', requireLogin, async (req, res)=>{
@@ -204,26 +199,27 @@ router.post('/changebet', requireLogin, async (req, res)=>{
 		case 'delete':  // delete bet
 			// if not save later bet or future, decrement bet flag notice
 			let  tmp = new Promise(async (resolve, reject) => {
-				try{
-					const singleBet = await Bets.findOne({_id:req.body.id});
+				Bets.findOne({_id:req.body.id})
+				.then(singleBet => {
 					if (singleBet){
 						if (singleBet.status === 0 && singleBet.type != 'give' && singleBet.type != 'take') {
 							changeUser(singleBet.user2, 'bets', -1);
 						}
 						resolve();
 					}
-				} catch (err){
+				})
+				.catch(err => {
 					console.log(err);
 					reject();
-				}
-			}).then(async () => {
-				try {
-					await Bets.deleteOne({_id:req.body.id});
+				});
+			})
+			.then(() => {
+				Bets.deleteOne({_id:req.body.id})
+				.then(() => {
 					logger.info('Bet _id='+req.body.id+' deleted');
 					res.send({'type':'success', 'message':'Bet deleted'});
-				} catch (err){
-					console.log(err);
-				}
+				})
+				.catch (err => console.log(err));
 			});
 			break;
 		case 'accepted':   // bet accepted
@@ -235,56 +231,49 @@ router.post('/changebet', requireLogin, async (req, res)=>{
 				updateFields.user2 = req.session.user._id;
 			}
 			// below query has id AND status in case first to act bet was already acted on but other people have been haven't updated locally
-			try {
-				const acceptedBet = await Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields);
+			Bets.findOneAndUpdate({_id: req.body.id, status: 0}, updateFields)
+			.then(acceptedBet => {
 				if(acceptedBet){
 					logger.info('Bet'+((acceptedBet.fta)?'(fta)':'')+' _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
 					changeUser(req.session.user._id, 'bets', -1);
 					Util.sendSlack(acceptedBet.user1, acceptedBet.user2+' accepted your '+acceptedBet.team1+'/'+acceptedBet.team2+' bet', true);
 					if (acceptedBet.limit > 1) {	// number of bets to give is limited but this not the last; update others
-						Bets.updateMany({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true}, (err)=> {
-								if (err)
-									console.log(err);
-							});
+						Bets.updateMany({$and:[{fta: acceptedBet.fta}, {user2:{$ne: req.session.user._id}}]},{$inc:{limit: -1}}, {multi: true})
+						.catch(err => console.log(err));
 					} else if (acceptedBet.limit == 1)	{ // number of bets limited and this is last; cancel others
-						Bets.find({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]}, function(err, otherBets) {
+						Bets.find({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]})
+						.then(otherBets => {
 							otherBets.forEach(otherBet => {
 								changeUser(otherBet.user2, 'bets', -1);
 							});
-						}).then(function(){
-							Bets.updateMany({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true}, (err)=> {
-								if (err)
-									console.log(err);
-							});
-						});
+							Bets.updateMany({$and:[{fta: acceptedBet.fta}, {status: 0}, {user2:{$ne: req.session.user._id}}]},{status: 3, fta: 0}, {multi: true})
+							.catch(err => console.log(err));
+						})
+						.catch (err => console.log(err));
 					}
 					res.send({'type':'success', 'message':'Bet accepted'});
 				} else {
 					res.send({'type':'danger', 'message':'Bet not accepted, please refresh'});
-				}	
-			} catch (err) {
-				console.log(err);
-			}
-			
+				}
+			})	
+			.catch (err => console.log(err));
 			break;
 		case 'refused':   // bet refused
-			try {
-				await Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment});
+			Bets.updateOne({_id:req.body.id},{status:req.body.status, comment:req.body.comment})
+			.then(() => {
 				logger.info('Bet _id='+req.body.id+' changed to '+req.body.status+' - '+new Date());
 				res.send({'type':'success', 'message':'Reply Sent'});
 				changeUser(req.session.user._id, 'bets', -1);
-			} catch (err) {
-				console.log(err);
-			}
+			})
+			.catch (err => console.log(err));
 			break;
 		case 'change':
-			try {
-				await Bets.updateOne({_id: req.body.id}, req.body);
+			Bets.updateOne({_id: req.body.id}, req.body)
+			.then(() => {
 				logger.info('Bet _id='+req.body.id+' changed - '+new Date());
 				res.send({'type':'success', 'message':'Change made'});
-			} catch (err){
-				console.log(err);
-			}
+			})
+			.catch (err => console.log(err));
 			break;
 	}
 });
@@ -460,14 +449,12 @@ router.get('/getprops', requireLogin, async (req, res)=>{
 });
 
 router.post('/acceptprop', requireLogin, (req, res)=>{
-	Bets.updateOne({_id: req.body.id}, {user2: req.session.user._id}, (err)=>{
-		if (err) {
-			console.log("Prop accept error: "+err);
-		} else {
-			logger.info("Prop accepted: "+req.body.id);
-			res.send({'type':'success', 'message':'Prop updated'});
-		}
-	});
+	Bets.updateOne({_id: req.body.id}, {user2: req.session.user._id})
+	.then(() => {
+		logger.info("Prop accepted: "+req.body.id);
+		res.send({'type':'success', 'message':'Prop updated'});
+	})
+	.catch(err => console.log("Prop accept error: "+err));
 });
 
 router.post('/getstandings', requireLogin, async (req, res)=>{
@@ -486,60 +473,45 @@ router.post('/getstandings', requireLogin, async (req, res)=>{
 
 router.post('/getousignup', requireLogin, (req, res)=>{
 	// first find list of all users
-	OUuser.find({season: Number(req.body.season), sport: req.body.sport}, {_id:0, user: 1}, function(err, users){
-		if (err) {
-			console.log('Error getting OU users - '+err);
-		} else {
-			// next find choices for current user
-			OUuser.findOne({season: Number(req.body.season), sport: req.body.sport, user: req.session.user._id}, function(err, choices){
-				if (choices) {
-					OUgame.find({season: Number(req.body.season), sport: req.body.sport}, function(err, teams){
-						if (err) {
-							console.log(err);
-						} else {
-							// add users choice to results
-							teams.forEach(function(team, index){
-								teams[index].pick = choices[index];
-							});
-							if (err) {
-								console.log(err);
-							} else {
-								res.json({users: users, choices: teams});
-							}
-						}
-					}).sort({index:1}).lean(); // lean needed to modify mongoose object above
-				} else {
-					res.json({users: users});
-				}
-			});
-		}
-	}).sort({user:1});
+	OUuser.find({season: Number(req.body.season), sport: req.body.sport}, {_id:0, user: 1},).sort({user:1})
+	.then(users => {
+		// next find choices for current user
+		OUuser.findOne({season: Number(req.body.season), sport: req.body.sport, user: req.session.user._id})
+		.then(choices => {
+			if (choices) {
+				OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({index:1}).lean()
+				.then (teams => {
+					// add users choice to results
+					teams.forEach(function(team, index){
+						teams[index].pick = choices[index];
+					});
+					res.json({users: users, choices: teams});
+				}) // lean needed to modify mongoose object above
+				.catch(err => console.log(err));
+			} else {
+				res.json({users: users});
+			}
+		})
+		.catch(err => console.log(err));
+	})
+	.catch(err => console.log('Error getting OU users - '+err));
 });
 
 router.post('/setouchoices', requireLogin, (req, res)=>{
-	// console.log(req.body);
-	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true }, (err)=>{
-		if (err)
-			console.log("OU choice change error: "+err);
-		else {
-			res.send({'type':'success', 'message':'Choices updated'});
-		}
-	});
+	OUuser.updateOne({user: req.session.user._id, season: req.body.season, sport: req.body.sport}, JSON.parse(req.body.choices), {upsert : true })
+	.then(() => res.send({'type':'success', 'message':'Choices updated'}))
+	.catch(err => console.log("OU choice change error: "+err));
 });
 
 router.post('/getouusers', requireLogin, (req, res)=>{
-	OUuser.find({}, function(err,users){
-		if (err)
-			console.log('Error getting OU users - '+err);
-		else
-			res.json(users);
-	}).sort({user:1});
+	OUuser.find({}).sort({user:1})
+	.then(users => res.json(users))
+	.catch(err =>console.log('Error getting OU users - '+err));
 });
 
 router.post('/ousignup', requireLogin, (req, res)=>{
-	OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport}, function(err, result){
-		if (err)
-			console.log(err);
+	OUuser.findOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport})
+	.then(result => {
 		if (result) {
 			res.send({'type':'danger', 'message':'Already joined'});
 		} else {
@@ -547,19 +519,17 @@ router.post('/ousignup', requireLogin, (req, res)=>{
 				user: req.session.user._id,
 				season: Number(req.body.season),
 				sport: req.body.sport
-			}).save((err)=>{
-				if (err)
-					console.log('Error saving new OUuser: '+err);
-				else
-					res.send({'type':'success', 'message':'You are now signed up'});
-			});
+			}).save()
+			.then(() => res.send({'type':'success', 'message':'You are now signed up'}))
+			.catch(err => console.log('Error saving new OUuser: '+err));
 		}
-	});
+	})
+	.catch(err => console.log(err));
 });
 
 router.post('/gettourney', function (req, res) {
 	Sports.findOne({sport: req.body.sport.substring(0,3)})
-	.then ((sportInfo)=>{
+	.then (sportInfo => {
 		if (new Date() < sportInfo.playoffs){ //still time to pick
 			// OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id user', (err, players) => {
 			// 	if (err) {
@@ -644,16 +614,14 @@ router.post('/getbtapicks', requireLogin, async (req, res)=>{
 });
 
 router.post('/createbtaodds', requireLogin, (req, res)=>{
-	let today = new Date();
-	// console.log(req.body);
+	const today = new Date();
 	const targetDate = new Date(req.body.date);
 	if ((req.body.sport == 'nfl' && today.getHours() > 11) || (req.body.sport == 'nba' && today.getHours() > 17)) {
 		res.send({'type':'danger', 'message':'too late, try tomorrow'});
 	} else {
-		Odds.find({sport: req.body.sport, season: Number(req.body.season), date: req.body.date}, (err, odds) =>{
-			if (err) {
-				console.log('Error getting weeks ATS odds: '+err);
-			} else if (!odds.length) {
+		Odds.find({sport: req.body.sport, season: Number(req.body.season), date: req.body.date})
+		.then(odds => {
+			if (!odds.length) {
 				let index = 0;
 				let current = JSON.parse(fs.readFileSync('json/'+req.body.sport+'_odds.json'));
 				current.games.forEach(game => {
@@ -670,10 +638,8 @@ router.post('/createbtaodds', requireLogin, (req, res)=>{
 							ats: 0,
 							bta: true,
 							index: index++
-						}).save(err2 => {
-							if(err2)
-								console.log('Error saving new odds: '+err);
-						});
+						}).save()
+						.catch(err => console.log('Error saving new odds: '+err));
 					}
 				});
 				console.log('Challenge started, copied odds to db',new Date());
@@ -684,23 +650,19 @@ router.post('/createbtaodds', requireLogin, (req, res)=>{
 				console.log('Odds for today already exist');
 				res.send({'type':'danger', 'message':'Odds for today already exist'});
 			}
-		});
+		})
+		.catch(err => console.log('Error getting weeks ATS odds: '+err));
 	}
 });
 
 router.post('/updatebta', requireLogin, (req,res) => {
-	let today = new Date();
-
+	const today = new Date();
 	if((today.getHours >= 12)) {
 		res.send({'type':'danger', 'message':'Games started, no changes'});
 	} else {
-		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
-			if (err)
-				console.log("ATS change error: "+err);
-			else {
-				res.send({'type':'success', 'message':'Picks updated'});
-			}
-		});
+		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true})
+		.then(() => res.send({'type':'success', 'message':'Picks updated'}))
+		.catch(err => console.log("ATS change error: "+err));
 	}
 });
 

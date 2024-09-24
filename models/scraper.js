@@ -18,7 +18,7 @@ function getOdds(sport) {
 
 	const url = 'https://www.mybookie.ag/sportsbook/'+((sport=='soccer')?'soccer/world-cup':sport)+'-usa/';
 	// console.log(`checking odds ${sport} @ ${url}`);
-	request(url, function (err, response, body) {
+	request(url, async (err, response, body) => {
 		if(!err && response.statusCode == 200) {
 			// get odds for teams
 			const $ = cheerio.load(body);
@@ -39,7 +39,8 @@ function getOdds(sport) {
 
 			// go through odds Watches and act if necessary
 			// console.log('checking watches');
-			Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]}, function(err, watches){
+			Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]})
+			.then ((watches) => {
 				watches.forEach(function(watch){
 					// console.log(watch);
 					// if home team was chosen, reverse things so they match current odds
@@ -50,7 +51,7 @@ function getOdds(sport) {
 						watch.odds = 0 - watch.odds;
 					}
 					// watch found, look through current odds for match
-					games.forEach(function(game) {
+					games.forEach(async (game) => {
 						if (watch.team1 == game.team1 && watch.team1 == game.team1 && watch.odds == game.spread) {
 							// check if supposed to send bet to recipient after watch hits
 							if (watch.watch == 11) {
@@ -63,82 +64,74 @@ function getOdds(sport) {
 								// Api.makeBet(req);
 							}
 							// save watch as seen
-							Bets.updateOne({_id: watch._id}, {watch: 2}, function(err){
-								if(err)
-									logger.error('trouble updating watch');
-							});
+							Bets.updateOne({_id: watch._id}, {watch: 2})
+							.catch(err => logger.error('trouble updating watch'));
 							logger.info('*** Odds watch of '+watch.odds+' hit for '+watch.user1+' on '+watch.team1+' vs '+watch.team2);
 							Util.sendSlack(watch.user1, 'Odds Watch: '+watch.team1+' vs '+watch.team2+' now has odds of '+watch.odds);
 						}
 					});
 				});
-			});
+			})
+			.catch (err => console.log(err));
 
-			let now = new Date();
-			let sendData = {
+			const now = new Date();
+			const sendData = {
 				'time': now.getMonth()+1+'/'+now.getDate()+' '+now.getHours()+':'+('0'+now.getMinutes()).slice(-2),
 				'week':  Util.getWeek(now, sport),
 				'games': games};
 			if (games.length) { // only write if something was found
 				// console.log('writing to odds');
-				let success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
+				const success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
 			}
 		}
 	});
 }
 
-function updateBet(id,object){
+function updateBet(id, object){
 	if (object.status == 6)  // special case for marking tie game
 		object = {status:6, paid:true};
-	Bets.updateOne({_id:id},{$set:object},function(err){
-		if (err)
-			logger.error(id+' had trouble updating - ');
-		else
-			logger.info(id+' bet updated - '+new Date());
-	});
+	Bets.updateOne({_id:id},{$set:object})
+	.then (() => logger.info(id+' bet updated - '+new Date()))
+	.catch(err => logger.error(id+' had trouble updating: ',err));
 }
 
 function updatePct (user, sport) {
-	Records.findOne({user: user, sport: sport, season: Util.seasonStart[sport].getFullYear()}, function(err, record) {
-		Records.updateOne({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)}, function(err, resp){
-			if (err)
-				console.log('pct error');
-		});
-	});
+	Records.findOne({user: user, sport: sport, season: Util.seasonStart[sport].getFullYear()})
+	.then((record) => {
+		Records.updateOne({_id: record._id}, {pct: (record.win+0.5*record.push)/(record.win+record.loss+record.push)})
+		.catch(err => console.log('pct error'));
+	})
+	.catch(err => console.log(err));
 }
 
 function updateRecord(user, category, sport, season) {
 	return new Promise(function(resolve, reject){
 		let result = {};
 		result[category] = 1;
-		Records.updateOne({'user': user, 'sport': sport, 'season': season},{$inc: result}, function(err, res){
-			if (err) {
-				logger.error(user+' had trouble updating wins - '+new Date());
-				reject();
-			} else {
-				if (!res.modifiedCount){ // didn't actually update because no record, create one;
-					// maybe error here, multiple new users created first time if multiple bets
-					let newrecord = new Records({
-						user: user,
-						season: season,
-						sport: sport,
-						win: 0,
-						loss: 0,
-						push: 0,
-						pct: 0
-					});
-					newrecord[category] = 1;
-					newrecord.save(function(err){
-						if(err) {
-							console.log('error');
-						}
-					});
-				}
-				logger.info(user+' had a '+category+' - '+new Date());
-				resolve();
+		Records.updateOne({'user': user, 'sport': sport, 'season': season},{$inc: result})
+		.then((res) => {
+			if (!res.modifiedCount){ // didn't actually update because no record, create one;
+				// maybe error here, multiple new users created first time if multiple bets
+				let newrecord = new Records({
+					user: user,
+					season: season,
+					sport: sport,
+					win: 0,
+					loss: 0,
+					push: 0,
+					pct: 0
+				});
+				newrecord[category] = 1;
+				newrecord.save()
+				.catch(err => console.log(err));
 			}
+			logger.info(user+' had a '+category+' - '+new Date());
+			resolve();
+		})
+		.catch(err => {
+			logger.error(user+' had trouble updating wins - '+new Date());
+			reject();
 		});
-		console.log('update result = ', result);
 	});
 }
 
@@ -151,61 +144,50 @@ function updateWinnerLoser(winner, loser, push, sport){
 	});
 	// update debt counters
 	if (!push) {
-		Users.updateOne({_id: winner}, {$inc:{debts:(1<<4)}}, function(err){
-			if (err)
-			logger.error(user+' had trouble updating winner debts - '+new Date());
-		});
-		Users.updateOne({_id: loser}, {$inc: {debts:1}}, function(err){
-			if (err)
-				logger.error(user+' had trouble updating loser debts - '+new Date());
-		});
+		Users.updateOne({_id: winner}, {$inc:{debts:(1<<4)}})
+		.catch(err => logger.error(user+' had trouble updating winner debts - '+new Date()));
+		Users.updateOne({_id: loser}, {$inc: {debts:1}})
+		.catch(err => logger.error(user+' had trouble updating loser debts - '+new Date()));
 	}
 }
 
 module.exports = {
-	refreshOddsInfo: function() {
-		Sports.find({inseason: true}, (err, sports) => {
-			if (!err){
-				sports.forEach(sport => {
-					getOdds(sport.sport);
-				});
-			}
-		});
-	},
-	clearUnactedBets: function(){
-		// below searches for unacted bets and marks refused after game starts; '-' are saved
-		Bets.find({status:{$in:[0,10,11,12]}}, function(err, bets){
-			bets.forEach(function(single){
-				if (single.gametime < new Date()) {
-					Bets.updateOne({_id:single._id},{status:3}, function(err){
-						if(err)
-							logger.error(err);
-						else
-							logger.info(single.team1+'/'+single.team2+' game started - unacted changed to refused - '+new Date()+' gametime='+single.gametime);
-					});
-					Users.updateOne({_id:single.user2},{$inc: {bets: -1}}, function(err){
-						if(err)
-							logger.error(err);
-					});
-				 }
+	refreshOddsInfo: async () => {
+		Sports.find({inseason: true})
+		.then ((sports) => {
+			sports.forEach(sport => {
+				getOdds(sport.sport);
 			});
-		});
+		})
+		.catch(err => console.log(err));
+	},
+	clearUnactedBets: async () => {
+		// below searches for unacted bets and marks refused after game starts; '-' are saved
+		Bets.find({status:{$in:[0,10,11,12]}})
+		.then ((bets) => {
+			bets.forEach((single) => {
+				if (single.gametime < new Date()) {
+					Bets.updateOne({_id:single._id},{status:3})
+					.then(() => logger.info(single.team1+'/'+single.team2+' game started - unacted bets changed to refused - '+new Date()+' gametime='+single.gametime))
+					.catch(err => logger.error(err))
+					Users.updateOne({_id:single.user2},{$inc: {bets: -1}})
+					.catch(err => logger.error(err));
+				}
+			});			
+		})
+		.catch (err => console.log(err));
 	},
 
-	dailyCleaning: function(){
+	dailyCleaning: () => {
 		// below searches for refused bets and deletes after 2 days
 		Bets.deleteMany({$or:[
 							{$and:[{status:3}, {date:{$lt:new Date()-1000*60*60*48}}]},
-							{$and:[{status:0}, {type: {$in: ['take', 'give']}}, {date:{$lt:new Date()}}]}]},
-							 function(err){
-			if(err)
-				logger.error(err);
-			else
-				logger.info('Refused bets cleared - '+new Date());
-		});
+							{$and:[{status:0}, {type: {$in: ['take', 'give']}}, {date:{$lt:new Date()}}]}]})
+		.then (() => logger.info('Refused bets cleared - '+new Date()))
+		.catch (err => logger.error(err));
 	},
 
-	tallyBets2: function(sprt){
+	tallyBets2: async (sprt) => {
 		let teams, url, wk, today = new Date();
 		let scores = {};
 		
@@ -223,7 +205,7 @@ module.exports = {
 		// console.log(url);
 		// first get scores for games today
 		new Promise((resolve, reject) => {
-			request(url, function (err, response, body) {
+			request(url, (err, response, body) => {
 				if(!err && response.statusCode == 200) {
 					const $ = cheerio.load(body);
 					const scoresClass = $('.game-status.postgame');
@@ -237,10 +219,11 @@ module.exports = {
 				}
 			});
 		})
-		.then(()=>{
-			console.log(scores);
+		.then(async ()=>{
+			// console.log(scores);
 			// next go through accepted bets for the day
-			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}, {score1: 0}, {score2: 0}]}, (err, acceptedBets) => { //get all accepted bets
+			Bets.find({$and:[{status:2}, {sport:sprt}, {gametime:{$lt: new Date()}}, {score1: 0}, {score2: 0}]})				
+			.then((acceptedBets) => { //get all accepted bets
 				acceptedBets.forEach(singleBet => {
 					// console.log(`looking for ${singleBet}`);
 					if (singleBet.type == 'spread' && scores[singleBet.team1] != undefined) {
@@ -269,129 +252,99 @@ module.exports = {
 						}
 					}
 				});
-			});
+			})
+			.catch (err => console.log(err));
 
 			// finally go through ATS odds and mark
-			Odds.find({season: Util.seasonStart[sprt].getFullYear(), sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}, (err, odds)=>{
+			Odds.find({season: Util.seasonStart[sprt].getFullYear(), sport: sprt, ats: 0, date: today.setHours(0,0,0,0)}).sort({index:1})
+			.then((odds) => {
 				// console.log('Updating Odds');
-				if (err) {
-					console.log('Error getting Odds when tallying ATS');
-				} else {
-					odds.forEach((game, idx) => {
-						// console.log(scores[game.team1],Number(game.spread),scores[game.team2.replace('@','')])
-						let winner = 0;
-						if (scores[game.team1] + game.spread > scores[game.team2]) {
-							winner = 1;
-						} else if (scores[game.team1] + game.spread < scores[game.team2]) {
-							winner = 2;
-						} else if (scores[game.team1] + game.spread == scores[game.team2]){
-							winner = 3;
-						}
-						if (winner) {
-							Odds.updateOne({_id: game._id}, {ats: winner, total: scores[game.team1]+scores[game.team2]}, err => {
-								if (err) {
-									console.log('Error updating Odds winner when tallying ATS');
-								} else {
-									// console.log(game._id, winner, scores[game.team1]+scores[game.team2]);
+				odds.forEach((game, idx) => {
+					// console.log(scores[game.team1],Number(game.spread),scores[game.team2.replace('@','')])
+					let winner = 0;
+					if (scores[game.team1] + game.spread > scores[game.team2]) {
+						winner = 1;
+					} else if (scores[game.team1] + game.spread < scores[game.team2]) {
+						winner = 2;
+					} else if (scores[game.team1] + game.spread == scores[game.team2]){
+						winner = 3;
+					}
+					if (winner) {
+						Odds.updateOne({_id: game._id}, {ats: winner, total: scores[game.team1]+scores[game.team2]})
+						.catch (err => console.log('Error updating Odds winner when tallying ATS'));
+					}
+				});
+				// see if end of day and do tally
+				let promises = [];
+				promises.push(new Promise((resolve, reject)=>{ // find number of games for today
+					Odds.find({sport: sprt, bta: true, date: today}).sort({index:1})
+					.then ((odds) => resolve(odds))
+					.catch(err => reject());
+				}));
+				promises.push(new Promise((resolve, reject)=>{ // find number of games done today
+					Odds.find({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}).sort({index:1})
+					.then ((done) => resolve(done.length))
+					.catch(err => reject());
+				}));
+				promises.push(new Promise((resolve, reject)=>{ // find BTA players for today
+					Ats.find({sport: sprt, date: today}).sort({user:1})
+					.then((picks) => resolve(picks))
+					.catch(err => reject());
+				}));
+				Promise.all(promises).then(retData =>{
+					// checki if any BTA today and if all done
+					if (retData[2].length && (retData[0].length == retData[1])) { 
+						let totals = new Array(retData[2].length).fill(0);
+						retData[0].forEach((game, gameIndex) => {  // go through odds for all games
+							retData[2].forEach((user, userIndex) => {  // get correct for each person
+								if (Number(user[gameIndex])==game.ats) {
+									totals[userIndex] += 1;
 								}
 							});
-						}
-					});
-					// see if end of day and do tally
-					let promises = [];
-					promises.push(new Promise((resolve, reject)=>{ // find number of games for today
-						Odds.find({sport: sprt, bta: true, date: today}, (err, odds) => {
-							if(err) {
-								reject();
-							} else {
-								resolve(odds);
-							}
-						}).sort({index:1});
-					}));
-					promises.push(new Promise((resolve, reject)=>{ // find number of games done today
-						Odds.find({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, (err, done) => {
-							if(err) {
-								reject();
-							} else {
-								resolve(done.length);
-							}
-						}).sort({index:1});
-					}));
-					promises.push(new Promise((resolve, reject)=>{ // find BTA players for today
-						Ats.find({sport: sprt, date: today}, (err, picks) => {
-							if(err) {
-								reject();
-							} else {
-								resolve(picks);
-							}
-						}).sort({user:1});
-					}));
-					Promise.all(promises).then(retData =>{
-						// checki if any BTA today and if all done
-						if (retData[2].length && (retData[0].length == retData[1])) { 
-							let totals = new Array(retData[2].length).fill(0);
-							retData[0].forEach((game, gameIndex) => {  // go through odds for all games
-								retData[2].forEach((user, userIndex) => {  // get correct for each person
-									if (Number(user[gameIndex])==game.ats) {
-										totals[userIndex] += 1;
-									}
-								});
-							});
-							// increment record for each user with # of picks correct and # games
-							retData[2].forEach((user, userIndex) => {
-								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{games: 1, correct: totals[userIndex], try: retData[1]}}, err => { 
-									if(err) {
-										console.log('Error updating Record for user after BTA ended', err);
-									} else {
-										console.log(`BTA record updated for ${user.user}: ${totals[userIndex]} correct out of ${retData[1]}`);
-									}
-								});
-							});
-							// credit winner(s)
-							const maxCorrect = Math.max(...totals);  //find highest # correct
-							let winners = [], overallWinner = [];
-							totals.filter((el, idx) => el == maxCorrect ? winners.push(idx):''); //store index of people that got maxCorrect
-							const lastTotal = retData[0][retData[0].length-1].total; //find total on last game
-							if (winners.length > 1) { // multiple winners, look at tiebreaker for each
-								let bestDiff = 999;
-								winners.forEach(userIndex=>{
-									const currentDiff = Math.abs(retData[2][userIndex].tiebreaker - lastTotal);
-									if (currentDiff < bestDiff) { // single winner
-										overallWinner = [userIndex];
-									} else if (currentDiff == bestDiff) { // multiple winners
-										overallWinner.push(userIndex);
-									}
-									bestDiff = currentDiff;
-								});								
-							} else { // single winner
-								overallWinner = winners;
-							}
-							overallWinner.forEach(idx => {
-								Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}}, err => {
-									if (err) {
-										console.log(`Error incrementing BTA result for ${retData[2][idx].user}`);
-									} else {
-										console.log(`Updated BTA win for ${retData[2][idx].user} @ ${new Date()}`);
-									}
-								});
-							});
-							Odds.updateMany({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}, (err, done) => { 
-								if(err) {
-									console.log('Error marking done games', err);
-								} else {
-									console.log('Updated BTA odds to finished');
+						});
+						// increment record for each user with # of picks correct and # games
+						retData[2].forEach((user, userIndex) => {
+							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{games: 1, correct: totals[userIndex], try: retData[1]}})
+							.then(() => console.log(`BTA record updated for ${user.user}: ${totals[userIndex]} correct out of ${retData[1]}`))
+							.catch(err => console.log('Error updating Record for user after BTA ended', err));
+						});
+						// credit winner(s)
+						const maxCorrect = Math.max(...totals);  //find highest # correct
+						let winners = [], overallWinner = [];
+						totals.filter((el, idx) => el == maxCorrect ? winners.push(idx):''); //store index of people that got maxCorrect
+						const lastTotal = retData[0][retData[0].length-1].total; //find total on last game
+						if (winners.length > 1) { // multiple winners, look at tiebreaker for each
+							let bestDiff = 999;
+							winners.forEach(userIndex=>{
+								const currentDiff = Math.abs(retData[2][userIndex].tiebreaker - lastTotal);
+								if (currentDiff < bestDiff) { // single winner
+									overallWinner = [userIndex];
+								} else if (currentDiff == bestDiff) { // multiple winners
+									overallWinner.push(userIndex);
 								}
-							}).sort({index:1});
+								bestDiff = currentDiff;
+							});								
+						} else { // single winner
+							overallWinner = winners;
 						}
+						overallWinner.forEach(idx => {
+							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}})
+							.then(() => console.log(`Updated BTA win for ${retData[2][idx].user} @ ${new Date()}`))
+							.catch(err => console.log(`Error incrementing BTA result for ${retData[2][idx].user}`));
+						});
+						Odds.updateMany({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}).sort({index:1})
+						.then(() => console.log('Updated BTA odds to finished'))
+						.catch(err => console.log('Error marking done games', err));
 
-					});
-				}
-			}).sort({index:1});
+					};
+				});
+			})
+			.catch(err => console.log(err));
 		});
 	},
-	updateStandings: function(sport){
+	updateStandings: (sport) => {
 		const url = 'http://cbssports.com/'+sport+'/standings';
-		request(url, function (err, response, body) {
+		request(url,  (err, response, body) => {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
 				console.log(`updating standings for ${sport} - ${new Date()}`);
@@ -400,16 +353,12 @@ module.exports = {
 					const name = $(teamInfo[index]).find('span.TeamName').text();
 					const record = [Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().text()), Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text())];
 					const newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
-					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name}, function(err, rec) {
-						if (err)
-							logger.error('OUgame find team error: '+err);
-						else if(rec) {
-							OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'}, function(err, resp){
-								if (err)
-									logger.error('updateStandings error: '+err);
-							});
-						}
-					});
+					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name})
+					.then((rec) => {
+						OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'})
+						.catch(err => logger.error('updateStandings error: '+err));
+					})
+					.catch(err => logger.error('OUgame find team error: '+err));
 				}
 				logger.info('updated standings - '+new Date());
 			}
@@ -420,25 +369,26 @@ module.exports = {
 		function getTeamLast10Back2Back(team){
 			let last10, b2b = 0, previousGame = new Date(Util.seasonStart.nba);
 			return new Promise((resolve, reject) => {
-				Odds.find({season: Util.seasonStart[sport].getFullYear(), sport:sport, $or: [{team1: team},{team2: '@'+team}], ats: {$ne: 0}, bta: {$exists: false}}, (err, games) => {
+				Odds.find({season: Util.seasonStart[sport].getFullYear(), sport:sport, $or: [{team1: team},{team2: '@'+team}], ats: {$ne: 0}, bta: {$exists: false}}).limit(10).sort({date:-1})
+				.then ((games) => {
 					last10 = 0;
 					games.reverse().forEach((game, index) => {
 						if ((game.team1 == team && (game.ats == 1 || game.ats == 11)) || (game.team2 == '@'+team && (game.ats == 2 || game.ats == 12))) {
 							last10 += 1;
 						}
 						if (index == 9 && game.date.getTime() == Util.previousDay(new Date().setHours(0,0,0,0)).getTime() && Util.previousDay(game.date).getTime() == previousGame.getTime()){
-							Odds.updateOne({_id: game._id}, (game.team1 == team)?{b2b1: true}:{b2b2: true}, err=> {
-								if(err) {
-									console.log(`Problem marking b2b for ${team}: `, err);
-								} else {
-									dailyB2b[team] = (game.team1 == team)?'away':'home';
-								}
-							});			
+							Odds.updateOne({_id: game._id}, (game.team1 == team)?{b2b1: true}:{b2b2: true})
+							.then(() => dailyB2b[team] = (game.team1 == team)?'away':'home')
+							.catch(err => console.log(`Problem marking b2b for ${team}: `, err));
 						}
 						previousGame = game.date;
 					});
 					resolve ({team: team, last10: last10, b2b: b2b});
-				}).limit(10).sort({date:-1});
+				})
+				.catch(err =>{
+					console.log(err);
+					reject();
+				})
 			});
 		}
 		console.log(`Processing ${sport} Odds for ${new Date()}`);
@@ -447,11 +397,8 @@ module.exports = {
 		}
 		Promise.all(promises).then(results => {
 			results.forEach(team => {
-				Tracker.updateOne({user: 'system', sport: sport, season: Util.seasonStart[sport].getFullYear(), team: team.team}, {last10: team.last10}, err=> {
-					if(err) {
-						console.log(`Problem marking last10 for ${team}: `, err);
-					}
-				});
+				Tracker.updateOne({user: 'system', sport: sport, season: Util.seasonStart[sport].getFullYear(), team: team.team}, {last10: team.last10})
+				.catch(err => console.log(`Problem marking last10 for ${team}: `, err));
 			});
 		});
 	},	
@@ -472,10 +419,8 @@ module.exports = {
 					season: Util.seasonStart[sport].getFullYear(),
 					ats: 0,
 					index: index++
-				}).save(err => {
-					if(err)
-						console.log('Error saving new odds: '+err);
-				});
+				}).save()
+				.catch(err => console.log('Error saving new odds: '+err));
 				playsToday.push(game.team1, game.team2.slice(1));
 				playsToday2.push('@'+game.team1, game.team2);
 			}
@@ -508,29 +453,20 @@ module.exports = {
 			console.log(` - Found ${results[0].length} games`);
 			results[0].forEach((game, index) => {
 				// take care of overall(system) stats first
-				Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: (game.b2b1 && (game.ats==1 || game.ats==11))?1:0}}, err => {
-					if(err) {
-						console.log('Error updating system team1 Tracker: '+err);
-					}
-				});
-				Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: (game.b2b2 && (game.ats==2 || game.ats==12))?1:0}}, err => {
-					if(err) {
-						console.log('Error updating system team2 Tracker: '+err);
-					}
-				});
+				Tracker.updateOne({user: 'system', team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: (game.ats==1 || game.ats==11)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: (game.b2b1 && (game.ats==1 || game.ats==11))?1:0}})
+				.catch((ere) => console.log('Error updating system team1 Tracker: '+err));
+
+				Tracker.updateOne({user: 'system', team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: (game.ats==2 || game.ats==12)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: (game.b2b2 && (game.ats==2 || game.ats==12))?1:0}})
+				.catch(err => console.log('Error updating system team2 Tracker: '+err));
+
 				// next look at user trackers
 				results[1].forEach(user => {
 					if (user[index] != undefined){ //only mark if user has pick for game
-						Tracker.updateOne({user: user.user, team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: ((game.ats==1 || game.ats==11) && user[index] == 1)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: ((game.b2b1 && (game.ats==1 || game.ats==11)) && user[index] == 1)?1:0}}, err => {
-							if(err) {
-								console.log(`Error updating ${user.user} team1 Tracker: `+err);
-							}
-						});
-						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b2 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}}, err => {
-							if(err) {
-								console.log(`Error updating ${user.user} team2 Tracker: `+err);
-							}
-						});	
+						Tracker.updateOne({user: user.user, team: game.team1, sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {away_games: 1, away_won: ((game.ats==1 || game.ats==11) && user[index] == 1)?1:0, b2b_games: (game.b2b1)?1:0, b2b_won: ((game.b2b1 && (game.ats==1 || game.ats==11)) && user[index] == 1)?1:0}})
+						.catcg(err => console.log(`Error updating ${user.user} team1 Tracker: `+err));
+							
+						Tracker.updateOne({user: user.user, team: game.team2.slice(1), sport: sport, season: Util.seasonStart[sport].getFullYear()}, {$inc: {home_games: 1, home_won: ((game.ats==2 || game.ats==12) && user[index] == 2)?1:0, b2b_games: (game.b2b2)?1:0, b2b_won: ((game.b2b2 && (game.ats==2 || game.ats==12)) && user[index] == 2)?1:0}})
+						.catch(err => console.log(`Error updating ${user.user} team2 Tracker: `+err));
 					}
 				});
 			});
