@@ -19,7 +19,8 @@ router.use(bodyParser.json());
 
 router.post('/login', function(req,res){
 //   console.log(req);
-   Users.findOne({'_id':req.body.username}, function(err, user){
+   Users.findOne({'_id':req.body.username})
+   .then ((user) => {
       if(!user){
          logger.error('User '+req.body.username+' not found');
          res.send({'type':'danger', 'message':'No user with that username'});
@@ -36,7 +37,8 @@ router.post('/login', function(req,res){
             }
          });
       }
-   });
+   })
+   .catch(err => console.log(err));
 });
 
 router.post('/register', function(req,res){
