@@ -8,7 +8,7 @@ function getBtaScoreboard(sport, season, type) {
    .then(retData => {
       let outp2='', outp3='', outp4='', outp = '<table class="table table-condensed"><tr><th></th>';
       // create columns for each user
-      $.each(retData.totals, function(i, rec){
+      $.each(retData.totals, (i, rec) => {
 			outp += '<th>'+bafusers[rec.user]+'</th>';
          outp2 += '<td>'+rec.win.toFixed(1)+'</td>';
          outp4 += '<td>'+rec.games+'</td>';
@@ -158,7 +158,7 @@ $('#btaChallengeBtn').on('click', event => {
    .catch(retData => modalAlert(retData.type,retData.message));
 });
 
-$('#btaYear').on('change', function(){
+$('#btaYear').on('change', () => {
 	resetBta();
 	getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date())
 	$('#btaScoreboard').empty();
@@ -211,7 +211,7 @@ function resetBta() {
 };
 
 // back/forward button to get different scores
-$('.btaInc').on('click', function(event){
+$('.btaInc').on('click', event => {
    event.preventDefault();
 	resetBta();
 	getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date(Number($('#btaDate').data('date'))+$(this).val()*(24*60*60*1000)));

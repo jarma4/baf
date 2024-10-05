@@ -143,7 +143,7 @@ $('#trackerSubmitBtn').on('click', event => {
 });
 
 // back/forward button to get different scores
-$('.picksInc').on('click', function(event){
+$('.picksInc').on('click', event => {
 	event.preventDefault();
 	document.getElementById("dailyPicksBtn").classList.add('hidden');
    // let parsed = $('#picksDate').text().split(' ');
@@ -153,7 +153,7 @@ $('.picksInc').on('click', function(event){
 	}
 });
 
-$('#picksToggle').on('change', function(event) {
+$('#picksToggle').on('change', event =>  {
 	if(this.checked){
 		Array.from(document.getElementsByClassName('userPicks'), row => {
 			row.classList.remove('hidden');

@@ -1,5 +1,5 @@
 // class used by sidebar page selection to close
-$('.toggleSidebar').on('click', function() {
+$('.toggleSidebar').on('click', () =>  {
    $('#wrapper').toggleClass('toggled');
 });
 
@@ -9,7 +9,7 @@ function toggleSport(sport) {
    document.cookie = 'sport='+sport+';max-age=43200';
 }
 
-$('.sportPick').on('click', function(){
+$('.sportPick').on('click', () => {
    if (!$(this).hasClass('selected')) {
       let sport = $(this).attr('class').split(/\s+/)[1];
       toggleSport(sport);
@@ -24,12 +24,12 @@ function collapseIconAction(target) {
 }
 
 // handles collapse icon animation
-$('.collapseIcon').on('click', function(event){
+$('.collapseIcon').on('click', event => {
    $(this).toggleClass('open');
 });
 
 //bet modal has +/- to increment/decrement values
-$('.btn-increment').on('click', function(event){
+$('.btn-increment').on('click', event => {
 	event.preventDefault();
 	let increment = 0.5;
 	if ($(this).val() > 1)		// button val of 0,1 increment by .5. val of 2,3 by 1
@@ -43,12 +43,12 @@ $('.btn-increment').on('click', function(event){
    }
 });
 
-$(document).on('swipeleft', function(event){
+$(document).on('swipeleft', event => {
    // $("#wrapper").css('margin-left', '-360px');
    window.location.href = urls[(getUrlPos(window.location.pathname)+1)%urls.length];
 });
 
-$(document).on('swiperight', function(event){
+$(document).on('swiperight', event => {
    // $("#wrapper").css('margin-left', '360px');
    window.location.href = urls[(getUrlPos(window.location.pathname)-1 < 0)?urls.length-1:getUrlPos(window.location.pathname)-1];
 });

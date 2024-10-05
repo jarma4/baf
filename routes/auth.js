@@ -1,5 +1,5 @@
 // var router = require('./api'),
-var express = require('express'),
+var express = require('ultimate-express'),
 bodyParser = require('body-parser'),
 session = require('client-sessions'),
 Users = require('../models/dbschema').Users,

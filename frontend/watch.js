@@ -1,5 +1,5 @@
 // change bet modal according to checkbox
-$('#oddsWatch').on('click', function(event) {
+$('#oddsWatch').on('click', event =>  {
    $('#oddsWatchArea').toggleClass('nodisplay');
    if ($("#oddsWatch").is(":checked")) {
       $('#userList').prop('disabled', 'disabled');
@@ -14,7 +14,7 @@ $('#oddsWatch').on('click', function(event) {
 });
 
 // change bet modal according to checkbox
-$('#oddsWatchSend').on('click', function(event) {
+$('#oddsWatchSend').on('click', event =>  {
    if ($("#oddsWatchSend").is(":checked")) {
       $('#userList').prop('disabled', false);
    } else {
@@ -39,14 +39,14 @@ $('#watchModal').on('show.bs.modal', function (event) {
    }
 });
 
-$('#watchDelete').on('click', function(){
+$('#watchDelete').on('click', () => {
    postApi('changebet',{
          'id': $('#watchId').val(),
          'action': 'delete'});
    getBets(($('#sportNfl').hasClass('selected'))?10:11, 'watchBets', 'watch');
 });
 
-$('#watchModify').on('click', function(){
+$('#watchModify').on('click', () => {
    if ($('#watch'))
    postApi('changebet',{
    		'action': 'change',

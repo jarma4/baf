@@ -1,5 +1,5 @@
 // Preferences stuff
-$('#prefSave').on('click', function(e){
+$('#prefSave').on('click', e => {
    e.preventDefault();
    postOptions.body = JSON.stringify({
       'slack': $('#slack').val(),
@@ -35,7 +35,7 @@ $('#changePasswordModal').on('show.bs.modal', function (event) {
    $('#changePassword2').val('');
 });
 
-$('#changeSubmit').on('click', function() {
+$('#changeSubmit').on('click', () =>  {
    //check password match first
    if($('#changePassword').val() && ($('#changePassword').val() == $('#changePassword2').val())) {
       postOptions.body = JSON.stringify({

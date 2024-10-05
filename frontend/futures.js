@@ -7,7 +7,7 @@ $('#futureModal').on('show.bs.modal', function (event) {
    $('#futureFuture').val(button.data('future'));
 });
 
-$('#futureSubmit').on('click', function() {
+$('#futureSubmit').on('click', () =>  {
    postApi('makebet', {
 		   'amount': 2,
          'type': ($('#futureSide').val() == 'give')?'give':'take',
@@ -21,14 +21,14 @@ $('#futureSubmit').on('click', function() {
    getFutures();
 });
 
-$('#futureRescindSubmit').on('click', function(){
+$('#futureRescindSubmit').on('click', () => {
    postApi('changebet', {
          'id': $('#futureRescindId').val(),
          'action': 'delete'});
    getFutures();
 });
 
-$('#futureOfferSubmit').on('click', function(){
+$('#futureOfferSubmit').on('click', () => {
    postApi('changebet', {
          'id': $('#futureActId').val(),
          'status': 2,
@@ -38,7 +38,7 @@ $('#futureOfferSubmit').on('click', function(){
    getFutures();
 });
 
-$('#futuresOffers').delegate('.futureOffer', 'click', function(event) {
+$('#futuresOffers').delegate('.futureOffer', 'click', event =>  {
    // var button = $(event.relatedTarget);
    if($(this).data('user') == username){
       $('#futureRescindId').val($(this).data('id'));
@@ -59,7 +59,7 @@ function getFutures() {
    .then(retData => {
       username = retData.sessionId; // being returned so buttons can be customized
       var outp = '<table class="table table-condensed">';
-      $.each(retData.offers, function(i,rec){
+      $.each(retData.offers, (i, rec) => {
          outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' will give ':' will take ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.type == 'give')?' don\'t win ':' win ')+rec.team2+'</td><td><button class="btn btn-sm futureOffer '+((rec.user1 == username)?'btn-danger':'btn-success')+'" data-user="'+rec.user1+'" data-id="'+rec._id+'"><span class="glyphicon glyphicon-'+((rec.user1 == username)?'remove':'ok')+'"></span></button></td></tr>';
          $('#futuresOffers').addClass('in');
          $('#futuresOffersTitle span.collapseIcon').removeClass('hidden');
@@ -73,12 +73,12 @@ function getFutures() {
    .then(res => res.json())   
    .then(retData => {
       $('#futuresGroup').empty();
-      $.each(retData.futures, function(i,single){
+      $.each(retData.futures, (i,single) => {
          // create new/separate panel for each future
          var newPanel = '<div class="panel panel-info"><div class="panel-heading"><span id="futuresTitle'+i+'"></span><a data-toggle="collapse" href="#futuresPanel'+i+'"><span class="collapseIcon open glyphicon glyphicon-triangle-bottom"></span></a><em class="right">updated: '+retData.futures[i].time+'</em></div><div id="futuresPanel'+i+'" class="panel-collapse collapse in"></div></div>';
          // create new table for panel contents
          var outp = '<table class="table table-condensed"><tr><th>Team</th><th>Odds</th><th colspan=2 class="center">Offer Action</th></tr>';
-         $.each(single.entries, function(i,rec){
+         $.each(single.entries, (i, rec) => {
             outp += '<tr><td>'+rec.team+'</td><td>'+rec.ml/100+' / 1 </td><td><button class="btn btn-primary"  data-toggle="modal" data-target="#futureModal" data-side="give" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Give</button></td><td><button class="btn btn-primary" data-toggle="modal" data-target="#futureModal" data-side="take" data-odds="'+rec.ml+'" data-team="'+rec.team+'" data-future="'+single.event+'">Take</button></td></tr>';
          });
          $('#futuresGroup').append(newPanel);
@@ -98,7 +98,7 @@ function getFutures() {
    .then(retData => {
       $('#futureSessionId').val(retData.sessionId);
       var outp = '<table class="table table-condensed">';
-      $.each(retData.offers, function(i,rec){
+      $.each(retData.offers, (i, rec) => {
          outp += '<tr><td>'+rec.user1+((rec.type == 'give')?' gave ':' took ')+rec.odds/100+'/1 odds that '+rec.team1+((rec.user2 == 'give')?' doesn\'t win ':' win ')+rec.team2+' to '+rec.user2+'</td></tr>';
          $('#futuresAccepted').addClass('in');
          $('#futuresAcceptedTitle span.collapseIcon').removeClass('hidden');

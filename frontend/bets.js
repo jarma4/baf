@@ -27,7 +27,7 @@ function showBets () {
          var numBets = [];
          var outp = '<table class="table table-condensed"><tr class="heading-danger">';
          outp += '<th colspan=3>Others</th></tr>';
-         $.each(retData, function(i,rec){
+         $.each(retData, (i,rec) => {
             outp += '<tr><td>'+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+' ('+rec.user1.slice(0,6)+')</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td>'+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="comment" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment"></span></a>':'')+')'+((rec.limit)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td></tr>';
                if (!numBets[rec.user1])
                   numBets[rec.user1] = 0;
@@ -67,7 +67,7 @@ function getBets(status, target, addButton) {
          // some tables contain action buttons
          if (addButton)
             outp += '<th>Edit</th>';
-         $.each(retData, function(i,rec){
+         $.each(retData, (i,rec) => {
             outp +='</tr><tr'+((rec.watch==2)?' class="watchseen"':'')+'>';
             outp += '<td'+((rec.type=='over' || rec.type=='under')?' class="watchseen">':'>')+((rec.sport=='nfl')?' <img class="icon" src="images/football.png"/>':' <img class="icon" src="images/basketball.png"/>')+rec.team1+((rec.limit)?'<span class="glyphicon glyphicon-hourglass"></span>':'')+'</td><td class="center">'+((rec.type=='over')?'O':(rec.type=='under')?'U':'')+rec.odds+'</td><td'+((rec.type=='over' || rec.type=='under')?' class="watchseen">':'>')+rec.team2+' ('+rec.user2.slice(0,6)+((rec.comment)?' <a class="comment" href="#" data-toggle="popover" data-trigger="manual" data-placement="top" data-content="'+rec.comment+'"><span class="glyphicon glyphicon-comment red"></span></a>':'')+')'+'</td>';
             if (addButton)
@@ -90,7 +90,7 @@ $('#actionModal').on('show.bs.modal', function (event) {
    $('#actionComment').val('');
 });
 
-$('.actionAction').on('click', function(){
+$('.actionAction').on('click', () => {
    postApi('changebet', {
       'action': ($(this).val() == 2)?'accepted':'refused',
       'id': $('#actionId').val(),
@@ -106,7 +106,7 @@ $('#rescindModal').on('show.bs.modal', function (event) {
    $('#rescindId').val(button.data('id'));
 });
 
-$('#rescindSend').on('click', function(){
+$('#rescindSend').on('click', () => {
    postApi('changebet', {
          'id': $('#rescindId').val(),
          'action': 'delete'});
@@ -114,11 +114,11 @@ $('#rescindSend').on('click', function(){
 });
 
 // since .comment class is not in html(added by js), need to attach to higher id
-$('#page-content-wrapper').on('click', '.comment', function(event){
+$('#page-content-wrapper').on('click', '.comment', event => {
    event.preventDefault();
    var that = $(this);
    that.popover('show');
-      setTimeout(function(){
+      setTimeout(() => {
       that.popover('hide');
    }, 6000);
 });

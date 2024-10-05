@@ -34,7 +34,7 @@ function drawChart() {
    .then(retData => {
       var iter = 0;
       chartData.labels = retData.xaxis;
-      $.each(retData.datasets, function(index, info){
+      $.each(retData.datasets, (index, info) => {
          var obj = {
             label: index,
             borderColor: colors[iter++],
@@ -54,7 +54,7 @@ function drawChart() {
 }
 
 // change chart period - currently unused
-$('#graphDays').on('click', function(event){
+$('#graphDays').on('click', event => {
    event.preventDefault();
    if ($('#graphDays').text() == '30days') {
          $('#graphDays').text('60days');

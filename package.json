@@ -26,6 +26,7 @@
     "pino": "^9.4.0",
     "pug": "^3.0.3",
     "request": "^2.88.2",
+    "ultimate-express": "^1.2.17",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

@@ -41,7 +41,7 @@ function getOdds(sport) {
 			// console.log('checking watches');
 			Bets.find({status:(sport == 'nfl')?10:(sport == 'nba')?11:12, $or:[{watch: 1},{watch: 11}]})
 			.then ((watches) => {
-				watches.forEach(function(watch){
+				watches.forEach(watch => {
 					// console.log(watch);
 					// if home team was chosen, reverse things so they match current odds
 					if(watch.team1.slice(0,1)=='@') {
@@ -105,7 +105,7 @@ function updatePct (user, sport) {
 }
 
 function updateRecord(user, category, sport, season) {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let result = {};
 		result[category] = 1;
 		Records.updateOne({'user': user, 'sport': sport, 'season': season},{$inc: result})
@@ -136,10 +136,10 @@ function updateRecord(user, category, sport, season) {
 }
 
 function updateWinnerLoser(winner, loser, push, sport){
-	updateRecord(winner, (push)?'push':'win', sport, Util.seasonStart[sport].getFullYear()).then(function(){
+	updateRecord(winner, (push)?'push':'win', sport, Util.seasonStart[sport].getFullYear()).then(() => {
 		updatePct(winner, sport);
 	});
-	updateRecord(loser, (push)?'push':'loss', sport, Util.seasonStart[sport].getFullYear()).then(function(){
+	updateRecord(loser, (push)?'push':'loss', sport, Util.seasonStart[sport].getFullYear()).then(() => {
 		updatePct(loser, sport);
 	});
 	// update debt counters

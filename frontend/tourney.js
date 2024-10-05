@@ -304,7 +304,7 @@ $('#bracketActionBtn').on('click', event => {
 	}
 });
 
-$('#tourneyAcceptSubmit').on('click', function() {
+$('#tourneyAcceptSubmit').on('click', () =>  {
    postOptions.body = JSON.stringify({
 		'sport': $('#tourneySport').val()+'tourney',
 		'season': $('#bracketYear').val(),
@@ -316,7 +316,7 @@ $('#tourneyAcceptSubmit').on('click', function() {
 	.catch(retData => modalAlert(retData.type,retData.message));	
 });
 
-$('#bracketYear').on('change', function(){
+$('#bracketYear').on('change', () => {
 	getTourney();	
 });
 

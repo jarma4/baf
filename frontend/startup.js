@@ -1,6 +1,6 @@
 // "use strict";
 
-$(document).ready(function() {
+$(document).ready(() =>  {
 	document.documentElement.style.setProperty('--viewPortHeight', `${window.innerHeight*0.01}px`);
    doorBell();
 });
@@ -127,7 +127,7 @@ function modalAlert(type, message, duration, pause){
    $('#alertText').text(message);
    $('#alertModal').modal('toggle');
    if (!pause) {
-      setTimeout(function(){
+      setTimeout(() => {
          $('#alertModal').modal('hide');
       }, duration || 2000);
    } else {
@@ -144,7 +144,7 @@ function getUsers (){
       window.userList = [];
       $('#userList').empty();
       $('#propUser2').empty().append('<option value="OPEN">OPEN</option>');
-      $.each(retData, function(i,user){
+      $.each(retData, (i,user) => {
          $('#userList').append('<option value="'+user._id+'">'+user._id+'</option>');
          $('#propUser2').append('<option value="'+user._id+'">'+user._id+'</option>');
          window.userList.push(user._id);
@@ -184,9 +184,9 @@ function getCookie(key){
 
 function addAnimation(name, duration, target) {
    // $('#'+target).addClass(name);
-   setInterval(function(){
+   setInterval(() => {
       $('#'+target).addClass(name);
-      setTimeout(function(){
+      setTimeout(() => {
          $('#'+target).removeClass(name);
       }, 1200);
    }, duration);
@@ -241,7 +241,7 @@ function sortTable(target, col) {
  } 
  
 // Global stuff
-$('#loginSubmit').on('click', function(){
+$('#loginSubmit').on('click', () => {
    postOptions.body = JSON.stringify({
       'username': $('#loginUsername').val(),
       'password': $('#loginPassword').val()
@@ -259,7 +259,7 @@ $('#loginSubmit').on('click', function(){
 	.catch(retData => modalAlert(retData.type, retData.message));
 });
 
-$('#registerSubmit').on('click', function(){
+$('#registerSubmit').on('click', () => {
    if (!$('#registerSMS').val() || !$('#registerUsername').val() || !$('#registerEmail').val()) {
       modalAlert('danger', 'You have not completed all the fields');
       $('#registerModal').modal('show');

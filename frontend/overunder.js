@@ -20,13 +20,13 @@ function getOverunder() {
             outp = '<table class="table table-condensed"><tr><th>Team</th><th>W</th><th>L</th><th>Proj</th><th>Line</th><th>O/U</th><th>Need</th></tr>',
             outp2 = '<table class="table table-condensed"><tr><th>Team</th>';
          // create columns for each user
-         $.each(retData.users, function(i, rec){
+         $.each(retData.users, (i, rec) => {
             outp2 += '<th>'+bafusers[rec.user]+'</th>';
             points[i] = 0; // initialize for all users, used for projections
          });
          outp2 += '<tr>';
          // go through teams and populate tables
-         $.each(retData.standings, function(i, rec){
+         $.each(retData.standings, (i, rec) => {
             var gamesDiff = rec.line-rec.win;
             var gamesLeft = ($('.sportPick.nfl').hasClass('selected'))?17-rec.win-rec.loss-rec.tie:82-rec.win-rec.loss;
             // populate standings area
@@ -52,7 +52,7 @@ function getOverunder() {
          outp = '<table class="table table-condensed"><tr>';
          outp2 = '<tr>';
          // go through active users
-         $.each(retData.users, function(i, rec){
+         $.each(retData.users, (i, rec) => {
             outp += '<th>'+bafusers[rec.user]+'</th>';
             outp2 += '<td>'+points[i]+'</td>';
          });
@@ -64,7 +64,7 @@ function getOverunder() {
    }
 }
 
-$('#ouYear').on('change', function(e){
+$('#ouYear').on('change', e => {
    getOverunder();
 });
 
@@ -79,7 +79,7 @@ function ouSignup() {
       var outp;
       // first populate users
       outp = '<table><tr>';
-      $.each(retData.users, function(i, rec){
+      $.each(retData.users, (i, rec) => {
          if (i%3 === 0)
             outp += '</tr><tr>';
          outp += '<td class="cellgutter">'+rec.user+'</td>';
@@ -90,12 +90,12 @@ function ouSignup() {
       if(retData.choices) {
          $('#ouBtn').text('Save');
          outp = '<table class="table table-condensed"><tr><th>Team</th><th>Line</th><th class="center">Choice</th><th>B</th></tr>';
-         $.each(retData.choices, function(i, rec){
+         $.each(retData.choices, (i, rec) => {
             outp += '<tr class="lg"><td>'+rec.team.slice(0,6)+'</td><td>'+rec.line+'</td><td><form><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="0" checked>Over</input></label><label class="radio-inline"><input type="radio" name="pickRadio'+i+'" value="1" >Under</input></label></form></td><td><input class="bonusCheck" name="bonusCheck'+i+'"type="checkbox" value="'+i+'" ></input></td></tr>';
          });
          document.getElementById('ouChoices').innerHTML = outp;
          // set all radio buttons as user picked
-         $.each(retData.choices, function(i, rec){
+         $.each(retData.choices, (i, rec) => {
             if (rec.pick) {
                $('input[name=pickRadio'+i+'][value='+((rec.pick.slice(0,1) == 'O')?0:1)+']').prop("checked",true);
                if (rec.pick.slice(-1) == '*') {
@@ -108,7 +108,7 @@ function ouSignup() {
    .catch(retData => modalAlert(retData.type, retData.message));
 }
 
-$('#ouBtn').on('click', function(e){
+$('#ouBtn').on('click', e => {
    if ($('#ouBtn').text() == 'Join') {
       postOptions.body = JSON.stringify({
          'sport': $('.sportPick.selected').attr('class').split(/\s+/)[1],

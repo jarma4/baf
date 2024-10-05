@@ -1,4 +1,4 @@
-$('#resolveBody').on('click', '.xxx', function(event){
+$('#resolveBody').on('click', '.xxx', event => {
    postOptions.body = JSON.stringify({
       'name': $(this).data('name'),
       'num': $(this).data('num')
@@ -9,13 +9,13 @@ $('#resolveBody').on('click', '.xxx', function(event){
    .catch(retData => modalAlert(retData.type,retData.message));
 });
 
-$('#resolveDebts').on('click', function(){
+$('#resolveDebts').on('click', () => {
    fetch('/api/resolvedebts', getOptions)
    .then(res => res.json())
    .then(retData => {
       var outp='<table class="table"><tr><th>Who</th><th>#Bets</th><th>Dismiss?</th><tr>';
       if(retData.length){
-         $.each(retData, function(i,rec){
+         $.each(retData, (i, rec) => {
             outp += '<tr><td>'+rec.name+'</td><td>'+rec.num+'</td><td><button class="xxx btn btn-sm btn-success" data-toggle="modal" data-dismiss="modal" data-name="'+rec.name+'" data-num="'+rec.num+'"><span class="glyphicon glyphicon-ok"></span></button></td></tr>';
          });
          outp += '</table>';
@@ -29,9 +29,9 @@ $('#resolveDebts').on('click', function(){
 });
 
 // in Debts modal, for paid buttons click
-$('#oweyou').on('click', '.paidBtn', function(){
+$('#oweyou').on('click', '.paidBtn', () => {
    var id = $(this).data('id');
-   $('#alertOk').on('click', function(){  // attach event to OK button to update debt
+   $('#alertOk').on('click', () => {  // attach event to OK button to update debt
       $(this).off('click');               // needed so won't be repeated on other button presses
       postOptions.body = JSON.stringify({
          'id': id
@@ -62,7 +62,7 @@ $('#debtsModal').on('show.bs.modal', function (event) {
       });
       $('#oweyou').hide();       // hide just in case no needed
       $('#youowe').hide();
-      $.each(retData, function(i,rec){
+      $.each(retData, (i, rec) => {
          var date=new Date(rec.date);
          var outp = '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>'+((rec.sport=='nfl')?'<img class="icon" src="images/football.png"/> ':((rec.sport=='nba')?'<img class="icon" src="images/basketball.png"/> ':''))+rec.team1.replace('@','').slice(0,24)+((rec.type != 'prop')?'/':'')+rec.team2.replace('@','').slice(0,24)+'</td><td>'+rec.user2.slice(0,6)+'</td><td>'+((rec.status==4)?'<button class="btn btn-sm btn-success paidBtn" data-dismiss="modal" data-toggle="modal" data-id="'+rec._id+'" data-user2="'+rec.user2+'"><span class="glyphicon glyphicon-usd"></span></button>':'')+'</td></tr>';
          if (rec.status == 4) {

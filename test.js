@@ -25,7 +25,7 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 
 //cheerio
 const url = 'https://www.mybookie.ag/sportsbook/nfl/';
-request(url, function (err, response, body) {
+request(url, (err, response, body) => {
 	console.log('response code=',response.statusCode)
 	if(!err && response.statusCode == 200) {
 		// get odds for teams
@@ -50,7 +50,7 @@ request(url, function (err, response, body) {
 // });
 
 // Cheerio example
-// request('https://www.cbssports.com/nba/odds', function (err, response, body) {
+// request('https://www.cbssports.com/nba/odds', (err, response, body) => {
 // 	if(!err && response.statusCode == 200) {
 // 		const $ = cheerio.load(body);
 // 		const scoresClass = $('.game-status.postgame');

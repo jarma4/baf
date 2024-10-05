@@ -1,5 +1,5 @@
 const https = require('https'),
-      express = require('express'),
+      express = require('ultimate-express'),
       fs = require('fs'),
       crontab = require('node-crontab'),
       exec = require('child_process').exec,
@@ -13,15 +13,20 @@ process.loadEnvFile();
 const app_http = express();
 app_http.use(compression());
 //app_http.use('/', express.static(__dirname + '/public'));
-app_http.get('*', function(req, res){
+app_http.get('*', (req, res) => {
    res.redirect(301, 'https://2dollarbets.com');
 });
-app_http.listen(80, process.env.IP, function(){
+app_http.listen(80, () => {
    console.log('redirecting on port 80');
 });
 
 // https site
-const app_https = express();
+const app_https = express({
+    uwsOptions: {
+        key_file_name: './sslcert/privkey.pem',
+        cert_file_name: './sslcert/fullchain.pem'
+    }
+});
 app_https.use(compression());
 app_https.use('/', express.static(__dirname + '/public'));
 app_https.use('/js', express.static(__dirname + '/public/js'));
@@ -39,13 +44,14 @@ app_https.use('/', routes);
 app_https.use('/api', router);
 app_https.use('/admin', admin);
 
-const options = {
-   cert: fs.readFileSync('./sslcert/fullchain.pem'),
-   key: fs.readFileSync('./sslcert/privkey.pem')
-};
+// const options = {
+//    cert: fs.readFileSync('./sslcert/fullchain.pem'),
+//    key: fs.readFileSync('./sslcert/privkey.pem')
+// };
 
-https.createServer(options, app_https).listen(443, process.env.IP, function () {
-   console.log('listening at on port 443');
+// https.createServer(options, app_https).listen(443, () => {
+app_https.listen(443, () => {
+		console.log('listening at on port 443');
 });
 
 if (process.env.ENVIRONMENT == 'local'){
@@ -75,7 +81,7 @@ if (process.env.ENVIRONMENT == 'local'){
 	// const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
 } 
 if (process.env.ENVIRONMENT == 'local') {
-	const backupsCron = crontab.scheduleJob('0 1 * * 2', function () {
+	const backupsCron = crontab.scheduleJob('0 1 * * 2', () =>  {
 		const now = new Date();
 		console.log('Performing backup - '+now);
 		// copy mongo db's to backup area
@@ -86,7 +92,7 @@ if (process.env.ENVIRONMENT == 'local') {
 			}
 		});
 		// move weekly ATS game odds file to backup area
-		// cmd = exec('mv json/ats_* backup/ats', function(error, stdout, stderr) {
+		// cmd = exec('mv json/ats_* backup/ats', (error, stdout, stderr) => {
 		//    if (error || stderr) {
 		//       console.log(error);
 		//       console.log(stderr);

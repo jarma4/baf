@@ -3,7 +3,7 @@ function showLogs() {
    .then(res =>res.json())
    .then(retData => {
       var outp = '<table class="table"><tr><th>Time</th><th>Msg</th></tr>';
-      $.each(retData, function(i,rec){
+      $.each(retData, (i, rec) => {
          outp += '<tr><td>'+rec.time+'</td><td>'+rec.msg+'</td></tr>';
       });
       outp += '</table>';

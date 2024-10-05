@@ -1,4 +1,4 @@
-var express = require('express'),
+var express = require('ultimate-express'),
 // Auth = require('./auth'),
 router = express.Router(),
 session = require('client-sessions'),
@@ -60,55 +60,55 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/odds', function(req, res) {
+router.get('/odds', (req, res) =>  {
     res.render('odds', {pagename:'odds'});
  });
 
- router.get('/bets', function(req, res) {
+ router.get('/bets', (req, res) =>  {
     res.render('bets', {pagename:'bets'});
  });
 
-router.get('/stats', function(req, res) {
+router.get('/stats', (req, res) =>  {
    res.render('stats', {pagename:'stats'});
 });
 
-router.get('/props', function(req, res) {
+router.get('/props', (req, res) =>  {
    res.render('props', {pagename:'props'});
 });
 
-router.get('/overunder', function(req, res) {
+router.get('/overunder', (req, res) =>  {
    res.render('overunder', {pagename:'overunder'});
 });
 
-router.get('/options', function(req, res) {
+router.get('/options', (req, res) =>  {
    res.render('options', {pagename:'options'});
 });
 
-router.get('/futures', function(req, res) {
+router.get('/futures', (req, res) =>  {
    res.render('futures', {pagename:'futures'});
 });
 
-router.get('/login', function(req, res) {
+router.get('/login', (req, res) =>  {
    res.render('login', {pagename:'login'});
 });
 
-router.get('/test', function(req, res) {
+router.get('/test', (req, res) =>  {
    res.render('test', {pagename:'test'});
 });
 
-router.get('/btagame', function(req, res) {
+router.get('/btagame', (req, res) =>  {
    res.render('btagame', {pagename:'btaame'});
 });
 
-router.get('/tourney', function(req, res) {
+router.get('/tourney', (req, res) =>  {
    res.render('tourney', {pagename:'tourney'});
 });
 
-router.get('/tracker', checkAccess, function(req, res) {
+router.get('/tracker', checkAccess, (req, res) =>  {
    res.render('tracker', {pagename:'tracker'});
 });
 
-router.get('/noauth',  function(req, res) {
+router.get('/noauth',  (req, res) =>  {
    res.render('noauth', {pagename:'noauth'});
 });
 

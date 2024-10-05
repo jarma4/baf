@@ -1,6 +1,6 @@
 const { seasonStart } = require('../models/util');
 const { Users, Records, Bets, Sports, OUgame, OUuser, Ats, Odds, Tracker} = require('../models/dbschema');
-const express = require('express'),
+const express = require('ultimate-express'),
 		bodyParser = require('body-parser'),
 		fs = require('fs'),
 		// Auth = require('./auth'),
@@ -94,14 +94,14 @@ function saveBet (req){
 		status: (req.body.watch === true)?((req.body.sport=='nfl')?10:(req.body.sport=='nba')?11:12):0,
 		watch: (req.body.watch === true)?(req.body.watchsend === true)?11:1:'',
 		limit: req.body.limit
-	}).save((err)=>{
-		if(err) {
-			logger.error('Trouble adding bet: '+err);
-			return ({'type':'danger', 'message':'Trouble adding bet'});
-		} else {
-			logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
-			return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
-		}
+	}).save()
+	.then(() => {
+		logger.info('Bet added: user1='+req.session.user._id+" user2="+req.body.user2+" picks="+req.body.team1+" odds="+req.body.odds);
+		return ({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Saved'});
+	})
+	.catch(err => {
+		logger.error('Trouble adding bet: '+err);
+		return ({'type':'danger', 'message':'Trouble adding bet'});
 	});
 	if (req.body.watch==false && req.body.type != 'give' && req.body.type != 'take') {
 		changeUser (req.body.user2, 'bets', 1);
@@ -120,7 +120,7 @@ async function makeBet (req) {
 	// add bet serial# to stack to check for duplicates later
 	betStack.push(req.body.serial);
 	// remove after 10 seconds
-	setTimeout(function(){
+	setTimeout(() => {
 		betStack.splice(betStack.indexOf(req.body.serial),1);
 	}, 10000);
 
@@ -130,7 +130,7 @@ async function makeBet (req) {
 				{_id: {$nin:[req.session.user._id,'testuser']}},
 				(req.body.sport == 'nfl')? {pref_nfl_everyone: true}:{pref_nba_everyone: true}]}, {_id: 1})
 		.then(users => {
-			users.forEach(function(single) {
+			users.forEach((single) => {
 				req.body.user2 = single._id;
 				saveBet(req);
 			})
@@ -151,7 +151,7 @@ async function makeBet (req) {
 	}
 }
 
-router.post('/makebet', requireLogin, function (req, res) {
+router.post('/makebet', requireLogin, (req, res) => {
 	makeBet(req);
 	res.send({'type':'success', 'message':(req.body.watch==true)?'Odds watch set':'Bet Sent'});
 });
@@ -282,7 +282,7 @@ router.post('/weeklystats', requireLogin, async (req, res)=>{
 	let sortedBets = [];
 	try {
 		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
-		complete.forEach(function(single){
+		complete.forEach(single => {
 			// flip response data if someone else instigated bet
 			if (single.user1 != req.session.user._id){
 				tmp = single.user1;
@@ -403,7 +403,7 @@ router.post('/userstats', requireLogin, async (req, res)=>{
 							{status:{$in:[4,5,6]}},
 							(req.body.week)?{week:req.body.week}:{}]}).sort({date:-1});
 		let winList = {};
-		bets.forEach(function(bet){
+		bets.forEach(bet => {
 			let target, status=bet.status;
 			if (bet.user1 == req.body.user) {
 				target = bet.user2;
@@ -482,7 +482,7 @@ router.post('/getousignup', requireLogin, (req, res)=>{
 				OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({index:1}).lean()
 				.then (teams => {
 					// add users choice to results
-					teams.forEach(function(team, index){
+					teams.forEach((team, index) => {
 						teams[index].pick = choices[index];
 					});
 					res.json({users: users, choices: teams});
@@ -527,7 +527,7 @@ router.post('/ousignup', requireLogin, (req, res)=>{
 	.catch(err => console.log(err));
 });
 
-router.post('/gettourney', function (req, res) {
+router.post('/gettourney', (req, res) => {
 	Sports.findOne({sport: req.body.sport.substring(0,3)})
 	.then (sportInfo => {
 		if (new Date() < sportInfo.playoffs){ //still time to pick
@@ -719,7 +719,7 @@ router.post('/trackerPicks', requireLogin, (req,res) => {
 	if((today.getHours >= 23)) {
 		res.send({'type':'danger', 'message':'Games started, no changes'});
 	} else {
-		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, function(err, docs){
+		Ats.updateOne({user: req.session.user._id, season: Number(req.body.season), sport: req.body.sport, date: new Date(req.body.date).setHours(0,0,0,0)}, JSON.parse(req.body.picks), {upsert: true}, (err, docs) => {
 			if (err) {
 				res.send({'type':'danger', 'message':'Picks not updated'});
 				console.log("ATS change error: "+err);
@@ -745,54 +745,49 @@ router.post('/setprefs', requireLogin, (req, res)=>{
 });
 
 router.get('/getprefs',(req, res)=>{
-	Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_accept:1, slack: 1, pref_default_page: 1}, function(err,user){
-		res.json(user);
-	});
+	Users.findOne({_id: req.session.user}, {_id:1,  pref_nfl_everyone:1, pref_nba_everyone:1, pref_text_accept:1, slack: 1, pref_default_page: 1})
+	.then(user => res.json(user))
+	.catch(err => console.log(err));
 });
 
 function markPaid(betid, user) {
-	Bets.findByIdAndUpdate({_id:betid}, {paid: true}, function(err, single){
-		if(err){
-			console.log(err);
-		} else {    // need to also mark debt flag in user db for notifications
-			if(single.user1 != user){
-				let tmp = single.user1;
-				let tmp2 = single.team1;
-				single.user1 = single.user2;
-				single.team1 = single.team2;
-				single.user2 = tmp;
-				single.team2 = tmp2;
-			}
-			// below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
-			Users.updateOne({_id: single.user1}, {$inc:{debts: -(1<<4)}}, function (err) {  //reduce winners flag
-				if(err)
-					console.log(err);
-			});
-			Users.updateOne({_id: single.user2}, {$inc:{debts: -1}}, function (err) {   //increase loser flag
-				if(err)
-					console.log(err);
-			});
-			logger.info('Bet#'+betid+' marked paid by '+user+' - '+new Date());
-			return 1;
+	Bets.findByIdAndUpdate({_id:betid}, {paid: true}).sort({date: -1})
+	 .then( single => {
+		// need to also mark debt flag in user db for notifications
+		if(single.user1 != user){
+			let tmp = single.user1;
+			let tmp2 = single.team1;
+			single.user1 = single.user2;
+			single.team1 = single.team2;
+			single.user2 = tmp;
+			single.team2 = tmp2;
 		}
-	});
+		// below changes winner/loser debt flags: debts owed in first 4 bits, debts owed to next 4 bits
+		Users.updateOne({_id: single.user1}, {$inc:{debts: -(1<<4)}})  //reduce winners flag
+		.catch(err => console.log(err));
+		Users.updateOne({_id: single.user2}, {$inc:{debts: -1}})  //increase loser flag
+		.catch(err => console.log(err));
+		logger.info('Bet#'+betid+' marked paid by '+user+' - '+new Date());
+		return 1;
+	})
+	.catch(err => console.log(err));
 }
 
 // assumed only called by winner of bet
 router.post('/debtpaid', requireLogin, (req, res)=>{
-	if(markPaid(req.body.id, req.session.user._id))
+	if(markPaid(req.body.id, req.session.user._id)) {
 		res.send({'type':'success', 'message':'Bet marked paid'});
-	else {
+	} else {
 		res.send({'type':'danger', 'message':'Trouble marking bet paid, try again'});
-
 	}
 });
 
 //retrieves both bets owed to someone else and someone else owing user
 router.get('/getdebts', requireLogin, (req, res)=>{
 	let sortedBets = [];
-	Bets.find({$and:[{$or:[{user1: req.session.user},{user2: req.session.user}]},{status:{$in:[4,5]}}, {paid:false}]}, function(err,bets){
-		bets.forEach(function(single){
+	Bets.find({$and:[{$or:[{user1: req.session.user},{user2: req.session.user}]},{status:{$in:[4,5]}}, {paid:false}]}).sort({date: -1})
+	.then( bets => {
+		bets.forEach(single => {
 			if (single.user1 != req.session.user._id){   //serve back to user as if bet initiator
 				let tmp = single.user1;
 				let tmp2 = single.team1;
@@ -809,14 +804,15 @@ router.get('/getdebts', requireLogin, (req, res)=>{
 			sortedBets.push(single);
 		});
 		res.json(sortedBets);
-	}).sort({date: -1});
+	})
+	.catch(err => console.log(err));
 });
 
 router.post('/resolvefinish', requireLogin, (req, res)=>{
 
 	function findAndMark(winner, loser){
-		Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}, function(err, bets){
-			bets.forEach(function(bet) {
+		Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}, (err, bets) => {
+			bets.forEach(bet =>  {
 				markPaid(bet._id, winner);
 			});
 		}).sort({date: 1}).limit(Number(req.body.num));
@@ -842,8 +838,9 @@ function getDebtList (person){
 	return new Promise ((resolve, reject) => {
 		let debtList = {owes: {}, isowed: {}};
 
-		Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: person}, {user2: person}]}]}, function(err, bets){
-			bets.forEach(function(bet){
+		Bets.find({$and:[{paid: false}, {status: {$in:[4,5]}}, {$or:[{user1: person}, {user2: person}]}]})
+		.then (bets => {
+			bets.forEach(bet => {
 				if ((bet.status == 4 && bet.user1 == person) || (bet.status == 5 && bet.user2 == person)) {
 					// swap users in case the latter above
 					if (bet.user2 == person)
@@ -884,7 +881,7 @@ router.get('/resolvedebts', requireLogin, (req, res)=>{
 				} else { //check for isowed 3way
 					promises.push(new Promise((resolve, reject)=>{
 						getDebtList(debtor)
-						.then(function(debtList2){
+						.then(debtList2 => {
 							for (let debtor2 in debtList2.isowed) {
 								if (debtList1.owes[debtor2]) {
 									results.push({name: debtor+'/'+debtor2, num: Math.min(debtList1.owes[debtor2], debtList2.isowed[debtor2])});
@@ -898,7 +895,7 @@ router.get('/resolvedebts', requireLogin, (req, res)=>{
 			resolve();  //done with isowed 2way check
 		}));
 
-		Promise.all(promises).then(function(){
+		Promise.all(promises).then(() => {
 			res.send(results);   
 		});
 	});
@@ -916,16 +913,16 @@ router.post('/getfutureoffers', requireLogin, async (req, res)=>{
 	}
 });
 
-router.get('/getfutures', function (req, res) {
+router.get('/getfutures', (req, res) => {
 	if (fs.existsSync('json/futures.json'))
 		res.sendFile('./json/futures.json', {'root':__dirname+'/..'});
 });
 
-router.get('/getlogs', function (req, res) {
+router.get('/getlogs', (req, res) => {
 	// if (fs.existsSync('json/log.json')) {
 	//    res.sendFile('./json/log2.json', {'root':__dirname+'/..'});
 	// }
-	Users.findOne({_id: req.session.user}, function(err,user){
+	Users.findOne({_id: req.session.user}, (err,user) => {
 		if (err) {
 			console.log(err);
 		} else if(user) {
@@ -951,18 +948,15 @@ router.post("/pushsubscribe", (req, res) => {
 	res.status(201).json({});
 });
 
-router.post('/getodds', function (req, res) {
+router.post('/getodds', (req, res) => {
 	res.sendFile('./json/'+req.body.sport+'_odds.json', {'root':__dirname+'/..'});
 }); 
 
 // gets userlist for bet select list
 router.get('/users', requireLogin, async (req, res)=>{
-	try {
-		const user = await Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}).sort({_id:1});
-		res.json(user);
-	} catch (err){
-		console.log(err);
-	}
+	Users.find({_id: {$ne:req.session.user}}, {_id: 1, pref_default_page: 1}).sort({_id:1})
+	.then (user => res.json(user))
+	.catch (err => console.log(err));
 });
 
 // called when new page is loaded
@@ -994,9 +988,6 @@ router.get('/doorbell', requireLogin, (req, res)=>{
 async function changeUser(user, key, inc) {
 	let tmp = {};
 	tmp[key] = inc;
-	try {
-		await Users.updateOne({_id: user}, {$inc: tmp});
-	} catch (err){
-		console.log('Trouble with changing user '+key);
-	}
+	Users.updateOne({_id: user}, {$inc: tmp})
+	.catch (err => console.log('Trouble with changing user '+key));
 }

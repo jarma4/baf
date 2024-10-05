@@ -1,5 +1,5 @@
 // back/forward button to get different scores
-$('.statsInc').on('click', function(event){
+$('.statsInc').on('click', event => {
    event.preventDefault();
    var parsed = $('#statsPeriod').text().split(' ');
    // if (parsed[0]=='Week') {
@@ -38,7 +38,7 @@ function weeklyStats(date) {
 			if(retData.length){
 				var weeklyRecords = {},
 					outp = '<table class="table table-condensed"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>TBD</th></tr>';
-				$.each(retData, function(i,rec){
+				$.each(retData, (i, rec) => {
 					// for Summary table; create structure if first time user seen
 					if (!weeklyRecords[rec.user1])
 						weeklyRecords[rec.user1] = {wins:0, losses:0, push: 0, tbd: 0};
@@ -86,7 +86,7 @@ function weeklyStats(date) {
 	}
 }
 
-$('#statsYear').on('change', function(){
+$('#statsYear').on('change', () => {
 	overallStats();
 	$('#weeklyStats').empty();
    drawChart(0);
@@ -102,7 +102,7 @@ function overallStats() {
    .then(res => res.json())
    .then(retData => {
       var outp = '<table class="table"><tr><th>Who</th><th>Win</th><th>Loss</th><th>Push</th><th>%</th></tr>';
-      $.each(retData, function(i,rec){
+      $.each(retData, (i, rec) => {
          outp += '<tr><td><a href="#" data-toggle="modal" data-target="#statsModal" data-user="'+rec.user+'" >'+rec.user.slice(0,6)+'</a></td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td><td>'+rec.pct.toPrecision(3)+'</td></tr>';
          $('#overallStatsTitle span.collapseIcon').removeClass('hidden');
       });
@@ -130,7 +130,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
    .then(res => res.json())
    .then(retData => {
    	var outp = '<table class="table"><tr><th>Date</th><th>Me</th><th>Them</th><th>W/L</th></tr>';
-   	$.each(retData.bets, function(i,rec){
+   	$.each(retData.bets, (i, rec) => {
          var date=new Date(rec.date);
    		outp += '<tr><td>'+(date.getMonth()+1)+'/'+date.getDate()+'</a></td><td>';
          if (rec.user1 == button.data('user')) {
@@ -145,7 +145,7 @@ $('#statsModal').on('show.bs.modal', function (event) {
       collapseIconAction('statsHistory');
       // Splits table
       outp = '<table class="table"><tr><th>Who</th><th>Wins</th><th>Loss</th><th>Push</th></tr>';
-      $.each(retData.winList, function(i,rec){
+      $.each(retData.winList, (i, rec) => {
          var date=new Date(rec.date);
    		outp += '<tr><td>'+i+'</td><td>'+rec.win+'</td><td>'+rec.loss+'</td><td>'+rec.push+'</td></tr>';
    	});

@@ -1,4 +1,4 @@
-var express = require('express'),
+var express = require('ultimate-express'),
    router = express.Router(),
    bodyParser = require('body-parser'),
    fs = require('fs'),
@@ -17,7 +17,7 @@ router.use(session({
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.post('/login', function(req,res){
+router.post('/login', (req,res) => {
 //   console.log(req);
    Users.findOne({'_id':req.body.username})
    .then ((user) => {
@@ -25,7 +25,7 @@ router.post('/login', function(req,res){
          logger.error('User '+req.body.username+' not found');
          res.send({'type':'danger', 'message':'No user with that username'});
       } else {
-         bcrypt.compare(req.body.password, user.password, function(err, result){
+         bcrypt.compare(req.body.password, user.password, (err, result) => {
             if (result){
                req.session.user = user;
                logger.debug('User '+req.session.user._id+' login');
@@ -41,7 +41,7 @@ router.post('/login', function(req,res){
    .catch(err => console.log(err));
 });
 
-router.post('/register', function(req,res){
+router.post('/register', (req,res) => {
    let transporter = Mailer.createTransport({
       host: 'mail.mygrande.net',
       port: 587,
@@ -84,7 +84,7 @@ router.post('/register', function(req,res){
    //    pref_text_receive : 1,
    //    pref_text_accept : 0,
    // });
-   // newuser.save(function(err){
+   // newuser.save(err => {
    //    if (err){
    //       var message = 'Something happened';
    //       if (err.code === 11000 ){
@@ -103,10 +103,8 @@ router.post('/register', function(req,res){
    //             win: 0,
    //             loss: 0,
    //             push : 0,
-   //          }).save(function(err){
-   //             if (err){
-   //                console.log(err);
-   //             }
+   //          }).save()
+   //            .catch(err => console.log(err);
    //          });
    //       }
    //       console.log('Registration successful');
@@ -117,7 +115,7 @@ router.post('/register', function(req,res){
 });
 
 // utility pages
-router.get('/logout', function(req, res) {
+router.get('/logout', (req, res) =>  {
   req.session.reset();
   res.redirect('/');
 });

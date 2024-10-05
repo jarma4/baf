@@ -21,7 +21,7 @@ function getOdds (){
       window.oddsDb = retData.games;
 
       let outp = '<table class="table">';
-      $.each(retData.games, function(i,rec){
+      $.each(retData.games, (i, rec) => {
          let checkDisabled = '', btnColor1, btnColor2, date = new Date(new Date(rec.date).getTime()+5*60000); //add 5min
 
          // gray out and disable if game already started
@@ -55,7 +55,7 @@ function getOdds (){
       outp += '</table>';
       document.getElementById('col'+Math.ceil(gameNum/listCount)).innerHTML = outp;
       // set sprite position for each logo on buttons
-      $.each(retData.games, function(i, rec){
+      $.each(retData.games, (i, rec) => {
          $('#tm1_'+i).css('object-position', spritePosition(sport, rec.team1));
          $('#tm2_'+i).css('object-position', spritePosition(sport, rec.team2.substr(1)));
       });
@@ -84,7 +84,7 @@ function getOdds2 (){
       window.oddsDb = retData.games;
 
       let outp = '<table class="table">';
-      $.each(retData.games, function(i,rec){
+      $.each(retData.games, (i, rec) => {
          let checkDisabled = '', btnColor1, btnColor2, date = new Date(rec.date);
 
          // gray out and disable if game already started
@@ -117,7 +117,7 @@ function getOdds2 (){
       outp += '</table>';
       document.getElementById('col'+Math.ceil(gameNum/listCount)).innerHTML = outp;
       // set sprite position for each logo on buttons
-      $.each(retData.games, function(i, rec){
+      $.each(retData.games, (i, rec) => {
          $('#tm1_'+i).css('object-position', spritePosition2(sport, rec.team1));
          $('#tm2_'+i).css('object-position', spritePosition2(sport, rec.team2.substr(1)));
       });
@@ -174,7 +174,7 @@ $('#betModal').on('show.bs.modal', function (event) {
    resetBetStuff();
 });
 
-$('#betSubmit').on('click', function(event) {
+$('#betSubmit').on('click', event =>  {
    postApi('makebet', {
       'user2': $('#userList').val(),
       'odds': Number(($('#oddsWatch').is(":checked"))?$('#betOddsNew').val():$('#betOdds').val()),
@@ -203,7 +203,7 @@ function resetBetStuff(){
    $('#betLimit').val(0);
 }
 
-$('#betLimitCheckbox').on('click', function(event) {
+$('#betLimitCheckbox').on('click', event =>  {
 	$('#betLimitPicker').toggleClass('nodisplay');
 	if ($("#betLimitCheckbox").is(":checked")) {
       $('#betLimit').val(1);
@@ -212,7 +212,7 @@ $('#betLimitCheckbox').on('click', function(event) {
    }
 });
 
-$('#userList').on('change', function(){
+$('#userList').on('change', () => {
 	if ($('#userList').val() == 'EVERYONE'){
 		$('#betLimitArea').removeClass('nodisplay');
 		$('#betLimitCheckbox').prop('checked', false);
