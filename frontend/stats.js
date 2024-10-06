@@ -1,5 +1,5 @@
 // back/forward button to get different scores
-$('.statsInc').on('click', event => {
+$('.statsInc').on('click', function(event) {
    event.preventDefault();
    var parsed = $('#statsPeriod').text().split(' ');
    // if (parsed[0]=='Week') {

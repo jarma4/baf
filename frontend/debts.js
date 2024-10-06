@@ -1,4 +1,4 @@
-$('#resolveBody').on('click', '.xxx', event => {
+$('#resolveBody').on('click', '.xxx', function() {
    postOptions.body = JSON.stringify({
       'name': $(this).data('name'),
       'num': $(this).data('num')
@@ -29,7 +29,7 @@ $('#resolveDebts').on('click', () => {
 });
 
 // in Debts modal, for paid buttons click
-$('#oweyou').on('click', '.paidBtn', () => {
+$('#oweyou').on('click', '.paidBtn', function() {
    var id = $(this).data('id');
    $('#alertOk').on('click', () => {  // attach event to OK button to update debt
       $(this).off('click');               // needed so won't be repeated on other button presses

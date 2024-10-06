@@ -143,7 +143,7 @@ $('#trackerSubmitBtn').on('click', event => {
 });
 
 // back/forward button to get different scores
-$('.picksInc').on('click', event => {
+$('.picksInc').on('click', function(event) {
 	event.preventDefault();
 	document.getElementById("dailyPicksBtn").classList.add('hidden');
    // let parsed = $('#picksDate').text().split(' ');

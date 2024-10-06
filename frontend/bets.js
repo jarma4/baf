@@ -90,7 +90,7 @@ $('#actionModal').on('show.bs.modal', function (event) {
    $('#actionComment').val('');
 });
 
-$('.actionAction').on('click', () => {
+$('.actionAction').on('click', function() {
    postApi('changebet', {
       'action': ($(this).val() == 2)?'accepted':'refused',
       'id': $('#actionId').val(),
@@ -114,7 +114,7 @@ $('#rescindSend').on('click', () => {
 });
 
 // since .comment class is not in html(added by js), need to attach to higher id
-$('#page-content-wrapper').on('click', '.comment', event => {
+$('#page-content-wrapper').on('click', '.comment', function(event) {
    event.preventDefault();
    var that = $(this);
    that.popover('show');

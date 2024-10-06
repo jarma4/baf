@@ -38,7 +38,7 @@ $('#futureOfferSubmit').on('click', () => {
    getFutures();
 });
 
-$('#futuresOffers').delegate('.futureOffer', 'click', event =>  {
+$('#futuresOffers').delegate('.futureOffer', 'click', function()  {
    // var button = $(event.relatedTarget);
    if($(this).data('user') == username){
       $('#futureRescindId').val($(this).data('id'));

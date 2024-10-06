@@ -211,7 +211,7 @@ function resetBta() {
 };
 
 // back/forward button to get different scores
-$('.btaInc').on('click', event => {
+$('.btaInc').on('click', function(event) {
    event.preventDefault();
 	resetBta();
 	getBtaPicks($('.sportPick.selected').attr('class').split(/\s+/)[1], $('#btaYear').val(), new Date(Number($('#btaDate').data('date'))+$(this).val()*(24*60*60*1000)));

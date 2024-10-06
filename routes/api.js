@@ -194,7 +194,7 @@ router.post('/getbets', requireLogin, async (req, res)=>{
 });
 
 router.post('/changebet', requireLogin, async (req, res)=>{
-	// console.log(req.body);
+	console.log(req.body);
 	switch (req.body.action) {
 		case 'delete':  // delete bet
 			// if not save later bet or future, decrement bet flag notice
@@ -268,6 +268,7 @@ router.post('/changebet', requireLogin, async (req, res)=>{
 			.catch (err => console.log(err));
 			break;
 		case 'change':
+			console.log(req.body);
 			Bets.updateOne({_id: req.body.id}, req.body)
 			.then(() => {
 				logger.info('Bet _id='+req.body.id+' changed - '+new Date());

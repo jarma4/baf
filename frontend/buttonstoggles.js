@@ -9,7 +9,7 @@ function toggleSport(sport) {
    document.cookie = 'sport='+sport+';max-age=43200';
 }
 
-$('.sportPick').on('click', () => {
+$('.sportPick').on('click', function() {
    if (!$(this).hasClass('selected')) {
       let sport = $(this).attr('class').split(/\s+/)[1];
       toggleSport(sport);
@@ -24,12 +24,12 @@ function collapseIconAction(target) {
 }
 
 // handles collapse icon animation
-$('.collapseIcon').on('click', event => {
+$('.collapseIcon').on('click', function() {
    $(this).toggleClass('open');
 });
 
 //bet modal has +/- to increment/decrement values
-$('.btn-increment').on('click', event => {
+$('.btn-increment').on('click', function(event) {
 	event.preventDefault();
 	let increment = 0.5;
 	if ($(this).val() > 1)		// button val of 0,1 increment by .5. val of 2,3 by 1

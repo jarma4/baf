@@ -5,10 +5,10 @@ This is a friendly sports betting app where users can send NFL, NBA, etc. bets t
 - NCAA like tourney for pros
 
 ### Backend Tech
-- Nodejs + Express
+- Nodejs + Ultimate-Express
 - MongoDB for data storage
 - Cheerio for web scraping
-- SMS notices sent via Telynx API
+- Notices sent to Slack via API
 - Gulp task runner
 
 ### Frontend Tech
