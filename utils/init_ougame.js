@@ -29,12 +29,8 @@ for (let team in (args[0].substring(0,3) == 'nfl')?Util.nflTeams:Util.nbaTeams) 
 		line: 0,
 		projection: 0,
 		status: 'U'
-	}).save(err => {
-		if(err) {
-			console.log('Trouble adding OUgame team', err);
-		} else {
-			console.log('OUgame added '+team);
-		}
-	});
+	}).save()
+	.then(team => console.log('OUgame added '+team.team))
+	.catch (err => console.log('Trouble adding OUgame team', err));
 }
 // process.exit(1);

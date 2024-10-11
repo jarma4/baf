@@ -27,11 +27,22 @@ module.exports = {
 		// 		}
 		// 	]
 		// }
+		let sendTo;
+		if (recipient == 'EVERYONE') {
+			sendTo = '2db';
+		} else {
+			Users.findOne({_id: recipient})
+			.then(user => {
+				sendTo = '@'+user.slack;
+			})
+			.catch(err => console.log(err));
+		};
 		await slack.client.chat.postMessage({
 			token: process.env.SLACK_TOKEN,
-			channel: (recipient == 'EVERYONE'?'2db':`@${recipient}`),
+			channel: sendTo,
 			text: message
-		});
+		})
+		.catch(err => console.log(err));
 	},
 	textUser: (to, message, pref2) => {
 		// console.log(`in text ${message}`);

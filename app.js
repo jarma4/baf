@@ -85,7 +85,7 @@ if (process.env.ENVIRONMENT == 'local') {
 		const now = new Date();
 		console.log('Performing backup - '+now);
 		// copy mongo db's to backup area
-		var cmd = exec('mongodump --forceTableScan --uri='+process.env.BAF_MONGO_URI+' -o backup/databases/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
+		var cmd = exec('mongodump --forceTableScan --uri='+process.env.BAF_MONGO_URI+' -o backup/mongodb/'+now.getFullYear()+'_'+(now.getMonth()+1)+'_'+now.getDate(), (error, stdout, stderr) => {
 			if (error || stderr) {
 				console.log(error);
 				console.log(stderr);

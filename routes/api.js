@@ -478,13 +478,13 @@ router.post('/getousignup', requireLogin, (req, res)=>{
 	.then(users => {
 		// next find choices for current user
 		OUuser.findOne({season: Number(req.body.season), sport: req.body.sport, user: req.session.user._id})
-		.then(choices => {
-			if (choices) {
+		.then(userChoices => {
+			if (userChoices) {
 				OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({index:1}).lean()
 				.then (teams => {
 					// add users choice to results
 					teams.forEach((team, index) => {
-						teams[index].pick = choices[index];
+						teams[index].pick = userChoices[index];
 					});
 					res.json({users: users, choices: teams});
 				}) // lean needed to modify mongoose object above
