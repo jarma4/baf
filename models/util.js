@@ -13,21 +13,8 @@ const seasonStart = {
 	ncaab: new Date(2023,2,16)
 };
 module.exports = {
-	sendSlack: async (recipient, message) => {
-		// console.log(`Slack message test: ${message}`);
-		// return;
-		// const richMessage = {
-		// 	"blocks": [
-		// 		{
-		// 			"type": "section",
-		// 			"text": {
-		// 				"type": "mrkdwn",
-		// 				"text": "**Test message**"
-		// 			}
-		// 		}
-		// 	]
-		// }
-		let sendTo;
+	sendSlack: (recipient, message) => {
+		let sendTo, slackCount = [];
 		if (recipient == 'EVERYONE') {
 			sendTo = '2db';
 		} else {
@@ -37,47 +24,25 @@ module.exports = {
 			})
 			.catch(err => console.log(err));
 		};
-		await slack.client.chat.postMessage({
-			token: process.env.SLACK_TOKEN,
-			channel: sendTo,
-			text: message
-		})
-		.catch(err => console.log(err));
+		// keep counter per user to be checked later
+		if (slackCount[sendTo]){
+			slackCount[sendTo]++;
+		} else {
+			slackCount[sendTo] = 1;
+		}
+		// only slack user once every 90 seconds
+		setTimeout(async ()=>{
+			if (slackCount[sendTo]){
+				await slack.client.chat.postMessage({
+					token: process.env.SLACK_TOKEN,
+					channel: sendTo,
+					text: message  // a rich message w/ markdown can be sent
+				})
+				.catch(err => console.log(err));
+				slackCount[sendTo] = 0; //reset so slacks in setTimeout queue will not happen
+			}
+		}, 90000);
 	},
-	textUser: (to, message, pref2) => {
-		// console.log(`in text ${message}`);
-		// return;
-      Users.findOne({_id: to}, (err,user) => {
-         if (err) {
-            console.log(err);
-         } else if (user){
-            if((user.pref_text_receive && !pref2) || (user.pref_text_accept && pref2)){
-               // increment list for user to be checked later
-               if (textList[to]) {
-                  textList[to]++;
-               } else {
-                  textList[to] = 1;
-               }
-					// only text user once every 90 seconds
-               setTimeout(() => {
-                  if (textList[to]) {
-                     // console.log('text sending to '+user.sms);
-                     telnyx.messages.create({
-                        'from': process.env.TEXTFROM,
-                        'to': '+1'+user.sms,
-                        'text': message + ' - 2DB'
-                     }).then(response => {
-                        console.log('texted',message); // asynchronously handled
-                     }).catch(err=>{
-								console.log('Error texting: ', err);
-							});
-                     textList[to] = 0;
-                  }
-               }, 90000);
-            }
-         }
-      });
-   },
 	init_tracker: (user, sport, season) => {
 		let index = 0;
 		for (let team in (sport == 'nfl')?module.exports.nflTeams:module.exports.nbaTeams) {
