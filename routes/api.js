@@ -282,7 +282,7 @@ router.post('/changebet', requireLogin, async (req, res)=>{
 router.post('/weeklystats', requireLogin, async (req, res)=>{
 	let sortedBets = [];
 	try {
-		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
+		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {season: req.body.season}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
 		complete.forEach(single => {
 			// flip response data if someone else instigated bet
 			if (single.user1 != req.session.user._id){
@@ -646,7 +646,7 @@ router.post('/createbtaodds', requireLogin, (req, res)=>{
 				console.log('Challenge started, copied odds to db',new Date());
 				res.send({'type':'success', 'message':'Odds published for today'});
 				// send out texts
-				Util.sendSlack('ALL', 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
+				Util.sendSlack('EVERYONE', 'Someone has started a '+((req.body.sport == 'nfl')?'NFL':'NBA')+' Bet Them All challenge, join if you want');
 			} else {
 				console.log('Odds for today already exist');
 				res.send({'type':'danger', 'message':'Odds for today already exist'});

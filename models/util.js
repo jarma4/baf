@@ -9,11 +9,13 @@ const slack = new App({
 });
 const seasonStart = {
 	nfl: new Date(2024,8,5),
-	nba: new Date(2023,9,24),
+	nba: new Date(2024,9,22),
 	ncaab: new Date(2023,2,16)
 };
 module.exports = {
 	sendSlack: (recipient, message) => {
+		// console.log(recipient, message);
+		// return;
 		let sendTo, slackCount = [];
 		if (recipient == 'EVERYONE') {
 			sendTo = '2db';
@@ -90,9 +92,9 @@ module.exports = {
 	nbaTeams: {
 		'Atlanta': 'ATL', 'Boston': 'BOS', 'Brooklyn': 'BKN', 'Charlotte': 'CHR', 'Chicago': 'CHI', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Golden State': 'GS','Golden St.': 'GS', 'Houston': 'HOU', 'Indiana': 'IND', 'L.A. Clippers': 'LAC','LA Lakers': 'LAL','LA Clippers': 'LAC','L.A. Lakers': 'LAL', 'Memphis': 'MEM', 'Miami': 'MIA', 'Milwaukee': 'MIL', 'Minnesota': 'MIN', 'New Orleans': 'NOP', 'New York': 'NY', 'Oklahoma City': 'OKC', 'Orlando': 'ORL', 'Philadelphia': 'PHI', 'Phoenix': 'PHO', 'Portland': 'POR', 'Sacramento': 'SAC', 'San Antonio': 'SAN', 'Toronto': 'TOR', 'Utah': 'UTA', 'Washington': 'WAS', },
 	nbaTeams2: {
-		'Hawks': 'ATL', 'Bulls': 'CHI', 'Mavericks': 'DAL', 'Pistons': 'DET',  'Timberwolves': 'MIN', 'Pelicans': 'NOP', 'Knicks': 'NY', 'Nets': 'BKN', '76ers': 'PHI', 'Thunder': 'OKC', 'Clippers': 'LAC','Lakers': 'LAL', 'Wizards': 'WAS', 'Cavaliers': 'CLE', 'Nuggets': 'DEN', 'Rockets': 'HOU', 'Pacers': 'IND', 'Heat': 'MIA', 'Celtics': 'BOS', 'Warriors': 'GS', 'Golden State': 'GS', 'Spurs': 'SAN', 'Kings': 'SAC', 'Trail Blazers': 'POR', 'Magic': 'ORL', 'Hornets': 'CHR', 'Suns': 'PHO', 'Raptors': 'TOR', 'Bucks': 'MIL', 'Jazz': 'UTA', 'Grizzlies': 'MEM'
+		'Hawks': 'ATL', 'Bulls': 'CHI', 'Mavericks': 'DAL', 'Pistons': 'DET',  'Timberwolves': 'MIN', 'Pelicans': 'NO', 'Knicks': 'NY', 'Nets': 'BKN', '76ers': 'PHI', 'Thunder': 'OKC', 'Clippers': 'LAC','Lakers': 'LAL', 'Wizards': 'WAS', 'Cavaliers': 'CLE', 'Nuggets': 'DEN', 'Rockets': 'HOU', 'Pacers': 'IND', 'Heat': 'MIA', 'Celtics': 'BOS', 'Warriors': 'GS', 'Golden State': 'GS', 'Spurs': 'SA', 'Kings': 'SAC', 'Trail Blazers': 'POR', 'Magic': 'ORL', 'Hornets': 'CHA', 'Suns': 'PHO', 'Raptors': 'TOR', 'Bucks': 'MIL', 'Jazz': 'UTA', 'Grizzlies': 'MEM'
 	}, 
 	nbaTeams3: {
-		'Atlanta Hawks': 'ATL', 'Chicago Bulls': 'CHI', 'Dallas Mavericks': 'DAL', 'Detroit Pistons': 'DET',  'Minnesota Timberwolves': 'MIN', 'New Orleans Pelicans': 'NOP', 'New York Knicks': 'NY', 'Brooklyn Nets': 'BKN', 'Philadelphia 76ers': 'PHI', 'Oklahoma Thunder': 'OKC', 'Los Angeles Clippers': 'LAC','Los Angeles Lakers': 'LAL', 'Washington Wizards': 'WAS', 'Cleveland Cavaliers': 'CLE', 'Denver Nuggets': 'DEN', 'Houston Rockets': 'HOU', 'Indiannapolis Pacers': 'IND', 'Miami Heat': 'MIA', 'Boston Celtics': 'BOS', 'Golden State Warriors': 'GS', 'San Antonio Spurs': 'SAN', 'Sacremento Kings': 'SAC', 'Portland Trail Blazers': 'POR', 'Orlando Magic': 'ORL', 'Charlotte Hornets': 'CHR', 'Phoenix Suns': 'PHO', 'Toronto Raptors': 'TOR', 'Milwaulkee Bucks': 'MIL', 'Utah Jazz': 'UTA', 'Memphis Grizzlies': 'MEM'
+		'Atlanta Hawks': 'ATL', 'Chicago Bulls': 'CHI', 'Dallas Mavericks': 'DAL', 'Detroit Pistons': 'DET',  'Minnesota Timberwolves': 'MIN', 'New Orleans Pelicans': 'NOP', 'New York Knicks': 'NY', 'Brooklyn Nets': 'BKN', 'Philadelphia 76ers': 'PHI', 'Oklahoma City Thunder': 'OKC', 'La Clippers': 'LAC','Los Angeles Lakers': 'LAL', 'Washington Wizards': 'WAS', 'Cleveland Cavaliers': 'CLE', 'Denver Nuggets': 'DEN', 'Houston Rockets': 'HOU', 'Indiana Pacers': 'IND', 'Miami Heat': 'MIA', 'Boston Celtics': 'BOS', 'Golden State Warriors': 'GS', 'San Antonio Spurs': 'SAN', 'Sacramento Kings': 'SAC', 'Portland Trail Blazers': 'POR', 'Orlando Magic': 'ORL', 'Charlotte Hornets': 'CHR', 'Phoenix Suns': 'PHO', 'Toronto Raptors': 'TOR', 'Milwaukee Bucks': 'MIL', 'Utah Jazz': 'UTA', 'Memphis Grizzlies': 'MEM'
 	}
 };

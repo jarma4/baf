@@ -30,7 +30,8 @@ function weeklyStats(date) {
 	if (inSeason[sport]) {
 		postOptions.body = JSON.stringify({
 			'date': date,
-			'sport': sport
+			'sport': sport,
+			'season': $('#statsYear').val()
 		});
 		fetch('/api/weeklystats', postOptions)
 		.then(res => res.json())

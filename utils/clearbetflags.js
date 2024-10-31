@@ -4,11 +4,10 @@ var mongoose = require('mongoose'),
 
 process.loadEnvFile();
 
-mongoose.connect('mongodb://baf:'+process.env.BAF_MONGO+'@127.0.0.1/baf');
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.BAF_MONGO_URI)
+.catch(err => console.log(err));
 
-Users.update({}, {bets: 0}, {multi: true}, function (err) {
-   if (err)
-      console.log('Problem: '+err);
-   else
-      console.log('Cleared bet notices');
-});
+Users.updateMany({}, {$set: {bets: 0}})
+.then(() =>  console.log('Cleared bet notices'))
+.catch(err => console.log(err));

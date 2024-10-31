@@ -68,12 +68,12 @@ if (process.env.ENVIRONMENT == 'local'){
 	const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1", scraper.tallyBets2,['nfl']);
 
 	// for NBA
-	// const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
+	const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
 	const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
-	// const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
+	const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
 	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
