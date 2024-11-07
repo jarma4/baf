@@ -207,8 +207,8 @@ module.exports = {
 		if (today.getHours() === 0) {// for late games, if checking after midnight, need to look at previous day
 			today.setHours(today.getHours()-1);
 		}
+		wk = Util.getWeek(new Date(), sprt);
 		if (sprt=='nfl') {
-			wk = Util.getWeek(new Date(), sprt);
 			url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+((wk>17)?'/postseason/':'/regular/')+wk;
 			teams = Util.nflTeams2;
 		} else {
@@ -304,51 +304,76 @@ module.exports = {
 					.then((picks) => resolve(picks))
 					.catch(err => reject());
 				}));
-				Promise.all(promises).then(retData =>{
-					// checki if any BTA today and if all done
-					if (retData[2].length && (retData[0].length == retData[1])) { 
-						let totals = new Array(retData[2].length).fill(0);
-						retData[0].forEach((game, gameIndex) => {  // go through odds for all games
-							retData[2].forEach((user, userIndex) => {  // get correct for each person
+				Promise.all(promises).then(([btaGames, btaDoneGames, btaPlayerPicks]) =>{
+					// check if any BTA game today and if all done
+					if (btaPlayerPicks.length && (btaGames.length == btaDoneGames)) { 
+						let playerNumCorrect = new Array(btaPlayerPicks.length).fill(0);
+						btaGames.forEach((game, gameIndex) => {  // go through odds for all games
+							btaPlayerPicks.forEach((user, userIndex) => {  // get correct for each person
 								if (Number(user[gameIndex])==game.ats) {
-									totals[userIndex] += 1;
+									playerNumCorrect[userIndex] += 1;
 								}
 							});
 						});
 						// increment record for each user with # of picks correct and # games
-						retData[2].forEach((user, userIndex) => {
-							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: user.user}, {$inc:{games: 1, correct: totals[userIndex], try: retData[1]}})
-							.then(() => console.log(`BTA record updated for ${user.user}: ${totals[userIndex]} correct out of ${retData[1]}`))
+						btaPlayerPicks.forEach((player, playerIndex) => {
+							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: player.user}, {$inc:{games: 1, correct: playerNumCorrect[playerIndex], try: btaDoneGames}})
+							.then(() => console.log(`BTA record updated for ${user.user}: ${playerNumCorrect[playerIndex]} correct out of ${btaDoneGames}`))
 							.catch(err => console.log('Error updating Record for user after BTA ended', err));
 						});
 						// credit winner(s)
-						const maxCorrect = Math.max(...totals);  //find highest # correct
+						const maxCorrect = Math.max(...playerNumCorrect);  //find highest # correct
 						let winners = [], overallWinner = [];
-						totals.filter((el, idx) => el == maxCorrect ? winners.push(idx):''); //store index of people that got maxCorrect
-						const lastTotal = retData[0][retData[0].length-1].total; //find total on last game
+						playerNumCorrect.filter((correct, idx) => correct == maxCorrect ? winners.push(idx):''); //store index of people that got maxCorrect
+						const lastTotal = btaGames[btaGames.length-1].total; //find total on last game
 						if (winners.length > 1) { // multiple winners, look at tiebreaker for each
 							let bestDiff = 999;
-							winners.forEach(userIndex=>{
-								const currentDiff = Math.abs(retData[2][userIndex].tiebreaker - lastTotal);
+							winners.forEach(playerIndex=>{
+								const currentDiff = Math.abs(btaPlayerPicks[playerIndex].tiebreaker - lastTotal);
 								if (currentDiff < bestDiff) { // single winner
-									overallWinner = [userIndex];
+									overallWinner = [playerIndex];
 								} else if (currentDiff == bestDiff) { // multiple winners
-									overallWinner.push(userIndex);
+									overallWinner.push(playerIndex);
 								}
 								bestDiff = currentDiff;
 							});								
 						} else { // single winner
 							overallWinner = winners;
 						}
-						overallWinner.forEach(idx => {
-							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: retData[2][idx].user}, {$inc: {win: 1/overallWinner.length}})
-							.then(() => console.log(`Updated BTA win for ${retData[2][idx].user} @ ${new Date()}`))
-							.catch(err => console.log(`Error incrementing BTA result for ${retData[2][idx].user}`));
+						overallWinner.forEach(playerIndex => {
+							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: btaPlayerPicks[playerIndex].user}, {$inc: {win: 1/overallWinner.length}})
+							.then(() => logger.info(`Updated BTA win for ${btaPlayerPicks[playerIndex].user} @ ${new Date()}`))
+							.catch(err => logger.error(`Error incrementing BTA result for ${btaPlayerPicks[playerIndex].user}`));
 						});
 						Odds.updateMany({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}).sort({index:1})
-						.then(() => console.log('Updated BTA odds to finished'))
-						.catch(err => console.log('Error marking done games', err));
-
+						.then(() => logger.info('Updated BTA odds to finished'))
+						.catch(err => logger.error('Error marking done games', err));
+						btaPlayerPicks.forEach((player, playerIndex) => {
+							if (player.user != winners[0].user){
+								//add bet record to track
+								new Bets({
+									week: wk,
+									season: Util.seasonStart[sprt].getFullYear(),
+									date: today.setHours(0,0,0,0),
+									user1: btaPlayerPicks[winners[0]].user,
+									user2: player.user,
+									team1: 'BTA',
+									team2: 'BTA',
+									type: 'bta',
+									sport: sprt,
+									paid: false,
+									status: 4,
+								}).save()
+								.then(() => logger.info('Bet added with loss for '+player.user+' to track BTA loss to '+ btaPlayerPicks[winners[0]].user))
+								.catch(err => logger.error('Trouble adding betfor '+player.user+' to track BTA loss to '+ btaPlayerPicks[winners[0]].user+err));
+								// mark debts
+								Users.updateOne({_id: btaPlayerPicks[winners[0]].user}, {$inc:{debts:(1<<4)}})
+								.catch(err => logger.error(btaPlayerPicks[winners[0]].user+' had trouble updating winner debts - '+new Date()+err));
+								Users.updateOne({_id: player.user}, {$inc: {debts:1}})
+								.catch(err => logger.error(player.user+' had trouble updating loser debts - '+new Date()+err));
+						
+							}
+						});
 					};
 				});
 			})
@@ -360,7 +385,7 @@ module.exports = {
 		request(url,  (err, response, body) => {
 			if(!err && response.statusCode == 200) {
 				const $ = cheerio.load(body);
-				console.log(`updating standings for ${sport} - ${new Date()}`);
+				logger.info(`updating standings for ${sport} - ${new Date()}`);
 				const teamInfo = $('.TableBase-bodyTr');
 				for (let index=0; index < teamInfo.length; index++){
 					const name = $(teamInfo[index]).find('span.TeamName').text();
