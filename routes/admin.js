@@ -1,4 +1,4 @@
-var express = require('ultimate-express'),
+var express = require('express'),
    router = express.Router(),
    bodyParser = require('body-parser'),
    fs = require('fs'),

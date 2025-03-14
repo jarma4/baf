@@ -1,6 +1,6 @@
 const { seasonStart } = require('../models/util');
 const { Users, Records, Bets, Sports, OUgame, OUuser, Ats, Odds, Tracker} = require('../models/dbschema');
-const express = require('ultimate-express'),
+const express = require('express'),
 		bodyParser = require('body-parser'),
 		fs = require('fs'),
 		// Auth = require('./auth'),
@@ -194,7 +194,7 @@ router.post('/getbets', requireLogin, async (req, res)=>{
 });
 
 router.post('/changebet', requireLogin, async (req, res)=>{
-	console.log(req.body);
+	// console.log(req.body);
 	switch (req.body.action) {
 		case 'delete':  // delete bet
 			// if not save later bet or future, decrement bet flag notice
@@ -282,7 +282,7 @@ router.post('/changebet', requireLogin, async (req, res)=>{
 router.post('/weeklystats', requireLogin, async (req, res)=>{
 	let sortedBets = [];
 	try {
-		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {season: req.body.season}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
+		const complete = await Bets.find({$and:[{season:seasonStart[req.body.sport].getFullYear()}, {sport: req.body.sport}, {type: {$in: ['spread', 'over', 'under']}}, {season: req.body.season}, {week: req.body.date}, {status: {$in:[2,4,5,6]}}]}).sort({date: -1, user1: 1, });
 		complete.forEach(single => {
 			// flip response data if someone else instigated bet
 			if (single.user1 != req.session.user._id){
@@ -397,12 +397,14 @@ router.post('/graphstats', requireLogin, async (req, res)=>{
 
 router.post('/userstats', requireLogin, async (req, res)=>{
 	try {
-		const bets = await Bets.find({$and:[{$or:[{user1: req.body.user},
-									{user2: req.body.user}],
-							sport: req.body.sport,
-							season: req.body.season},
+		const bets = await Bets.find({$and: [
+							{$or:[{user1: req.body.user}, {user2: req.body.user}]},
+							{season: req.body.season},
+							{sport: req.body.sport},
+							{type: {$in:['spread', 'over', 'under']}},
 							{status:{$in:[4,5,6]}},
-							(req.body.week)?{week:req.body.week}:{}]}).sort({date:-1});
+							(req.body.week)?{week:req.body.week}:{}
+						]}).sort({date:-1});
 		let winList = {};
 		bets.forEach(bet => {
 			let target, status=bet.status;
@@ -531,7 +533,7 @@ router.post('/ousignup', requireLogin, (req, res)=>{
 router.post('/gettourney', (req, res) => {
 	Sports.findOne({sport: req.body.sport.substring(0,3)})
 	.then (sportInfo => {
-		if (new Date() < sportInfo.playoffs){ //still time to pick
+		if (new Date() < sportInfo.playoffs && req.body.season == sportInfo.start.getFullYear()){ //still time to pick
 			// OUuser.find({season: Number(req.body.season), sport: req.body.sport}, '-_id user', (err, players) => {
 			// 	if (err) {
 			// 		console.log(err);
@@ -812,11 +814,12 @@ router.get('/getdebts', requireLogin, (req, res)=>{
 router.post('/resolvefinish', requireLogin, (req, res)=>{
 
 	function findAndMark(winner, loser){
-		Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}, (err, bets) => {
+		Bets.find({$and:[{paid: false}, {$or:[{$and:[{status: 4}, {user1: winner}, {user2: loser}]},{$and:[{status: 5}, {user1: loser}, {user2: winner}]}]}]}).sort({date: 1}).limit(Number(req.body.num))
+		.then(bets => {
 			bets.forEach(bet =>  {
 				markPaid(bet._id, winner);
 			});
-		}).sort({date: 1}).limit(Number(req.body.num));
+		});
 	}
 
 	if (req.body.name.includes('/')) {

@@ -37,7 +37,7 @@ let betsSchema = new mongoose.Schema({
    team1 : String,
    team2 : String,
    odds: Number,
-   type: String,     // spread, over, under, prop
+   type: String,     // spread, over, under, prop, bta
    status: Number,   // 0-1=open, 2=accepted, 3=declined, 4=win, 5=loss, 6=push, 10-12=watch per sport
    fta: Number,
    watch: Number,    // 1=hasn't been seen; 2=has been seen and reported;+10 means auto send bet

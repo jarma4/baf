@@ -134,9 +134,9 @@ function getTourney() {
 	.then(res => res.json())
 	.then(retData => {
 		let outp;
-		if (!retData.results.length) {
+		if (!retData.results.length) { // picking time starts
 			outp = '<p class="cellgutter">'; 
-			if (retData.players.length) {
+			if (retData.players.length) { // show players already signed
 				retData.players.forEach((player, i)=>{
 					if (i%4 == 0 && i != 0) {
 						outp += '<br>';
@@ -147,7 +147,7 @@ function getTourney() {
 				outp += 'nobody';
 			}
 			document.getElementById("tourneyList").innerHTML = outp;
-			if (retData.picks.length) {
+			if (retData.picks.length) { // still time to make picks
 				seeding1 = [[],[],[],[]];
 				seeding2 = [[],[],[],[]];
 				const teamsPerRound = (sport == 'nfl')?[12, 8, 4, 2]:[16,8,4,2];
@@ -201,31 +201,42 @@ function getTourney() {
 			document.getElementById('bracketPicksArea').innerHTML = outp;
 			drawSprite(sport);
 		} else { // picking over, show results
-			let points=[];
+			document.querySelector('#infoArea').classList.add('nodisplay');
+			let points=[]; // keeps each player points
 			outp = '<table class="table table-consdensed"><tr><th>Game</th><th>Win</th>';
-			retData.users.forEach((rec, userIndex) =>{
+			retData.users.forEach((rec, userIndex) =>{  // print out player list
 				outp += '<th>'+bafusers[rec.user]+'</th>';
 				points[userIndex] = 0;
 			});
 			outp += '<tr>';
-			let multiplier = 1;
-			retData.results.forEach((item, gameIndex) => {
-				const lines = (sport == 'nfl')?[6,10,12]:[8,12,14];
-				if (lines.includes(gameIndex)){
+			let pointsAdder = 1, winners = [];
+			const newRound = (sport == 'nfl')?[6,10,12]:[8,12,14];
+			winners[roundIndex] = new Set();
+			retData.results.forEach((item, gameIndex) => { // populate winner sets per round
+				if (gameIndex == newRound[roundIndex]){
+					roundIndex++;
+					winners[roundIndex] = new Set();
+				}
+				winners[roundIndex].add(item.status);
+			});
+			roundIndex = 0;  //reset
+			retData.results.forEach((item, gameIndex) => {  //print out results f/ all game per player
+				if (newRound.includes(gameIndex)){ // next round, draw line
+					roundIndex++;
 					outp += '<tr class="modal-primary"><td colspan="'+(retData.users.length+1)+'"><td></tr>';
 				}
 				outp += '<tr height="1px"><td style="font-style:italic">'+item.team+'</td><td>'+item.status+'</td>';
 				retData.users.forEach((rec, userIndex) =>{
-					outp += '<td class="'+((rec[gameIndex]==item.status)?'heading-success':'')+'">'+rec[gameIndex]+'</td>';
+					outp += '<td class="'+(winners[roundIndex].has(rec[gameIndex])?'heading-success':'')+'">'+rec[gameIndex]+'</td>';
 					if ((sport == 'nfl' && gameIndex > 5 && gameIndex < 10) || (sport == 'nba' && gameIndex > 7 && gameIndex < 12)) {
-						multiplier = 2;
+						pointsAdder = 2;
 					} else if ((sport == 'nfl' && gameIndex > 9 && gameIndex < 12) || (sport == 'nba' && gameIndex > 11 && gameIndex < 14)) {
-						multiplier = 3;
+						pointsAdder = 3;
 					} else if ((sport == 'nfl' && gameIndex == 12) || (sport == 'nba' && gameIndex == 14)) {
-						multiplier = 4;
+						pointsAdder = 4;
 					}
-					if (rec[gameIndex] == item.status){
-						points[userIndex] += multiplier;
+					if (winners[roundIndex].has(rec[gameIndex])){
+						points[userIndex] += pointsAdder;
 					}
 				});
 				outp += '</tr>';

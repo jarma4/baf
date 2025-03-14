@@ -312,21 +312,8 @@ async function initServiceWorker(){
 
 function spritePosition (sport, team) {
    var width = 56, height = 40, cols = 6, index,
-      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAX', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
-      nba_teams = ['NBA', 'BOS', 'BKN', 'CHA', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NO','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SA'];
-   if (sport == 'nfl')
-      index = nfl_teams.indexOf(team);
-   else
-      index = nba_teams.indexOf(team);
-   if (index < 0)
-      index = 0;
-   return index%cols*width*-1+'px '+Math.floor(index/cols)*height*-1+'px';
-}
-
-function spritePosition2 (sport, team) {
-   var width = 35, height = 25, cols = 6, index,
-      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LAR', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAX', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
-      nba_teams = ['NBA', 'BOS', 'BKN', 'CHR', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NY','OKC', 'ORL', 'PHI', 'PHO', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GS', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAN'];
+      nfl_teams = ['NFL', 'ARI', 'CAR', 'CHI', 'DAL', 'DET', 'GB', 'MIN', 'NO', 'NYG','PHI','SEA','SF','LA', 'TB', 'WAS', 'BAL', 'BUF', 'CIN', 'CLE', 'DEN', 'HOU', 'KC', 'JAC', 'IND', 'MIA', 'NE', 'NYJ', 'LV', 'PIT', 'LAC', 'TEN', 'ATL'];
+      nba_teams = ['NBA', 'BOS', 'BKN', 'CHA', 'CLE', 'DAL', 'DET', 'IND', 'LAC', 'LAL','MIA','NOP','NYK','OKC', 'ORL', 'PHI', 'PHX', 'SAC', 'TOR', 'UTA', 'WAS', 'ATL', 'CHI', 'DEN', 'GSW', 'HOU', 'MEM', 'MIL', 'MIN', 'POR', 'SAS'];
    if (sport == 'nfl')
       index = nfl_teams.indexOf(team);
    else

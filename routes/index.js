@@ -1,4 +1,4 @@
-var express = require('ultimate-express'),
+var express = require('express'),
 // Auth = require('./auth'),
 router = express.Router(),
 session = require('client-sessions'),

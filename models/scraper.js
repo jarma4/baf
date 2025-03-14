@@ -41,11 +41,6 @@ function getOdds(sport) {
 						team2: '@'+$(home[idx]).find('.team-name').data('abbr'),
 						spread: Number($(visitor[idx]).find('.game-odds:nth-child(6)').text().trim().split('   ')[0]),  // caesars
 						over: Number($(visitor[idx+(visitor.length/3)]).find('.game-odds:nth-child(6)').text().trim().split('   ')[0].substring(1))
-						// date: new Date(tempTime.setHours(tempTime.getHours() + 1)), // mybookie in another timezone
-						// team1: (sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team-vs')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team-vs')]: gameInfo.attr('data-team-vs'),
-						// team2: '@'+((sport == 'nfl')? Util.nflTeams3[gameInfo.attr('data-team')]:(sport == 'nba')?Util.nbaTeams3[gameInfo.attr('data-team')]: gameInfo.attr('data-team')),
-						// spread: Number(gameInfo.attr('data-points'))*-1,
-						// over: $(gameInfo).next().next().attr('data-points')
 					});
 				}
 			}
@@ -96,6 +91,8 @@ function getOdds(sport) {
 				// console.log('writing to odds');
 				const success = fs.writeFileSync('json/'+sport+'_odds.json',JSON.stringify(sendData));
 			}
+		} else {
+			console.log(`Error in getodds: ${err}`)
 		}
 	});
 }
@@ -210,10 +207,10 @@ module.exports = {
 		wk = Util.getWeek(new Date(), sprt);
 		if (sprt=='nfl') {
 			url = 'https://www.cbssports.com/nfl/scoreboard/all/'+Util.seasonStart.nfl.getFullYear()+((wk>17)?'/postseason/':'/regular/')+wk;
-			teams = Util.nflTeams2;
+			teams = Util.nflTeams;
 		} else {
 			url = 'https://www.cbssports.com/nba/scoreboard/'+today.getFullYear()+('0'+(today.getMonth()+1)).slice(-2)+('0'+today.getDate()).slice(-2);
-			teams = Util.nbaTeams2;
+			teams = Util.nbaTeams;
 		}
 		// console.log(url);
 		// first get scores for games today
@@ -229,6 +226,8 @@ module.exports = {
 						scores['@'+teams[teamNames.last().text()]] = Number(teamScores.last().text().replace(/\s/g,''));
 					}
 					resolve();
+				} else {
+					console.log(`Error in tallybets2: ${err}`)
 				}
 			});
 		})
@@ -318,8 +317,8 @@ module.exports = {
 						// increment record for each user with # of picks correct and # games
 						btaPlayerPicks.forEach((player, playerIndex) => {
 							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: player.user}, {$inc:{games: 1, correct: playerNumCorrect[playerIndex], try: btaDoneGames}})
-							.then(() => console.log(`BTA record updated for ${user.user}: ${playerNumCorrect[playerIndex]} correct out of ${btaDoneGames}`))
-							.catch(err => console.log('Error updating Record for user after BTA ended', err));
+							.then(() => console.log(`BTA record updated for ${player.user}: ${playerNumCorrect[playerIndex]} correct out of ${btaDoneGames}`))
+							.catch(err => console.log('Error updating Record for user after BTA ended: ', err));
 						});
 						// credit winner(s)
 						const maxCorrect = Math.max(...playerNumCorrect);  //find highest # correct
@@ -342,14 +341,17 @@ module.exports = {
 						}
 						overallWinner.forEach(playerIndex => {
 							Records.updateOne({season: Util.seasonStart[sprt].getFullYear(), sport: (sprt=='nfl')?'btanfl':'btanba', user: btaPlayerPicks[playerIndex].user}, {$inc: {win: 1/overallWinner.length}})
-							.then(() => logger.info(`Updated BTA win for ${btaPlayerPicks[playerIndex].user} @ ${new Date()}`))
+							.then(() => {
+								logger.info(`Updated BTA win for ${btaPlayerPicks[playerIndex].user} @ ${new Date()}`);
+								Util.sendSlack('EVERYONE',  'BTA win goes to '+btaPlayerPicks[playerIndex].user);
+							})
 							.catch(err => logger.error(`Error incrementing BTA result for ${btaPlayerPicks[playerIndex].user}`));
 						});
 						Odds.updateMany({sport: sprt, bta: true, date: today, ats: {$in:[1,2,3]}}, {$inc: {ats: 10}}).sort({index:1})
 						.then(() => logger.info('Updated BTA odds to finished'))
 						.catch(err => logger.error('Error marking done games', err));
 						btaPlayerPicks.forEach((player, playerIndex) => {
-							if (player.user != winners[0].user){
+							if (player.user != btaPlayerPicks[winners[0]].user){
 								//add bet record to track
 								new Bets({
 									week: wk,
@@ -399,6 +401,8 @@ module.exports = {
 					.catch(err => logger.error('OUgame find team error: '+err));
 				}
 				logger.info('updated standings - '+new Date());
+			} else {
+				console.log(`Error in updatestandings: ${err}`)
 			}
 		});
 	},

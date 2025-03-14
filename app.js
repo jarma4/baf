@@ -1,9 +1,10 @@
 const https = require('https'),
-      express = require('ultimate-express'),
+      express = require('express'),
       fs = require('fs'),
       crontab = require('node-crontab'),
       exec = require('child_process').exec,
-      compression = require('compression');
+      compression = require('compression'),
+	  { init_seasonStart } = require('./models/util');
 
 // process.traceDeprecation = true;
 
@@ -44,18 +45,19 @@ app_https.use('/', routes);
 app_https.use('/api', router);
 app_https.use('/admin', admin);
 
-// const options = {
-//    cert: fs.readFileSync('./sslcert/fullchain.pem'),
-//    key: fs.readFileSync('./sslcert/privkey.pem')
-// };
+const options = {
+   cert: fs.readFileSync('./sslcert/fullchain.pem'),
+   key: fs.readFileSync('./sslcert/privkey.pem')
+};
 
-// https.createServer(options, app_https).listen(443, () => {
-app_https.listen(443, () => {
+https.createServer(options, app_https).listen(443, () => {
+// app_https.listen(443, () => {
 		console.log('listening at on port 443');
 });
 
 if (process.env.ENVIRONMENT == 'local'){
 
+	init_seasonStart();
 	// manage data gathering via scraper model and schedule
 	const scraper = require('./models/scraper');
 
@@ -65,20 +67,20 @@ if (process.env.ENVIRONMENT == 'local'){
 	const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
 
 	// for NFL
-	const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1", scraper.tallyBets2,['nfl']);
+	// const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1,6", scraper.tallyBets2,['nfl']);
 
 	// for NBA
 	const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
-	const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
 	const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
 	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
 	// const processTrackerCron = crontab.scheduleJob("5 6 * * *", scraper.processTracker,['nba']);
-	// const getDailyOddsCron = crontab.scheduleJob("30 7 * * *", scraper.getDailyOdds,['nba']);
+	// const getDailyOddsCron = crontab.scheduleJob("0 10 * * *", scraper.getDailyOdds,['nba']);
 } 
 if (process.env.ENVIRONMENT == 'local') {
 	const backupsCron = crontab.scheduleJob('0 1 * * 2', () =>  {
