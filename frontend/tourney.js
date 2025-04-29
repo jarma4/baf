@@ -136,7 +136,7 @@ function getTourney() {
 		let outp;
 		if (!retData.results.length) { // picking time starts
 			outp = '<p class="cellgutter">'; 
-			if (retData.players.length) { // show players already signed
+			if (retData.players != undefined) { // show players already signed
 				retData.players.forEach((player, i)=>{
 					if (i%4 == 0 && i != 0) {
 						outp += '<br>';

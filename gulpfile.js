@@ -11,7 +11,7 @@ function jsTask(){
    return gulp.src('frontend/*.js')
       .pipe(plumber())
       .pipe(concat('bundle.js'))
-      .pipe(terser())
+//      .pipe(terser())
       .pipe(gulp.dest('public/js'));
 }
 

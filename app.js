@@ -13,12 +13,12 @@ process.loadEnvFile();
 // http site
 const app_http = express();
 app_http.use(compression());
-//app_http.use('/', express.static(__dirname + '/public'));
+app_http.use('/', express.static(__dirname + '/public'));
 app_http.get('*', (req, res) => {
    res.redirect(301, 'https://2dollarbets.com');
 });
-app_http.listen(80, () => {
-   console.log('redirecting on port 80');
+app_http.listen(3000, () => {
+   console.log('redirecting on port 3000');
 });
 
 // https site
@@ -50,9 +50,9 @@ const options = {
    key: fs.readFileSync('./sslcert/privkey.pem')
 };
 
-https.createServer(options, app_https).listen(443, () => {
+https.createServer(options, app_https).listen(3001, () => {
 // app_https.listen(443, () => {
-		console.log('listening at on port 443');
+		console.log('listening at on port 3001');
 });
 
 if (process.env.ENVIRONMENT == 'local'){
