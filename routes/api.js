@@ -462,7 +462,7 @@ router.post('/acceptprop', requireLogin, (req, res)=>{
 
 router.post('/getstandings', requireLogin, async (req, res)=>{
 	try {
-		const standings = await OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({team:1});
+		const standings = await OUgame.find({season: Number(req.body.season), sport: req.body.sport}).sort({index:1});
 		try {
 			const users = await OUuser.find({season: Number(req.body.season), sport: req.body.sport}).sort({user:1});
 			res.json({standings, users});			

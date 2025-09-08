@@ -10,19 +10,20 @@ mongoose.connect(process.env.BAF_MONGO_URI)
 	console.log(err);
 });
 
-let i = 0;
-let args = process.argv.splice(2);
+const args = process.argv.splice(2);
 console.log(args);
 if (args[0].substring(0,3) != 'nba' && args[0].substring(0,3) != 'nfl') {
 	console.log('Usage: init_ougame [nfl, nba] YEAR');
 	process.exit();
 }
-for (let team in (args[0].substring(0,3) == 'nfl')?Util.nflTeams:Util.nbaTeams) {
+let idx = 0;
+const teams = (args[0].substring(0,3) == 'nfl')?Util.nflTeams:Util.nbaTeams;
+for (let team in teams) {
 	let tmp = new OUgame ({
 		sport: args[0],
 		season: args[1],
-		team: team,
-		index: i++,
+		team: teams[team],
+		index: idx++,
 		win: 0,
 		loss: 0,
 		tie: 0,
