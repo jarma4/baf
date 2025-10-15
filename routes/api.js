@@ -349,6 +349,7 @@ router.post('/graphstats', requireLogin, async (req, res)=>{
 			{status:{$in: [4,5,6]}},
 			{sport: req.body.sport},
 			{season: req.body.season},
+			{team1: {$ne:'BTA'}},
 			{week: {$gte: currentWeek}}]}).sort({week: 1});
 		bets.forEach((bet, index) => {
 			// console.log(`${index} ${currentWeek} ${bet.week} ${bet.user1} ${bet.user2} ${bet.team1} ${bet.team2}`);
@@ -590,8 +591,18 @@ router.post('/getbtascoreboard', requireLogin, (req,res) => {
 
 router.post('/getbtapicks', requireLogin, async (req, res)=>{
 	let today = new Date(), targetDate = new Date(req.body.date);
-	let results = {odds: [], picks: [], players: [], timeToPick: Util.checkSameDate(targetDate, today) && ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() < 12) || (req.body.sport == 'nba' && today.getHours() < 18))}; //(today.getHours() < 11 || (today.getHours() == 11 && today.getMinutes() < 30))
+	let results = {
+		odds: [], 
+		picks: [], 
+		players: [], 
+		timeToPick: Util.checkSameDate(targetDate, today) && (
+					(req.body.sport == 'nfl' && (today.getDay() == 6 || (today.getDay() == 0 && today.getHours() < 12))) || 
+					(req.body.sport == 'nba' && today.getHours() < 18))
+	};
 	try {
+		if (today.getDay() == 6){ //started on Saturday, target Sunday games
+			targetDate.setDate(targetDate.getDate() + 1);
+		}
 		const odds = await Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}).sort({index:1});
 		results.odds = odds;
 		// get everyones picks even if before 6 so can send list of players; before 6 only single person's picks sent, otherwise all are sent
@@ -618,8 +629,11 @@ router.post('/getbtapicks', requireLogin, async (req, res)=>{
 
 router.post('/createbtaodds', requireLogin, (req, res)=>{
 	const today = new Date();
-	const targetDate = new Date(req.body.date);
-	if ((req.body.sport == 'nfl' && today.getHours() > 11) || (req.body.sport == 'nba' && today.getHours() > 17)) {
+	let targetDate = new Date(req.body.date);
+	if (today.getDay() == 6){ //started on Saturday, target Sunday games
+		targetDate.setDate(targetDate.getDate() + 1);
+	}
+	if ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() > 11) || (req.body.sport == 'nba' && today.getHours() > 17)) {
 		res.send({'type':'danger', 'message':'too late, try tomorrow'});
 	} else {
 		Odds.find({sport: req.body.sport, season: Number(req.body.season), date: req.body.date})

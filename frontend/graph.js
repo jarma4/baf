@@ -1,6 +1,6 @@
 // below uses ChartJS library
 function drawChart() {
-   var colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "lightgreen", "teal", "pink", "lightblue", "gray"],
+   let colors = ["blue", "red", "white", "green", "yellow", "purple", "orange", "lightgreen", "teal", "pink", "lightblue", "gray"],
       chartData = {
          labels: [],
          datasets: [],
@@ -32,19 +32,19 @@ function drawChart() {
    fetch('/api/graphstats', postOptions)
    .then(res =>res.json())
    .then(retData => {
-      var iter = 0;
+      let player = 0;
       chartData.labels = retData.xaxis;
       $.each(retData.datasets, (index, info) => {
-         var obj = {
+         let obj = {
             label: index,
-            borderColor: colors[iter++],
+            borderColor: colors[player++],
             data: info.data
          };
          chartData.datasets.push(obj);
       });
       if (winChart)
          winChart.destroy();
-      winChart = new Chart(document.getElementById("winGraph").getContext("2d"), {
+         winChart = new Chart(document.getElementById("winGraph").getContext("2d"), {
          type: 'line',
          data: chartData,
          options: chartOptions

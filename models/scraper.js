@@ -393,9 +393,9 @@ module.exports = {
 					const name = $(teamInfo[index]).find('span.TeamName').text();
 					const record = [Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().text()), Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text())];
 					const newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
-					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: name})
+					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: Util.nflTeams2[name]})
 					.then((rec) => {
-						OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: name}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'})
+						OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: Util.nflTeams2[name]}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'})
 						.catch(err => logger.error('updateStandings error: '+err));
 					})
 					.catch(err => logger.error('OUgame find team error: '+err));
