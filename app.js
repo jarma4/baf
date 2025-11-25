@@ -14,7 +14,7 @@ process.loadEnvFile();
 const app_http = express();
 app_http.use(compression());
 // app_http.use('/', express.static(__dirname + '/public'));
-app_http.get('*', (req, res) => {
+app_http.use((req, res) => {
    res.redirect(301, 'https://2dollarbets.com');
 });
 app_http.listen(3000, () => {
