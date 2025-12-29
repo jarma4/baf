@@ -600,7 +600,7 @@ router.post('/getbtapicks', requireLogin, async (req, res)=>{
 					(req.body.sport == 'nba' && today.getHours() < 18))
 	};
 	try {
-		if (today.getDay() == 6){ //started on Saturday, target Sunday games
+		if (req.body.sport == 'nfl' && today.getDay() == 6){ //started on Saturday, target Sunday games
 			targetDate.setDate(targetDate.getDate() + 1);
 		}
 		const odds = await Odds.find({season: Number(req.body.season), date: targetDate.setHours(0,0,0,0), sport: req.body.sport, bta: true}).sort({index:1});
@@ -630,7 +630,7 @@ router.post('/getbtapicks', requireLogin, async (req, res)=>{
 router.post('/createbtaodds', requireLogin, (req, res)=>{
 	const today = new Date();
 	let targetDate = new Date(req.body.date);
-	if (today.getDay() == 6){ //started on Saturday, target Sunday games
+	if (req.body.sport == 'nfl' & today.getDay() == 6){ //started on Saturday, target Sunday games
 		targetDate.setDate(targetDate.getDate() + 1);
 	}
 	if ((req.body.sport == 'nfl' && today.getDay() == 0 && today.getHours() > 11) || (req.body.sport == 'nba' && today.getHours() > 17)) {

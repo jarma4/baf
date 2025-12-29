@@ -13,12 +13,12 @@ process.loadEnvFile();
 // http site
 const app_http = express();
 app_http.use(compression());
-// app_http.use('/', express.static(__dirname + '/public'));
-app_http.use((req, res) => {
+app_http.use('/', express.static(__dirname + '/public'));
+app_http.get('*', (req, res) => {
    res.redirect(301, 'https://2dollarbets.com');
 });
-app_http.listen(3000, () => {
-   console.log('redirecting on port 3000');
+app_http.listen(80, () => {
+   console.log('redirecting on port 80');
 });
 
 // https site
@@ -29,7 +29,7 @@ const app_https = express({
     }
 });
 app_https.use(compression());
-// app_https.use('/', express.static(__dirname + '/public'));
+app_https.use('/', express.static(__dirname + '/public'));
 app_https.use('/js', express.static(__dirname + '/public/js'));
 app_https.use('/css', express.static(__dirname + '/public/css'));
 app_https.use('/images', express.static(__dirname + '/public/images', {maxage: '1h'}));
@@ -50,9 +50,9 @@ const options = {
    key: fs.readFileSync('./sslcert/privkey.pem')
 };
 
-https.createServer(options, app_https).listen(3001, () => {
+https.createServer(options, app_https).listen(443, () => {
 // app_https.listen(443, () => {
-		console.log('listening at on port 3001');
+		console.log('listening at on port 443');
 });
 
 if (process.env.ENVIRONMENT == 'local'){
@@ -67,15 +67,15 @@ if (process.env.ENVIRONMENT == 'local'){
 	const dailyCleaningCron = crontab.scheduleJob("0 7 * * *", scraper.dailyCleaning);
 
 	// for NFL
-	const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1,4", scraper.tallyBets2,['nfl']);
+	// const tallyBetsNflCron = crontab.scheduleJob("*/6 15-23 * * 0,1,6", scraper.tallyBets2,['nfl']);
 
 	// for NBA
 	const tallyBetsNbaCron = crontab.scheduleJob("*/5 0,15-23 * * *", scraper.tallyBets2,['nba']);
 	// const checkHalftimeNbaCron = crontab.scheduleJob("* 19-22 * * *", scraper.getHalftimeScores);
 
 	// for the Over Under game
-	const updateStandingsCron = crontab.scheduleJob("0 6 * * 1,2,5", scraper.updateStandings,['nfl']);
-	const updateStandingsCron2 = crontab.scheduleJob("0 7 * * *", scraper.updateStandings,['nba']);
+	// const updateStandingsCron = crontab.scheduleJob("0 7 * * 1,2,5", scraper.updateStandings,['nfl']);
+	//const updateStandingsCron2 = crontab.scheduleJob("0 6 * * *", scraper.updateStandings,['nba']);
 
 	// for Tracker
 	// const processOddsCron = crontab.scheduleJob("0 6 * * *", scraper.processOdds,['nba']);
