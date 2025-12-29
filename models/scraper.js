@@ -391,11 +391,11 @@ module.exports = {
 				const teamInfo = $('.TableBase-bodyTr');
 				for (let index=0; index < teamInfo.length; index++){
 					const name = $(teamInfo[index]).find('span.TeamName').text();
-					const record = [Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().text()), Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text()), ((sport == 'nfl')?Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().next().text()):0)];
+					const record = [Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().text()), Number($(teamInfo[index]).find('.TableBase-bodyTd--number').first().next().text())];
 					const newproj = Number(record[0])/(Number(record[0])+Number(record[1]))*((sport=='nfl')?17:82);
 					OUgame.findOne({sport: sport, season: Util.seasonStart[sport].getFullYear(), team: ((sport=='nfl')?Util.nflTeams2[name]:Util.nbaTeams[name])})
 					.then((rec) => {
-						OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: ((sport=='nfl')?Util.nflTeams2[name]:Util.nbaTeams[name])}, {win: record[0], loss: record[1], tie: record[2], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'})
+						OUgame.updateOne({sport:sport, season: Util.seasonStart[sport].getFullYear(), team: ((sport=='nfl')?Util.nflTeams2[name]:Util.nbaTeams[name])}, {win: record[0], loss: record[1], projection: newproj, status: (Math.floor(newproj) > rec.line)?'Over':(Math.floor(newproj) < rec.line)?'Under':'Push'})
 						.catch(err => logger.error('updateStandings error: '+err));
 					})
 					.catch(err => logger.error(`OUgame find team ${name} error: `+err));

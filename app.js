@@ -29,7 +29,7 @@ const app_https = express({
     }
 });
 app_https.use(compression());
-// app_https.use('/', express.static(__dirname + '/public'));
+app_https.use('/', express.static(__dirname + '/public'));
 app_https.use('/js', express.static(__dirname + '/public/js'));
 app_https.use('/css', express.static(__dirname + '/public/css'));
 app_https.use('/images', express.static(__dirname + '/public/images', {maxage: '1h'}));
